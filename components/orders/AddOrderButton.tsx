@@ -28,6 +28,7 @@ export function AddOrderButton({ customerId, customerName }: AddOrderButtonProps
                 size="sm"
                 onClick={() => setShowModal(true)}
                 leftIcon={<Plus className="w-4 h-4" />}
+                iconOnlyMobile
             >
                 {t('orders.add_btn')}
             </GlassButton>

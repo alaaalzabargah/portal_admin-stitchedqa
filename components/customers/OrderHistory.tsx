@@ -112,61 +112,73 @@ export function OrderHistory({ customerId }: { customerId: string }) {
                         {/* Order Header - Clickable */}
                         <button
                             onClick={() => toggleOrder(order.id)}
-                            className="w-full p-4 sm:p-5 flex items-center gap-3 sm:gap-4 text-left hover:bg-white/30 transition-colors"
+                            className="w-full p-4 sm:p-5 text-left hover:bg-white/30 transition-colors"
                         >
-                            {/* Order Icon */}
-                            <div
-                                className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl flex items-center justify-center flex-shrink-0"
-                                style={{
-                                    background: `linear-gradient(135deg, ${themeConfig.colors.gradientFrom}20, ${themeConfig.colors.gradientTo}30)`,
-                                    backdropFilter: 'blur(8px)'
-                                }}
-                            >
-                                <Package className="w-6 h-6 sm:w-7 sm:h-7" style={{ color: themeConfig.colors.accent }} />
-                            </div>
+                            <div className="flex items-start gap-3 sm:gap-4">
+                                {/* Left Column: Icon + Status */}
+                                <div className="flex flex-col items-center gap-2 flex-shrink-0">
+                                    {/* Order Icon */}
+                                    <div
+                                        className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl flex items-center justify-center"
+                                        style={{
+                                            background: `linear-gradient(135deg, ${themeConfig.colors.gradientFrom}20, ${themeConfig.colors.gradientTo}30)`,
+                                            backdropFilter: 'blur(8px)'
+                                        }}
+                                    >
+                                        <Package className="w-6 h-6 sm:w-7 sm:h-7" style={{ color: themeConfig.colors.accent }} />
+                                    </div>
 
-                            {/* Order Info */}
-                            <div className="flex-1 min-w-0">
-                                <div className="flex items-center gap-2 flex-wrap mb-1">
-                                    <span className="font-bold text-primary dark:text-white text-base sm:text-lg font-mono">
-                                        #{order.id.slice(-8)}
-                                    </span>
+                                    {/* Status Badge - Under Icon */}
                                     <span className={cn(
-                                        "px-2.5 py-1 rounded-full text-[10px] uppercase font-bold tracking-wide",
+                                        "px-2.5 py-1 rounded-full text-[10px] uppercase font-bold tracking-wide whitespace-nowrap",
                                         getStatusColor(order.status)
                                     )}>
                                         {order.status}
                                     </span>
                                 </div>
-                                <p className="text-xs sm:text-sm text-muted-foreground">
-                                    {new Date(order.created_at).toLocaleDateString(undefined, {
-                                        day: 'numeric',
-                                        month: 'short',
-                                        year: 'numeric'
-                                    })}
-                                    {itemCount > 0 && (
-                                        <span className="ml-2">• {itemCount} item{itemCount !== 1 ? 's' : ''}</span>
-                                    )}
-                                </p>
-                            </div>
 
-                            {/* Total & Expand */}
-                            <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
-                                <div className="text-right">
-                                    <span
-                                        className="font-bold font-mono text-base sm:text-lg block"
+                                {/* Right Column: Order Info - Vertical Stack */}
+                                <div className="flex-1 min-w-0 space-y-1">
+                                    {/* Order Number */}
+                                    <div className="font-bold text-primary dark:text-white text-base sm:text-lg font-mono">
+                                        #{order.id.slice(-8)}
+                                    </div>
+
+                                    {/* Price */}
+                                    <div
+                                        className="font-bold font-mono text-base sm:text-lg"
                                         style={{ color: themeConfig.colors.accent }}
                                     >
                                         {formatCurrency(order.total_amount_minor, order.currency)}
-                                    </span>
+                                    </div>
+
+                                    {/* Shipping */}
                                     {order.total_shipping_minor && order.total_shipping_minor > 0 && (
-                                        <span className="text-[10px] text-muted-foreground">
-                                            (incl. {formatCurrency(order.total_shipping_minor, order.currency)} shipping)
-                                        </span>
+                                        <div className="text-xs sm:text-sm text-muted-foreground">
+                                            incl. {formatCurrency(order.total_shipping_minor, order.currency)} ship
+                                        </div>
                                     )}
+
+                                    {/* Item Count */}
+                                    {itemCount > 0 && (
+                                        <div className="text-xs sm:text-sm text-muted-foreground">
+                                            • {itemCount} item{itemCount !== 1 ? 's' : ''}
+                                        </div>
+                                    )}
+
+                                    {/* Date */}
+                                    <div className="text-xs sm:text-sm text-muted-foreground">
+                                        {new Date(order.created_at).toLocaleDateString(undefined, {
+                                            day: 'numeric',
+                                            month: 'short',
+                                            year: 'numeric'
+                                        })}
+                                    </div>
                                 </div>
+
+                                {/* Expand Icon */}
                                 <ChevronDown className={cn(
-                                    "w-5 h-5 text-muted-foreground transition-transform",
+                                    "w-5 h-5 text-muted-foreground transition-transform flex-shrink-0 mt-1",
                                     isExpanded && "rotate-180"
                                 )} />
                             </div>
@@ -192,7 +204,7 @@ export function OrderHistory({ customerId }: { customerId: string }) {
                                         {order.order_items.map((item) => (
                                             <div
                                                 key={item.id}
-                                                className="rounded-2xl p-3 sm:p-4 flex justify-between items-start gap-3 shadow-sm"
+                                                className="rounded-2xl p-3 sm:p-4 shadow-sm"
                                                 style={{
                                                     backgroundColor: 'rgba(255, 255, 255, 0.8)',
                                                     backdropFilter: 'blur(8px)',
@@ -201,36 +213,45 @@ export function OrderHistory({ customerId }: { customerId: string }) {
                                                 }}
                                             >
                                                 {/* Item Details */}
-                                                <div className="flex-1 min-w-0">
-                                                    <p className="font-semibold text-primary dark:text-white text-sm sm:text-base">
-                                                        {item.product_name}
-                                                    </p>
-                                                    <div className="flex flex-wrap gap-2 mt-1.5">
-                                                        {item.variant_title && (
-                                                            <span className="bg-white/60 dark:bg-zinc-700/60 px-2 py-0.5 rounded-full text-xs">
-                                                                {item.variant_title}
-                                                            </span>
-                                                        )}
-                                                        {item.size && (
-                                                            <span className="bg-white/60 dark:bg-zinc-700/60 px-2 py-0.5 rounded-full text-xs">
-                                                                {item.size}
-                                                            </span>
-                                                        )}
+                                                <div className="flex justify-between items-start gap-3 mb-2">
+                                                    <div className="flex-1 min-w-0">
+                                                        <p className="font-semibold text-primary dark:text-white text-sm sm:text-base">
+                                                            {item.product_name}
+                                                        </p>
                                                     </div>
-                                                </div>
-
-                                                {/* Price & Quantity */}
-                                                <div className="text-right flex-shrink-0">
+                                                    {/* Price */}
                                                     <p
-                                                        className="font-bold font-mono text-base sm:text-lg"
+                                                        className="font-bold font-mono text-base sm:text-lg flex-shrink-0"
                                                         style={{ color: themeConfig.colors.accent }}
                                                     >
                                                         {formatCurrency(item.unit_price_minor, order.currency)}
                                                     </p>
+                                                </div>
+
+                                                {/* Variant Info - Only show size/color if not in variant_title */}
+                                                <div className="flex flex-wrap gap-2">
+                                                    {item.variant_title ? (
+                                                        <span className="bg-white/60 dark:bg-zinc-700/60 px-2 py-0.5 rounded-full text-xs">
+                                                            {item.variant_title}
+                                                        </span>
+                                                    ) : (
+                                                        <>
+                                                            {item.size && (
+                                                                <span className="bg-white/60 dark:bg-zinc-700/60 px-2 py-0.5 rounded-full text-xs">
+                                                                    {item.size}
+                                                                </span>
+                                                            )}
+                                                            {item.color && (
+                                                                <span className="bg-white/60 dark:bg-zinc-700/60 px-2 py-0.5 rounded-full text-xs">
+                                                                    {item.color}
+                                                                </span>
+                                                            )}
+                                                        </>
+                                                    )}
                                                     {item.quantity > 1 && (
-                                                        <p className="text-xs text-muted-foreground mt-0.5">
+                                                        <span className="text-xs text-muted-foreground">
                                                             × {item.quantity}
-                                                        </p>
+                                                        </span>
                                                     )}
                                                 </div>
                                             </div>
