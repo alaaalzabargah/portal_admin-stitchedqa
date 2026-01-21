@@ -453,67 +453,86 @@ export function extractCustomerMeasurements(
 ): ExtractedCustomerMeasurements | undefined {
     if (!lineItems || lineItems.length === 0) return undefined;
 
-    // Standard sizes valid values
-    const validSizes = ['xs', 's', 'm', 'l', 'xl', '2xl', '3xl'];
+    // Standard sizes valid values (lowercase for comparison)
+    const validSizes = ['xs', 's', 'm', 'l', 'xl', 'xxl', '2xl', '3xl', '4xl'];
 
     for (const item of lineItems) {
         let measurementType: 'standard' | 'custom' = 'standard';
-        let standardSize: any = null;
+        let standardSize: string | null = null;
         const custom: any = {};
+        let hasBodyMeasurements = false; // Track if we have actual body measurements
 
         // 1. Check variant title for standard size
         const { size } = parseVariantTitle(item.variant_title);
         if (size && validSizes.includes(size.toLowerCase())) {
-            standardSize = size.toLowerCase();
+            // Store in uppercase for display
+            standardSize = size.toUpperCase();
         }
 
         // 2. Check properties for measurements
         const measurements = extractMeasurements(item.properties as any);
         if (measurements) {
             // Map common keys to DB columns
-            const map: Record<string, string> = {
+            const bodyMeasurementMap: Record<string, string> = {
                 'bust': 'bust_cm',
                 'waist': 'waist_cm',
                 'hip': 'hips_cm',
                 'hips': 'hips_cm',
-                'sleeve': 'sleeve_length_cm',
-                'sleeve length': 'sleeve_length_cm',
-                'length': 'product_length_cm',
-                'Length': 'product_length_cm',
                 'shoulder': 'shoulder_width_cm',
                 'shoulder width': 'shoulder_width_cm',
                 'arm hole': 'arm_hole_cm',
                 'height': 'height_cm',
+            };
+
+            // These are common for both standard and custom
+            const commonFieldsMap: Record<string, string> = {
+                'sleeve': 'sleeve_length_cm',
+                'sleeve length': 'sleeve_length_cm',
+                'length': 'product_length_cm',
+                'Length': 'product_length_cm',
                 'additional comments': 'additional_comments',
                 'comments': 'additional_comments',
             };
 
             for (const [key, val] of Object.entries(measurements)) {
-                // Find matching column
                 const lowerKey = key.toLowerCase().trim();
-                let matchedCol: string | null = null;
 
-                // Direct match or partial match
-                for (const [search, col] of Object.entries(map)) {
+                // Check for body measurements (indicates custom sizing)
+                for (const [search, col] of Object.entries(bodyMeasurementMap)) {
                     if (lowerKey === search || lowerKey.includes(search)) {
-                        matchedCol = col;
+                        const numVal = parseFloat(val);
+                        if (!isNaN(numVal)) {
+                            custom[col] = numVal;
+                            hasBodyMeasurements = true; // Found an actual body measurement
+                        }
                         break;
                     }
                 }
 
-                if (matchedCol) {
-                    const numVal = parseFloat(val);
-                    if (!isNaN(numVal)) {
-                        custom[matchedCol] = numVal;
-                        measurementType = 'custom'; // Switch to custom if we find measurements
+                // Check for common fields (sleeve, length, comments)
+                for (const [search, col] of Object.entries(commonFieldsMap)) {
+                    if (lowerKey === search || lowerKey.includes(search)) {
+                        if (col === 'additional_comments') {
+                            custom[col] = val;
+                        } else {
+                            const numVal = parseFloat(val);
+                            if (!isNaN(numVal)) {
+                                custom[col] = numVal;
+                            }
+                        }
+                        break;
                     }
                 }
             }
         }
 
-        // If we found meaningful data, return it
-        // (Prioritize items with custom measurements)
-        if (measurementType === 'custom' || standardSize) {
+        // Only switch to custom if we have actual body measurements
+        if (hasBodyMeasurements) {
+            measurementType = 'custom';
+        }
+
+        // If we found a standard size OR body measurements, return
+        if (standardSize || hasBodyMeasurements) {
             return {
                 measurement_type: measurementType,
                 standard_size: standardSize,
