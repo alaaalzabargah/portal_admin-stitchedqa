@@ -453,7 +453,8 @@ export function extractCustomerMeasurements(
 ): ExtractedCustomerMeasurements | undefined {
     if (!lineItems || lineItems.length === 0) return undefined;
 
-    // Standard sizes valid values (lowercase for comparison)
+    // Standard sizes valid values (lowercase for comparison AND storage)
+    // Must match DB constraint: customers_standard_size_check
     const validSizes = ['xs', 's', 'm', 'l', 'xl', 'xxl', '2xl', '3xl', '4xl'];
 
     for (const item of lineItems) {
@@ -465,8 +466,8 @@ export function extractCustomerMeasurements(
         // 1. Check variant title for standard size
         const { size } = parseVariantTitle(item.variant_title);
         if (size && validSizes.includes(size.toLowerCase())) {
-            // Store in uppercase for display
-            standardSize = size.toUpperCase();
+            // Store in LOWERCASE to match DB constraint
+            standardSize = size.toLowerCase();
         }
 
         // 2. Check properties for measurements

@@ -217,10 +217,30 @@ export async function findOrCreateCustomer(
             }
         }
 
+        // Check if external_id already exists (to avoid unique constraint failure)
+        // If it does, we'll create a new customer WITHOUT linking to Shopify
+        // This allows same Shopify account to have multiple phone numbers
+        let useExternalId: string | null = shopifyCustomerId || null;
+        if (shopifyCustomerId) {
+            const { data: existingByExtId } = await supabase
+                .from('customers')
+                .select('id, phone')
+                .eq('external_id', shopifyCustomerId)
+                .single();
+
+            if (existingByExtId) {
+                logger.info('[CREATE] External ID already exists with different phone - creating without linking', {
+                    existingPhone: maskPhone(existingByExtId.phone),
+                    newPhone: maskPhone(phone)
+                });
+                useExternalId = null; // Don't link to Shopify - allow new customer
+            }
+        }
+
         const { data: newCustomer, error } = await supabase
             .from('customers')
             .insert({
-                external_id: shopifyCustomerId || null,
+                external_id: useExternalId,
                 full_name: customerInfo.fullName || 'Shopify Customer',
                 phone: phone,
                 email: customerInfo.email,
@@ -247,6 +267,7 @@ export async function findOrCreateCustomer(
         if (error) {
             // Handle duplicate phone race condition
             if (error.code === '23505') {
+                logger.info('[CREATE] Duplicate constraint hit - finding existing customer by phone');
                 const { data: byPhone } = await supabase
                     .from('customers')
                     .select('id')
@@ -254,8 +275,6 @@ export async function findOrCreateCustomer(
                     .single();
                 return byPhone?.id || null;
             }
-            // Handle duplicate email (if we missed it in query or race condition)
-            // (Only if email column is unique, which it might not be in schema, but good to check)
 
             logger.warn('Failed to create customer', { error: error.message });
             return null;
