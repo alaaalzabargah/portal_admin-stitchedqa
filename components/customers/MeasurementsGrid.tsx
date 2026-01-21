@@ -150,10 +150,10 @@ export function MeasurementsGrid({ customer: initialCustomer, orders = [], dict 
         }
     }
 
-    // Build measurements for display
+    // Build measurements for display (showing as inches)
     const commonMeasurements: Array<{ id: string; label: string; value: number | undefined; unit: string; primary?: boolean }> = [
-        { id: 'sleeve', label: dict.customer_details?.sleeve || 'Sleeve', value: customer.sleeve_length_cm, unit: 'cm' },
-        { id: 'length', label: dict.customer_details?.length || 'Length', value: customer.product_length_cm, unit: 'cm' },
+        { id: 'sleeve', label: dict.customer_details?.sleeve || 'Sleeve', value: customer.sleeve_length_cm, unit: 'in' },
+        { id: 'length', label: dict.customer_details?.length || 'Length', value: customer.product_length_cm, unit: 'in' },
     ].filter(m => m.value)
 
     const measurements = isStandardSize
@@ -162,13 +162,13 @@ export function MeasurementsGrid({ customer: initialCustomer, orders = [], dict 
             ...commonMeasurements
         ].filter(m => m.value)
         : [
-            { id: 'height', label: dict.customer_details?.height || 'Height', value: customer.height_cm, unit: 'cm', primary: true },
+            { id: 'height', label: dict.customer_details?.height || 'Height', value: customer.height_cm, unit: 'in', primary: true },
             ...commonMeasurements,
-            { id: 'shoulder', label: dict.customer_details?.shoulder || 'Shoulder', value: customer.shoulder_width_cm, unit: 'cm' },
-            { id: 'bust', label: dict.customer_details?.bust || 'Bust', value: customer.bust_cm, unit: 'cm' },
-            { id: 'waist', label: dict.customer_details?.waist || 'Waist', value: customer.waist_cm, unit: 'cm' },
-            { id: 'hips', label: dict.customer_details?.hips || 'Hips', value: customer.hips_cm, unit: 'cm' },
-            { id: 'armhole', label: dict.customer_details?.armhole || 'Arm Hole', value: customer.arm_hole_cm, unit: 'cm' },
+            { id: 'shoulder', label: dict.customer_details?.shoulder || 'Shoulder', value: customer.shoulder_width_cm, unit: 'in' },
+            { id: 'bust', label: dict.customer_details?.bust || 'Bust', value: customer.bust_cm, unit: 'in' },
+            { id: 'waist', label: dict.customer_details?.waist || 'Waist', value: customer.waist_cm, unit: 'in' },
+            { id: 'hips', label: dict.customer_details?.hips || 'Hips', value: customer.hips_cm, unit: 'in' },
+            { id: 'armhole', label: dict.customer_details?.armhole || 'Arm Hole', value: customer.arm_hole_cm, unit: 'in' },
         ].filter(m => m.value)
 
     const primaryMeasurement = measurements.find(m => m.primary)
@@ -222,8 +222,8 @@ export function MeasurementsGrid({ customer: initialCustomer, orders = [], dict 
                         <button
                             onClick={handleEditToggle}
                             className={`p-2 rounded-lg transition-all ${isEditing
-                                    ? 'bg-red-100 text-red-600 hover:bg-red-200'
-                                    : 'bg-black/5 text-gray-600 hover:bg-black/10'
+                                ? 'bg-red-100 text-red-600 hover:bg-red-200'
+                                : 'bg-black/5 text-gray-600 hover:bg-black/10'
                                 }`}
                         >
                             {isEditing ? <X className="w-4 h-4" /> : <Pencil className="w-4 h-4" />}
@@ -253,8 +253,8 @@ export function MeasurementsGrid({ customer: initialCustomer, orders = [], dict 
                             <button
                                 onClick={() => setEditForm(prev => ({ ...prev, measurement_type: 'standard' }))}
                                 className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-all ${editForm.measurement_type === 'standard'
-                                        ? 'bg-blue-500 text-white'
-                                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                    ? 'bg-blue-500 text-white'
+                                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                                     }`}
                             >
                                 Standard Size
@@ -262,8 +262,8 @@ export function MeasurementsGrid({ customer: initialCustomer, orders = [], dict 
                             <button
                                 onClick={() => setEditForm(prev => ({ ...prev, measurement_type: 'custom' }))}
                                 className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-all ${editForm.measurement_type === 'custom'
-                                        ? 'bg-blue-500 text-white'
-                                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                    ? 'bg-blue-500 text-white'
+                                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                                     }`}
                             >
                                 Custom
@@ -284,8 +284,8 @@ export function MeasurementsGrid({ customer: initialCustomer, orders = [], dict 
                                             key={size}
                                             onClick={() => setEditForm(prev => ({ ...prev, standard_size: size }))}
                                             className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${editForm.standard_size === size
-                                                    ? 'bg-blue-500 text-white'
-                                                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                                ? 'bg-blue-500 text-white'
+                                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                                                 }`}
                                         >
                                             {size}
@@ -293,20 +293,20 @@ export function MeasurementsGrid({ customer: initialCustomer, orders = [], dict 
                                     ))}
                                 </div>
                             </div>
-                            <EditField label="Sleeve (cm)" value={editForm.sleeve_length_cm} onChange={v => setEditForm(prev => ({ ...prev, sleeve_length_cm: v }))} />
-                            <EditField label="Length (cm)" value={editForm.product_length_cm} onChange={v => setEditForm(prev => ({ ...prev, product_length_cm: v }))} />
+                            <EditField label="Sleeve (in)" value={editForm.sleeve_length_cm} onChange={v => setEditForm(prev => ({ ...prev, sleeve_length_cm: v }))} />
+                            <EditField label="Length (in)" value={editForm.product_length_cm} onChange={v => setEditForm(prev => ({ ...prev, product_length_cm: v }))} />
                         </div>
                     ) : (
                         /* Custom Measurement Fields */
                         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                            <EditField label="Height (cm)" value={editForm.height_cm} onChange={v => setEditForm(prev => ({ ...prev, height_cm: v }))} />
-                            <EditField label="Sleeve (cm)" value={editForm.sleeve_length_cm} onChange={v => setEditForm(prev => ({ ...prev, sleeve_length_cm: v }))} />
-                            <EditField label="Length (cm)" value={editForm.product_length_cm} onChange={v => setEditForm(prev => ({ ...prev, product_length_cm: v }))} />
-                            <EditField label="Shoulder (cm)" value={editForm.shoulder_width_cm} onChange={v => setEditForm(prev => ({ ...prev, shoulder_width_cm: v }))} />
-                            <EditField label="Bust (cm)" value={editForm.bust_cm} onChange={v => setEditForm(prev => ({ ...prev, bust_cm: v }))} />
-                            <EditField label="Waist (cm)" value={editForm.waist_cm} onChange={v => setEditForm(prev => ({ ...prev, waist_cm: v }))} />
-                            <EditField label="Hips (cm)" value={editForm.hips_cm} onChange={v => setEditForm(prev => ({ ...prev, hips_cm: v }))} />
-                            <EditField label="Arm Hole (cm)" value={editForm.arm_hole_cm} onChange={v => setEditForm(prev => ({ ...prev, arm_hole_cm: v }))} />
+                            <EditField label="Height (in)" value={editForm.height_cm} onChange={v => setEditForm(prev => ({ ...prev, height_cm: v }))} />
+                            <EditField label="Sleeve (in)" value={editForm.sleeve_length_cm} onChange={v => setEditForm(prev => ({ ...prev, sleeve_length_cm: v }))} />
+                            <EditField label="Length (in)" value={editForm.product_length_cm} onChange={v => setEditForm(prev => ({ ...prev, product_length_cm: v }))} />
+                            <EditField label="Shoulder (in)" value={editForm.shoulder_width_cm} onChange={v => setEditForm(prev => ({ ...prev, shoulder_width_cm: v }))} />
+                            <EditField label="Bust (in)" value={editForm.bust_cm} onChange={v => setEditForm(prev => ({ ...prev, bust_cm: v }))} />
+                            <EditField label="Waist (in)" value={editForm.waist_cm} onChange={v => setEditForm(prev => ({ ...prev, waist_cm: v }))} />
+                            <EditField label="Hips (in)" value={editForm.hips_cm} onChange={v => setEditForm(prev => ({ ...prev, hips_cm: v }))} />
+                            <EditField label="Arm Hole (in)" value={editForm.arm_hole_cm} onChange={v => setEditForm(prev => ({ ...prev, arm_hole_cm: v }))} />
                         </div>
                     )}
 
