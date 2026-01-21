@@ -34,6 +34,7 @@ export function DeleteCustomerButton({ customerId, confirmMessage, label }: { cu
             disabled={isDeleting}
             isLoading={isDeleting}
             leftIcon={!isDeleting ? <Trash2 className="w-4 h-4" /> : undefined}
+            iconOnlyMobile
         >
             {label}
         </GlassButton>

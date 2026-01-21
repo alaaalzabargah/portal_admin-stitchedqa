@@ -108,7 +108,7 @@ export async function POST(request: NextRequest) {
                 role,
                 display_name: display_name || email.split('@')[0],
             },
-            redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/login`
+            redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/auth/callback?type=invite`
         })
 
         if (inviteError) {

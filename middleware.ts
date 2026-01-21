@@ -54,9 +54,12 @@ export async function middleware(request: NextRequest) {
     const path = request.nextUrl.pathname;
 
     // 1. Auth Guard
-    // Public routes: /login, /public (if any), /api/webhooks (external can't have auth headers usually, but we verify signature)
+    // Public routes: /login, /forgot-password, /reset-password, /auth/callback, /api/webhooks
     const isPublicRoute =
         path === '/login' ||
+        path === '/forgot-password' ||
+        path === '/reset-password' ||
+        path.startsWith('/auth/callback') ||
         path.startsWith('/api/webhooks') ||
         path.startsWith('/_next') ||
         path.startsWith('/static');

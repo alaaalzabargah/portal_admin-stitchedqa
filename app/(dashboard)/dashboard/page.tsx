@@ -79,15 +79,15 @@ export default async function DashboardPage() {
                     {/* Total Revenue */}
                     <div className="luxury-gradient-card p-6 rounded-3xl hover:luxury-gradient-card-hover group">
                         <div className="flex items-center justify-between mb-4">
-                            <p className="text-[11px] uppercase tracking-widest text-luxury-light font-semibold">{dict.dashboard_new.revenue}</p>
-                            <div className="p-2.5 rounded-xl bg-white/20 group-hover:scale-110 transition-transform">
-                                <DollarSign className="w-5 h-5 text-white" />
+                            <p className="text-[11px] uppercase tracking-widest text-[var(--theme-primary)] font-semibold">{dict.dashboard_new.revenue}</p>
+                            <div className="p-2.5 rounded-xl bg-[var(--theme-primary)]/15 group-hover:scale-110 transition-transform">
+                                <DollarSign className="w-5 h-5 text-[var(--theme-primary)]" />
                             </div>
                         </div>
-                        <p className="text-3xl font-mono font-bold text-luxury-white tabular-nums animate-count-up">
+                        <p className="text-3xl font-mono font-bold text-gray-900 dark:text-white tabular-nums animate-count-up">
                             {formatCurrency(stats.totalRevenue)}
                         </p>
-                        <div className="mt-3 flex items-center gap-1.5 text-xs font-medium text-luxury-light bg-white/10 w-fit px-2 py-1 rounded-full">
+                        <div className="mt-3 flex items-center gap-1.5 text-xs font-medium text-[var(--theme-primary)] bg-[var(--theme-primary)]/10 w-fit px-2 py-1 rounded-full">
                             <TrendingUp className="w-3.5 h-3.5" />
                             <span>{dict.dashboard_new.all_time}</span>
                         </div>
@@ -96,15 +96,15 @@ export default async function DashboardPage() {
                     {/* Total Orders */}
                     <div className="luxury-gradient-card p-6 rounded-3xl hover:luxury-gradient-card-hover group">
                         <div className="flex items-center justify-between mb-4">
-                            <p className="text-[11px] uppercase tracking-widest text-luxury-light font-semibold">{dict.dashboard_new.orders}</p>
-                            <div className="p-2.5 rounded-xl bg-white/20 group-hover:scale-110 transition-transform">
-                                <ShoppingBag className="w-5 h-5 text-white" />
+                            <p className="text-[11px] uppercase tracking-widest text-[var(--theme-primary)] font-semibold">{dict.dashboard_new.orders}</p>
+                            <div className="p-2.5 rounded-xl bg-[var(--theme-primary)]/15 group-hover:scale-110 transition-transform">
+                                <ShoppingBag className="w-5 h-5 text-[var(--theme-primary)]" />
                             </div>
                         </div>
-                        <p className="text-3xl font-mono font-bold text-luxury-white tabular-nums animate-count-up">
+                        <p className="text-3xl font-mono font-bold text-gray-900 dark:text-white tabular-nums animate-count-up">
                             {stats.totalOrders.toLocaleString()}
                         </p>
-                        <div className="mt-3 flex items-center gap-1.5 text-xs font-medium text-luxury-light">
+                        <div className="mt-3 flex items-center gap-1.5 text-xs font-medium text-gray-600 dark:text-gray-300">
                             <span>{dict.dashboard_new.total_orders_placed}</span>
                         </div>
                     </div>
@@ -112,15 +112,15 @@ export default async function DashboardPage() {
                     {/* Total Customers */}
                     <div className="luxury-gradient-card p-6 rounded-3xl hover:luxury-gradient-card-hover group">
                         <div className="flex items-center justify-between mb-4">
-                            <p className="text-[11px] uppercase tracking-widest text-luxury-light font-semibold">{dict.dashboard_new.customers}</p>
-                            <div className="p-2.5 rounded-xl bg-white/20 group-hover:scale-110 transition-transform">
-                                <Users className="w-5 h-5 text-white" />
+                            <p className="text-[11px] uppercase tracking-widest text-[var(--theme-primary)] font-semibold">{dict.dashboard_new.customers}</p>
+                            <div className="p-2.5 rounded-xl bg-[var(--theme-primary)]/15 group-hover:scale-110 transition-transform">
+                                <Users className="w-5 h-5 text-[var(--theme-primary)]" />
                             </div>
                         </div>
-                        <p className="text-3xl font-mono font-bold text-luxury-white tabular-nums animate-count-up">
+                        <p className="text-3xl font-mono font-bold text-gray-900 dark:text-white tabular-nums animate-count-up">
                             {stats.totalCustomers.toLocaleString()}
                         </p>
-                        <div className="mt-3 flex items-center gap-1.5 text-xs font-medium text-luxury-light">
+                        <div className="mt-3 flex items-center gap-1.5 text-xs font-medium text-gray-600 dark:text-gray-300">
                             <span>{dict.dashboard_new.active_in_db}</span>
                         </div>
                     </div>

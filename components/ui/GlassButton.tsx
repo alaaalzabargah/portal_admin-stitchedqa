@@ -3,17 +3,27 @@ import { Loader2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 export interface GlassButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-    variant?: 'primary' | 'secondary' | 'ghost' | 'danger' | 'success' | 'silver' | 'gold' | 'bronze'
-    size?: 'sm' | 'md' | 'lg'
+    variant?: 'primary' | 'secondary' | 'ghost' | 'danger' | 'success' | 'silver' | 'gold' | 'bronze' | 'accent'
+    size?: 'sm' | 'md' | 'lg' | 'icon'
     isLoading?: boolean
     leftIcon?: React.ReactNode
     rightIcon?: React.ReactNode
+    /** Hide text on mobile, show only icon */
+    iconOnlyMobile?: boolean
 }
 
 const sizeClasses = {
     sm: 'px-3 py-1.5 text-sm',
     md: 'px-4 py-2 text-base',
     lg: 'px-6 py-3 text-lg',
+    icon: 'p-2',
+}
+
+const iconOnlySizeClasses = {
+    sm: 'sm:px-3 sm:py-1.5 px-2 py-2',
+    md: 'sm:px-4 sm:py-2 px-2.5 py-2.5',
+    lg: 'sm:px-6 sm:py-3 px-3 py-3',
+    icon: 'p-2',
 }
 
 export const GlassButton = React.forwardRef<HTMLButtonElement, GlassButtonProps>(
@@ -24,6 +34,7 @@ export const GlassButton = React.forwardRef<HTMLButtonElement, GlassButtonProps>
             isLoading = false,
             leftIcon,
             rightIcon,
+            iconOnlyMobile = false,
             className,
             children,
             disabled,
@@ -45,8 +56,46 @@ export const GlassButton = React.forwardRef<HTMLButtonElement, GlassButtonProps>
             'transition-all duration-200',
             'focus:outline-none focus:ring-2 focus:ring-offset-2',
             'disabled:opacity-50 disabled:cursor-not-allowed',
-            sizeClasses[size]
+            iconOnlyMobile ? iconOnlySizeClasses[size] : sizeClasses[size]
         )
+
+        // Text element that hides on mobile when iconOnlyMobile is true
+        const textElement = children ? (
+            <span className={iconOnlyMobile ? 'hidden sm:inline' : undefined}>
+                {children}
+            </span>
+        ) : null
+
+        // ACCENT - Gold/Premium gradient
+        if (resolvedVariant === 'accent') {
+            return (
+                <button
+                    ref={ref}
+                    className={cn(
+                        baseClasses,
+                        "bg-gradient-to-br from-amber-500 via-yellow-600 to-amber-700 text-white",
+                        "shadow-lg shadow-amber-500/25",
+                        "hover:shadow-xl hover:shadow-amber-500/30 hover:scale-[1.02]",
+                        "focus:ring-amber-500/50",
+                        className
+                    )}
+                    disabled={disabled || isLoadingState}
+                    {...props}
+                >
+                    {isLoadingState ? (
+                        <>
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                            {textElement}
+                        </>
+                    ) : (
+                        <>
+                            {iconElement && <span className="flex-shrink-0">{iconElement}</span>}
+                            {textElement}
+                        </>
+                    )}
+                </button>
+            )
+        }
 
         // PRIMARY - Luxury gradient background
         if (resolvedVariant === 'primary') {
@@ -65,12 +114,12 @@ export const GlassButton = React.forwardRef<HTMLButtonElement, GlassButtonProps>
                     {isLoadingState ? (
                         <>
                             <Loader2 className="w-4 h-4 animate-spin" />
-                            <span>{children}</span>
+                            {textElement}
                         </>
                     ) : (
                         <>
                             {iconElement && <span className="flex-shrink-0">{iconElement}</span>}
-                            <span>{children}</span>
+                            {textElement}
                         </>
                     )}
                 </button>
@@ -96,12 +145,12 @@ export const GlassButton = React.forwardRef<HTMLButtonElement, GlassButtonProps>
                     {isLoadingState ? (
                         <>
                             <Loader2 className="w-4 h-4 animate-spin" />
-                            <span>{children}</span>
+                            {textElement}
                         </>
                     ) : (
                         <>
                             {iconElement && <span className="flex-shrink-0">{iconElement}</span>}
-                            <span>{children}</span>
+                            {textElement}
                         </>
                     )}
                 </button>
@@ -126,12 +175,12 @@ export const GlassButton = React.forwardRef<HTMLButtonElement, GlassButtonProps>
                     {isLoadingState ? (
                         <>
                             <Loader2 className="w-4 h-4 animate-spin" />
-                            <span>{children}</span>
+                            {textElement}
                         </>
                     ) : (
                         <>
                             {iconElement && <span className="flex-shrink-0">{iconElement}</span>}
-                            <span>{children}</span>
+                            {textElement}
                         </>
                     )}
                 </button>
@@ -156,12 +205,12 @@ export const GlassButton = React.forwardRef<HTMLButtonElement, GlassButtonProps>
                     {isLoadingState ? (
                         <>
                             <Loader2 className="w-4 h-4 animate-spin" />
-                            <span>{children}</span>
+                            {textElement}
                         </>
                     ) : (
                         <>
                             {iconElement && <span className="flex-shrink-0">{iconElement}</span>}
-                            <span>{children}</span>
+                            {textElement}
                         </>
                     )}
                 </button>
@@ -186,12 +235,12 @@ export const GlassButton = React.forwardRef<HTMLButtonElement, GlassButtonProps>
                     {isLoadingState ? (
                         <>
                             <Loader2 className="w-4 h-4 animate-spin" />
-                            <span>{children}</span>
+                            {textElement}
                         </>
                     ) : (
                         <>
                             {iconElement && <span className="flex-shrink-0">{iconElement}</span>}
-                            <span>{children}</span>
+                            {textElement}
                         </>
                     )}
                 </button>
@@ -209,12 +258,12 @@ export const GlassButton = React.forwardRef<HTMLButtonElement, GlassButtonProps>
                 {isLoadingState ? (
                     <>
                         <Loader2 className="w-4 h-4 animate-spin" />
-                        <span>{children}</span>
+                        {textElement}
                     </>
                 ) : (
                     <>
                         {iconElement && <span className="flex-shrink-0">{iconElement}</span>}
-                        <span>{children}</span>
+                        {textElement}
                     </>
                 )}
             </button>

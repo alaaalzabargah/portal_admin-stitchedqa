@@ -116,6 +116,17 @@ export function extractCustomerInfo(
     const isValidPhone = (p: string | null | undefined): boolean => {
         if (!p) return false;
         const cleaned = p.trim();
+
+        // Reject if contains invalid keywords (Shopify data leak)
+        const invalidKeywords = ['shop', 'http', 'www', '@', 'email', 'order', 'checkout'];
+        const lowerCleaned = cleaned.toLowerCase();
+        for (const keyword of invalidKeywords) {
+            if (lowerCleaned.includes(keyword)) {
+                console.log(`[Phone Validation] Rejected (contains "${keyword}"): "${cleaned}"`);
+                return false;
+            }
+        }
+
         // Must be at least 5 chars (relaxed from 7), at most 25 (increased)
         if (cleaned.length < 5 || cleaned.length > 25) {
             console.log(`[Phone Validation] Rejected (length): "${cleaned}" (${cleaned.length} chars)`);
@@ -159,6 +170,57 @@ export function extractCustomerInfo(
                 phone = candidate.trim();
                 break;
             }
+        }
+    }
+
+    // Add country code to phone if missing
+    if (phone && !phone.startsWith('+')) {
+        // Country code mapping (ISO 3166-1 alpha-2 to dial code)
+        const countryCodeMap: Record<string, string> = {
+            // GCC Countries
+            'QA': '+974',  // Qatar
+            'SA': '+966',  // Saudi Arabia
+            'AE': '+971',  // UAE
+            'KW': '+965',  // Kuwait
+            'BH': '+973',  // Bahrain
+            'OM': '+968',  // Oman
+            // Other common countries
+            'US': '+1',
+            'GB': '+44',
+            'IN': '+91',
+            'PK': '+92',
+            'PH': '+63',
+            'EG': '+20',
+            'JO': '+962',
+            'LB': '+961',
+            'IQ': '+964',
+            'SY': '+963',
+            'YE': '+967',
+            'PS': '+970',
+            'IR': '+98',
+            'TR': '+90',
+        };
+
+        // Get country code from shipping address, billing address, or customer address
+        const countryCode =
+            shippingAddress?.country_code ||
+            (payload as any).billing_address?.country_code ||
+            customer?.default_address?.country_code ||
+            null;
+
+        if (countryCode && countryCodeMap[countryCode.toUpperCase()]) {
+            const dialCode = countryCodeMap[countryCode.toUpperCase()];
+            // Remove leading zero if present (common in local numbers)
+            const cleanedPhone = phone.replace(/^0+/, '');
+            phone = `${dialCode}${cleanedPhone}`;
+            console.log(`[Phone] Added country code: ${countryCode} -> ${phone}`);
+        } else if (countryCode) {
+            console.log(`[Phone] Unknown country code: ${countryCode}, keeping phone as-is: ${phone}`);
+        } else {
+            // Default to Qatar if no country specified (since this is a Qatar-based business)
+            const cleanedPhone = phone.replace(/^0+/, '');
+            phone = `+974${cleanedPhone}`;
+            console.log(`[Phone] No country code, defaulting to Qatar: ${phone}`);
         }
     }
 

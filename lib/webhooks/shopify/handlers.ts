@@ -219,7 +219,27 @@ export async function handleOrderCreate(
             logger.info('No measurements found in order line items');
         }
 
-        // Find or create customer
+        // Check if this is a paid order - only create customer for paid orders or if we have valid phone
+        const isPaidOrder = order.financial_status === 'paid';
+        const hasValidPhone = customerInfo.phone &&
+            !customerInfo.phone.toLowerCase().includes('shop') &&
+            !customerInfo.phone.startsWith('guest:') &&
+            !customerInfo.phone.startsWith('unknown:') &&
+            customerInfo.phone.replace(/\D/g, '').length >= 5;
+
+        // Skip customer creation if no valid phone AND not a paid order
+        if (!hasValidPhone && !isPaidOrder) {
+            logger.warn('Skipping customer creation - no valid phone and unpaid order', {
+                shopifyOrderId,
+                financialStatus: order.financial_status,
+                hasPhone: !!customerInfo.phone,
+                email: maskEmail(customerInfo.email)
+            });
+            // Still save the order for auditing, but without customer
+            return { success: true };
+        }
+
+        // Find or create customer (only if we have valid phone OR paid order)
         const customerId = await findOrCreateCustomer(
             order.customer?.id ? String(order.customer.id) : undefined,
             customerInfo,
@@ -564,13 +584,34 @@ export async function handleCustomerCreate(
             }
         }
 
+        // Validate phone - reject invalid patterns
+        const hasValidPhone = phone &&
+            !phone.toLowerCase().includes('shop') &&
+            !phone.startsWith('guest:') &&
+            !phone.startsWith('unknown:') &&
+            phone.replace(/\D/g, '').length >= 5;
+
+        // Check if customer has orders (total_spent > 0 indicates they've placed orders)
+        const hasOrders = totalSpent !== null && totalSpent > 0;
+
+        // Skip customer creation if no valid phone AND no orders
+        if (!hasValidPhone && !hasOrders) {
+            logger.warn('Skipping customer creation - no valid phone and no orders', {
+                shopifyCustomerId,
+                hasPhone: !!phone,
+                totalSpent,
+                email: maskEmail(email)
+            });
+            return { success: true };
+        }
+
         // Extract note
         const additionalComments = customer.note || null;
 
-        // Upsert customer directly using data layer
+        // Upsert customer directly using data layer (only if valid phone OR has orders)
         const customerId = await findOrCreateCustomer(
             shopifyCustomerId,
-            { email, fullName, phone, totalSpent, additionalComments },
+            { email, fullName, phone: hasValidPhone ? phone : null, totalSpent, additionalComments },
             logger
         );
 
