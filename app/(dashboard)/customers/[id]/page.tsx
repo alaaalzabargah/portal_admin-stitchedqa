@@ -22,7 +22,7 @@ export default async function CustomerDetailsPage({ params }: PageProps) {
     const supabase = await createClient()
 
     const cookieStore = await cookies()
-    const locale = (cookieStore.get('NEXT_LOCALE')?.value || 'ar') as 'ar' | 'en'
+    const locale = (cookieStore.get('NEXT_LOCALE')?.value || 'en') as 'ar' | 'en'
     const dict = await getDictionary(locale)
 
     // Parallel data fetching

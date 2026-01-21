@@ -56,7 +56,7 @@ export default async function DashboardPage() {
     const stats = await getStats()
 
     const cookieStore = await cookies()
-    const locale = (cookieStore.get('NEXT_LOCALE')?.value || 'ar') as 'ar' | 'en'
+    const locale = (cookieStore.get('NEXT_LOCALE')?.value || 'en') as 'ar' | 'en'
     const dict = await getDictionary(locale)
 
     const firstName = user?.email?.split('@')[0] || 'there'

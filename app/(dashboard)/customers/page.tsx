@@ -16,7 +16,7 @@ export default async function CustomersPage({
     const query = params?.q || ''
 
     const cookieStore = await cookies()
-    const locale = (cookieStore.get('NEXT_LOCALE')?.value || 'ar') as 'ar' | 'en'
+    const locale = (cookieStore.get('NEXT_LOCALE')?.value || 'en') as 'ar' | 'en'
     const dict = await getDictionary(locale)
 
     let dbQuery = supabase
