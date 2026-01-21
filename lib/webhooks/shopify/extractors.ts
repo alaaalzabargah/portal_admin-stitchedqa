@@ -532,8 +532,10 @@ export function extractCustomerMeasurements(
             measurementType = 'custom';
         }
 
-        // If we found a standard size OR body measurements, return
-        if (standardSize || hasBodyMeasurements) {
+        // Check if we have ANY measurement data (standard size, body measurements, or common fields)
+        const hasCommonFields = Object.keys(custom).length > 0;
+
+        if (standardSize || hasBodyMeasurements || hasCommonFields) {
             return {
                 measurement_type: measurementType,
                 standard_size: standardSize,
