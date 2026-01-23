@@ -21,6 +21,8 @@ import { LanguageSwitcher } from '@/components/ui/LanguageSwitcher'
 import { useLanguage } from '@/lib/i18n/context'
 import { useAuthUser } from '@/lib/auth'
 import { createClient } from '@/lib/supabase/client'
+import { useThemeSystem } from '@/lib/themes/context'
+import { IMAGES } from '@/lib/constants/images'
 
 const SIDEBAR_COLLAPSED_KEY = 'sidebar-collapsed'
 
@@ -29,6 +31,7 @@ export function Sidebar() {
     const router = useRouter()
     const { t } = useLanguage()
     const { user, profile, loading } = useAuthUser()
+    const { themeConfig, loading: themeLoading } = useThemeSystem()
     const supabase = createClient()
 
     const [isCollapsed, setIsCollapsed] = useState(false)
@@ -90,6 +93,9 @@ export function Sidebar() {
         )
     }
 
+    // Determine text color based on theme brightness for the header part
+    const headerTextColor = themeConfig.isDark ? 'text-white' : 'text-gray-900'
+
     return (
         <aside
             className={cn(
@@ -99,26 +105,51 @@ export function Sidebar() {
                 isCollapsed ? "w-[72px]" : "w-64"
             )}
         >
-            {/* Header with Logo & Collapse Toggle */}
-            <div className={cn(
-                "h-16 flex items-center border-b border-white/20",
-                isCollapsed ? "justify-center px-2" : "justify-between px-4"
-            )}>
+            {/* Header with Logo & Collapse Toggle - Dynamic Background */}
+            <div
+                className={cn(
+                    "h-20 flex items-center border-b border-white/10",
+                    isCollapsed ? "justify-center px-2" : "justify-between px-6"
+                )}
+                style={{
+                    background: themeLoading
+                        ? undefined
+                        : `linear-gradient(135deg, ${themeConfig.colors.gradientFrom}, ${themeConfig.colors.gradientVia}, ${themeConfig.colors.gradientTo})`
+                }}
+            >
                 {!isCollapsed && (
                     <Link href="/dashboard" className="flex items-center gap-2">
-                        <div className="w-8 h-8 rounded-lg bg-primary dark:bg-white flex items-center justify-center">
-                            <span className="text-white dark:text-primary font-bold text-sm">S</span>
-                        </div>
-                        <span className="font-semibold text-primary dark:text-white tracking-tight">
-                            STITCHED
-                        </span>
+                        <img
+                            src={IMAGES.LOGO}
+                            alt="STITCHED"
+                            className={cn(
+                                "h-12 w-auto object-contain",
+                                // If theme is dark, use original logo (assuming it's light/white). 
+                                // If theme is light, invert it to be dark.
+                                // Adjust this logic based on your actual logo color.
+                                // Assuming uploaded logo is black text:
+                                themeConfig.isDark ? "invert brightness-0 invert" : "brightness-0"
+                            )}
+                            style={{
+                                imageRendering: 'auto',
+                                // Example override if needed: filter: themeConfig.isDark ? 'invert(1)' : 'none'
+                                filter: themeConfig.isDark ? 'brightness(0) invert(1)' : 'brightness(0)'
+                            }}
+                        />
                     </Link>
                 )}
 
                 {isCollapsed && (
                     <Link href="/dashboard">
-                        <div className="w-10 h-10 rounded-xl bg-primary dark:bg-white flex items-center justify-center">
-                            <span className="text-white dark:text-primary font-bold text-lg">S</span>
+                        <div className="w-12 h-12 flex items-center justify-center">
+                            <img
+                                src={IMAGES.LOGO}
+                                alt="S"
+                                className="h-8 w-auto object-contain"
+                                style={{
+                                    filter: themeConfig.isDark ? 'brightness(0) invert(1)' : 'brightness(0)'
+                                }}
+                            />
                         </div>
                     </Link>
                 )}
@@ -126,10 +157,15 @@ export function Sidebar() {
                 {!isCollapsed && (
                     <button
                         onClick={toggleCollapsed}
-                        className="p-2 rounded-lg hover:bg-sand-100 dark:hover:bg-zinc-800 transition-colors text-muted-foreground"
+                        className={cn(
+                            "p-2 rounded-lg transition-colors",
+                            themeConfig.isDark
+                                ? "text-white/70 hover:bg-white/10 hover:text-white"
+                                : "text-black/60 hover:bg-black/5 hover:text-black"
+                        )}
                         title="Collapse sidebar"
                     >
-                        <PanelLeftClose className="w-4 h-4" />
+                        <PanelLeftClose className="w-5 h-5" />
                     </button>
                 )}
             </div>

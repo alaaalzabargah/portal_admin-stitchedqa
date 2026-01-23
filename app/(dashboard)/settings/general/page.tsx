@@ -2,19 +2,12 @@
 
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { Save, Loader2, CheckCircle, AlertCircle, Plus, Trash2, Edit2, X, Palette, Lock } from 'lucide-react'
+import { Loader2, CheckCircle, AlertCircle, Plus, Trash2, Edit2, X, Palette, Lock } from 'lucide-react'
 import { ThemeSelector } from '@/components/settings/ThemeSelector'
 import {
-    getGeneralSettings,
-    updateGeneralSettings,
-    getAllSystemSettings,
-    updateSystemSetting,
     getLoyaltyTiers,
     upsertLoyaltyTier,
     deleteLoyaltyTier,
-    GeneralSettings,
-    SystemSetting,
-    MeasurementUnits,
     LoyaltyTier
 } from '@/lib/settings'
 import { recalculateCustomerTiersAction } from '../actions'
@@ -31,8 +24,6 @@ export default function GeneralSettingsPage() {
     const dialog = useDialog()
 
     // State
-    const [generalSettings, setGeneralSettings] = useState<GeneralSettings | null>(null)
-    const [units, setUnits] = useState<MeasurementUnits | null>(null)
     const [tiers, setTiers] = useState<LoyaltyTier[]>([])
 
     // Loading States
@@ -50,21 +41,8 @@ export default function GeneralSettingsPage() {
     const loadData = async () => {
         setLoading(true)
         try {
-            const [generalData, settingsData, tiersData] = await Promise.all([
-                getGeneralSettings(supabase),
-                getAllSystemSettings(supabase),
-                getLoyaltyTiers(supabase)
-            ])
-
-            if (generalData) setGeneralSettings(generalData)
+            const tiersData = await getLoyaltyTiers(supabase)
             setTiers(tiersData)
-
-            // Parse system settings
-            settingsData.forEach(setting => {
-                if (setting.key === 'units.measurement') {
-                    setUnits(setting.value as MeasurementUnits)
-                }
-            })
         } catch (error) {
             console.error('Error loading settings:', error)
             setMessage({ type: 'error', text: 'Failed to load settings' })
@@ -78,52 +56,6 @@ export default function GeneralSettingsPage() {
     }, [])
 
     // --- Handlers ---
-
-    const handleSaveGeneral = async (e: React.FormEvent<HTMLFormElement>) => {
-        e.preventDefault()
-        if (!generalSettings) return
-
-        setSaving(true)
-        setMessage(null)
-
-        const formData = new FormData(e.currentTarget)
-        const updates: Partial<GeneralSettings> = {
-            id: generalSettings.id,
-            store_name: formData.get('store_name') as string,
-            store_description: formData.get('store_description') as string,
-            contact_email: formData.get('contact_email') as string,
-            phone: formData.get('phone') as string,
-            address: formData.get('address') as string,
-        }
-
-        const success = await updateGeneralSettings(supabase, updates)
-
-        if (success) {
-            setMessage({ type: 'success', text: 'Store profile updated successfully!' })
-            await loadData()
-        } else {
-            setMessage({ type: 'error', text: 'Failed to update store profile.' })
-        }
-        setSaving(false)
-        setTimeout(() => setMessage(null), 3000)
-    }
-
-    const handleSaveUnits = async () => {
-        if (!units) return
-
-        setSaving(true)
-        setMessage(null)
-
-        const success = await updateSystemSetting(supabase, 'units.measurement', units)
-
-        if (success) {
-            setMessage({ type: 'success', text: 'Measurement units updated!' })
-        } else {
-            setMessage({ type: 'error', text: 'Failed to update units.' })
-        }
-        setSaving(false)
-        setTimeout(() => setMessage(null), 3000)
-    }
 
     const handleSaveTier = async (tier?: LoyaltyTier) => {
         const name = tier ? tier.name : newTierName
@@ -194,22 +126,13 @@ export default function GeneralSettingsPage() {
         )
     }
 
-    if (!generalSettings) {
-        return (
-            <div className="flex flex-col items-center justify-center min-h-[50vh] text-muted-foreground">
-                <AlertCircle className="w-12 h-12 mb-4" />
-                <p>Failed to load settings</p>
-            </div>
-        )
-    }
-
     return (
-        <div className="space-y-8 animate-fade-in pb-20 relative">
+        <div className="space-y-8 animate-fade-in pb-20 relative px-4 md:px-8">
             {/* Page Header */}
             <PageHeader
                 label="SETTINGS"
                 title="General Settings"
-                subtitle="Configure your store profile, appearance, and customer loyalty tiers"
+                subtitle="Configure your store appearance and customer loyalty tiers"
             />
 
             {/* Toast Notification */}
@@ -227,7 +150,7 @@ export default function GeneralSettingsPage() {
             )}
 
             <div className="max-w-3xl space-y-8">
-                {/* 0. Appearance / Theme */}
+                {/* Appearance / Theme */}
                 <section className="space-y-4">
                     <div className="flex items-center gap-3">
                         <div className="p-2 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500">
@@ -244,69 +167,7 @@ export default function GeneralSettingsPage() {
                     </div>
                 </section>
 
-                {/* 1. Store Profile */}
-                <section className="space-y-4">
-                    <div>
-                        <h2 className="text-xl font-semibold text-primary dark:text-white">{t('settings.general.store_profile')}</h2>
-                        <p className="text-sm text-muted-foreground">{t('settings.general.store_profile_subtitle')}</p>
-                    </div>
-
-                    <form onSubmit={handleSaveGeneral} className="bg-white/65 dark:bg-white/10 backdrop-blur-xl border border-white/40 dark:border-white/20 rounded-3xl p-6 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.15)] space-y-5">
-                        {/* Use existing fields logic */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div className="space-y-2">
-                                <label htmlFor="store_name" className="text-sm font-medium text-secondary dark:text-zinc-300">Store Name</label>
-                                <input id="store_name" name="store_name" defaultValue={generalSettings.store_name} required className="w-full px-4 py-2.5 rounded-xl border border-sand-200 dark:border-zinc-600 bg-white dark:bg-zinc-900 dark:text-white focus:ring-2 focus:ring-accent outline-none transition-all" />
-                            </div>
-                            <div className="space-y-2">
-                                <label htmlFor="phone" className="text-sm font-medium text-secondary dark:text-zinc-300">Phone Number</label>
-                                <input id="phone" name="phone" type="tel" defaultValue={generalSettings.phone || ''} className="w-full px-4 py-2.5 rounded-xl border border-sand-200 dark:border-zinc-600 bg-white dark:bg-zinc-900 dark:text-white focus:ring-2 focus:ring-accent outline-none transition-all" />
-                            </div>
-                            <div className="space-y-2 md:col-span-2">
-                                <label htmlFor="store_description" className="text-sm font-medium text-secondary dark:text-zinc-300">Description</label>
-                                <textarea id="store_description" name="store_description" rows={2} defaultValue={generalSettings.store_description || ''} className="w-full px-4 py-2.5 rounded-xl border border-sand-200 dark:border-zinc-600 bg-white dark:bg-zinc-900 dark:text-white focus:ring-2 focus:ring-accent outline-none transition-all resize-none" />
-                            </div>
-                            <div className="space-y-2">
-                                <label htmlFor="contact_email" className="text-sm font-medium text-secondary dark:text-zinc-300">Contact Email</label>
-                                <input id="contact_email" name="contact_email" type="email" defaultValue={generalSettings.contact_email || ''} className="w-full px-4 py-2.5 rounded-xl border border-sand-200 dark:border-zinc-600 bg-white dark:bg-zinc-900 dark:text-white focus:ring-2 focus:ring-accent outline-none transition-all" />
-                            </div>
-                            <div className="space-y-2">
-                                <label htmlFor="address" className="text-sm font-medium text-secondary dark:text-zinc-300">Address</label>
-                                <input id="address" name="address" defaultValue={generalSettings.address || ''} className="w-full px-4 py-2.5 rounded-xl border border-sand-200 dark:border-zinc-600 bg-white dark:bg-zinc-900 dark:text-white focus:ring-2 focus:ring-accent outline-none transition-all" />
-                            </div>
-                        </div>
-
-                        <div className="flex justify-end pt-2">
-                            <GlassButton type="submit" variant="accent" size="sm" isLoading={saving}>Save Profile</GlassButton>
-                        </div>
-                    </form>
-                </section>
-
-                {/* 2. Measurement Units */}
-                <section className="space-y-4">
-                    <div>
-                        <h2 className="text-xl font-semibold text-primary dark:text-white">Measurement Units</h2>
-                        <p className="text-sm text-muted-foreground">Select the default unit system for customer measurements.</p>
-                    </div>
-
-                    <div className="bg-white/65 dark:bg-white/10 backdrop-blur-xl border border-white/40 dark:border-white/20 rounded-3xl p-6 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.15)] space-y-5">
-                        <div className="flex gap-4">
-                            <label className={`flex items-center gap-3 p-4 rounded-xl bordercursor-pointer transition-all flex-1 cursor-pointer ${units?.unit === 'cm' ? 'border-accent bg-accent/5 dark:bg-accent/10 ring-1 ring-accent' : 'border-sand-200 dark:border-zinc-600 hover:border-sand-300'}`}>
-                                <input type="radio" name="unit" checked={units?.unit === 'cm'} onChange={() => { setUnits({ system: 'metric', unit: 'cm' }); handleSaveUnits() }} className="text-accent focus:ring-accent" />
-                                <span className="font-medium text-primary dark:text-white">Centimeters (cm)</span>
-                            </label>
-                            <label className={`flex items-center gap-3 p-4 rounded-xl border cursor-pointer transition-all flex-1 cursor-pointer ${units?.unit === 'in' ? 'border-accent bg-accent/5 dark:bg-accent/10 ring-1 ring-accent' : 'border-sand-200 dark:border-zinc-600 hover:border-sand-300'}`}>
-                                <input type="radio" name="unit" checked={units?.unit === 'in'} onChange={() => { setUnits({ system: 'imperial', unit: 'in' }); handleSaveUnits() }} className="text-accent focus:ring-accent" />
-                                <span className="font-medium text-primary dark:text-white">Inches (in)</span>
-                            </label>
-                        </div>
-                        <div className="flex justify-end">
-                            <GlassButton onClick={handleSaveUnits} variant="ghost" size="sm" isLoading={saving}>Update Units</GlassButton>
-                        </div>
-                    </div>
-                </section>
-
-                {/* 3. Loyalty Tiers */}
+                {/* Loyalty Tiers */}
                 <section className="space-y-4">
                     <div className="flex items-center justify-between">
                         <div>
