@@ -240,7 +240,7 @@ export default function MarketingPage() {
     const uniqueTiers = Array.from(new Set(customers.map(c => c.status_tier).filter(Boolean)))
 
     return (
-        <div className="space-y-6 animate-fade-in max-w-7xl mx-auto">
+        <div className="space-y-6 animate-fade-in max-w-7xl mx-auto px-4 md:px-8 pb-20 md:pb-8">
             {/* Header */}
             <PageHeader
                 label="MARKETING"
@@ -249,10 +249,10 @@ export default function MarketingPage() {
             />
 
             {/* Two Column Layout */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8">
 
                 {/* Left Column: Customer Selection */}
-                <div className="bg-white rounded-2xl border border-sand-200 shadow-sm p-6 space-y-4">
+                <div className="bg-white rounded-2xl border border-sand-200 shadow-sm p-4 md:p-6 space-y-4">
                     <div className="flex items-center gap-3 mb-4">
                         <div className="p-2.5 bg-primary/10 rounded-xl">
                             <Users className="w-5 h-5 text-primary" />
@@ -264,7 +264,7 @@ export default function MarketingPage() {
                     </div>
 
                     {/* Search & Filter */}
-                    <div className="flex gap-3">
+                    <div className="flex flex-col sm:flex-row gap-3">
                         <div className="relative flex-1">
                             <Search className={`absolute ${direction === 'rtl' ? 'right-3' : 'left-3'} top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground`} />
                             <input
@@ -302,7 +302,7 @@ export default function MarketingPage() {
                     </div>
 
                     {/* Customer Table */}
-                    <div className="max-h-[400px] overflow-y-auto space-y-1">
+                    <div className="max-h-[400px] overflow-y-auto space-y-1 custom-scrollbar pr-1">
                         {loading ? (
                             <div className="flex items-center justify-center py-8">
                                 <Loader2 className="w-6 h-6 animate-spin text-accent" />
@@ -326,22 +326,22 @@ export default function MarketingPage() {
                                         checked={selectedIds.has(customer.id)}
                                         onChange={() => toggleCustomer(customer.id)}
                                         onClick={(e) => e.stopPropagation()}
-                                        className="w-4 h-4 rounded border-sand-300 text-accent focus:ring-accent"
+                                        className="w-4 h-4 rounded border-sand-300 text-accent focus:ring-accent shrink-0"
                                     />
                                     <div className="flex-1 min-w-0">
-                                        <p className="font-medium text-primary truncate">
+                                        <p className="font-medium text-primary truncate text-sm md:text-base">
                                             {customer.full_name || 'Unnamed'}
                                         </p>
-                                        <p className="text-sm text-muted-foreground">
+                                        <p className="text-xs md:text-sm text-muted-foreground" dir="ltr">
                                             {customer.phone}
                                         </p>
                                     </div>
-                                    <div className="text-right">
-                                        <p className="text-xs text-muted-foreground">
+                                    <div className="text-right shrink-0">
+                                        <p className="text-[10px] md:text-xs text-muted-foreground">
                                             {customer.order_count || 0} {t('customer_details.orders')}
                                         </p>
                                         {customer.status_tier && (
-                                            <span className="text-xs px-2 py-0.5 bg-sand-100 rounded-full">
+                                            <span className="text-[10px] md:text-xs px-2 py-0.5 bg-sand-100 rounded-full inline-block mt-0.5">
                                                 {customer.status_tier}
                                             </span>
                                         )}
@@ -353,7 +353,7 @@ export default function MarketingPage() {
                 </div>
 
                 {/* Right Column: Campaign Configuration */}
-                <div className="bg-white rounded-2xl border border-sand-200 shadow-sm p-6 space-y-6">
+                <div className="bg-white rounded-2xl border border-sand-200 shadow-sm p-4 md:p-6 space-y-6">
                     <div className="flex items-center gap-3 mb-4">
                         <div className="p-2.5 bg-green-100 rounded-xl">
                             <MessageSquare className="w-5 h-5 text-green-600" />
@@ -375,7 +375,8 @@ export default function MarketingPage() {
                                 onFocus={() => savedTemplates.length > 0 && setShowSuggestions(true)}
                                 onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
                                 placeholder="e.g., hello_world"
-                                className={`w-full ${direction === 'rtl' ? 'pr-10 pl-4' : 'pl-10 pr-4'} py-3 border border-sand-200 rounded-xl focus:ring-2 focus:ring-accent focus:border-accent transition-all`}
+                                className={`w-full ${direction === 'rtl' ? 'pr-10 pl-4' : 'pl-10 pr-4'} py-3 border border-sand-200 rounded-xl focus:ring-2 focus:ring-accent focus:border-accent transition-all text-left`}
+                                dir="ltr"
                             />
 
                             {/* Custom Suggestions Dropdown */}
@@ -407,15 +408,15 @@ export default function MarketingPage() {
                                                         }}
                                                         className="flex items-center gap-3 flex-1 text-left"
                                                     >
-                                                        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center text-white text-xs font-bold">
+                                                        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center text-white text-xs font-bold shrink-0">
                                                             {index + 1}
                                                         </div>
-                                                        <div className="flex-1">
-                                                            <p className="text-sm font-medium text-primary group-hover:text-accent transition-colors">
+                                                        <div className="flex-1 min-w-0">
+                                                            <p className="text-sm font-medium text-primary group-hover:text-accent transition-colors truncate">
                                                                 {name}
                                                             </p>
                                                             <p className="text-xs text-muted-foreground">
-                                                                Click to use this template
+                                                                Click to use
                                                             </p>
                                                         </div>
                                                     </button>
@@ -428,7 +429,7 @@ export default function MarketingPage() {
                                                             localStorage.setItem('saved_templates', JSON.stringify(newTemplates))
                                                         }}
                                                         className="opacity-0 group-hover:opacity-100 p-1.5 rounded-lg hover:bg-red-50 transition-all"
-                                                        title="Remove from history"
+                                                        title="Remove"
                                                     >
                                                         <XCircle className="w-4 h-4 text-red-400 hover:text-red-600" />
                                                     </button>
@@ -452,7 +453,7 @@ export default function MarketingPage() {
                                     type="button"
                                     onClick={async () => {
                                         const confirmed = await dialog.confirm(
-                                            `Are you sure you want to clear all ${savedTemplates.length} saved template${savedTemplates.length > 1 ? 's' : ''}? This action cannot be undone.`,
+                                            `Are you sure you want to clear all ${savedTemplates.length} saved template${savedTemplates.length > 1 ? 's' : ''}?`,
                                             'Clear Template History'
                                         )
                                         if (confirmed) {
@@ -463,7 +464,7 @@ export default function MarketingPage() {
                                     className="text-red-400 hover:text-red-600 transition-colors font-medium whitespace-nowrap flex items-center gap-1"
                                 >
                                     <XCircle className="w-3 h-3" />
-                                    Clear All ({savedTemplates.length})
+                                    Clear History
                                 </button>
                             )}
                         </div>
@@ -500,7 +501,8 @@ export default function MarketingPage() {
                                 value={headerImageUrl}
                                 onChange={(e) => setHeaderImageUrl(e.target.value)}
                                 placeholder="https://example.com/promo.jpg"
-                                className={`w-full ${direction === 'rtl' ? 'pr-10 pl-4' : 'pl-10 pr-4'} py-3 border border-sand-200 rounded-xl focus:ring-2 focus:ring-accent focus:border-accent`}
+                                className={`w-full ${direction === 'rtl' ? 'pr-10 pl-4' : 'pl-10 pr-4'} py-3 border border-sand-200 rounded-xl focus:ring-2 focus:ring-accent focus:border-accent text-left`}
+                                dir="ltr"
                             />
                         </div>
                     </div>
@@ -521,11 +523,11 @@ export default function MarketingPage() {
                         </div>
 
                         {variables.map((variable, index) => (
-                            <div key={index} className="flex items-center gap-2 p-3 bg-sand-50 rounded-xl">
-                                <span className="text-sm font-mono text-muted-foreground whitespace-nowrap">
+                            <div key={index} className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 p-3 bg-sand-50 rounded-xl">
+                                <span className="text-sm font-mono text-muted-foreground whitespace-nowrap mb-1 sm:mb-0">
                                     {`{{${variable.position}}}`}
                                 </span>
-                                <span className="text-muted-foreground">→</span>
+                                <span className="text-muted-foreground hidden sm:inline">→</span>
                                 <select
                                     value={variable.source}
                                     onChange={(e) => updateVariable(index, 'source', e.target.value)}
@@ -544,15 +546,15 @@ export default function MarketingPage() {
                                         className="flex-1 px-3 py-2 border border-sand-200 rounded-lg text-sm"
                                     />
                                 )}
-                                {variables.length > 1 && (
+                                <div className="flex justify-end sm:block mt-1 sm:mt-0">
                                     <button
                                         type="button"
                                         onClick={() => removeVariable(index)}
                                         className="p-1 text-red-500 hover:bg-red-50 rounded"
                                     >
-                                        <XCircle className="w-4 h-4" />
+                                        <XCircle className="w-5 h-5 md:w-4 md:h-4" />
                                     </button>
-                                )}
+                                </div>
                             </div>
                         ))}
                     </div>

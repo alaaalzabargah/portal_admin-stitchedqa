@@ -21,11 +21,14 @@ import {
     TimeSeriesPoint,
     exportToCSV,
     exportToExcel,
-    exportToPDF
+    exportToPDF,
+    fetchTopProducts,
+    type TopProduct
 } from '@/lib/finance'
 import { PeriodSelector } from '@/components/finance/PeriodSelector'
 import { KPICard } from '@/components/finance/KPICard'
 import { FinanceChart } from '@/components/finance/FinanceChart'
+import { TopProductsList } from '@/components/finance/TopProductsList'
 import { TrendingUp, AlertCircle, FileDown } from 'lucide-react'
 import { useDialog } from '@/lib/dialog'
 import { PageHeader } from '@/components/ui/PageHeader'
@@ -44,6 +47,7 @@ export default function FinancePage() {
     const [error, setError] = useState<string | null>(null)
     const [comparison, setComparison] = useState<FinancialComparison | null>(null)
     const [revenueBySource, setRevenueBySource] = useState<RevenueBySource[]>([])
+    const [topProducts, setTopProducts] = useState<TopProduct[]>([])
     const [expensesByCategory, setExpensesByCategory] = useState<ExpenseByCategory[]>([])
     const [timeSeries, setTimeSeries] = useState<TimeSeriesPoint[]>([])
 
@@ -81,18 +85,20 @@ export default function FinancePage() {
             const subPeriods = getSubPeriods(currentPeriod)
 
             // Parallel fetching (only what's needed for dashboard display)
-            const [currentMetrics, previousMetrics, sourceData, categoryData, seriesData] = await Promise.all([
+            const [currentMetrics, previousMetrics, sourceData, categoryData, seriesData, topProductsData] = await Promise.all([
                 fetchFinancialMetrics(supabase, currentPeriod),
                 fetchFinancialMetrics(supabase, previousPeriod),
                 fetchRevenueBySource(supabase, currentPeriod),
                 fetchExpensesByCategory(supabase, currentPeriod),
-                fetchTimeSeries(supabase, subPeriods)
+                fetchTimeSeries(supabase, subPeriods),
+                fetchTopProducts(supabase, currentPeriod)
             ])
 
             setComparison(buildComparison(currentMetrics, previousMetrics))
             setRevenueBySource(sourceData)
             setExpensesByCategory(categoryData)
             setTimeSeries(seriesData)
+            setTopProducts(topProductsData)
 
         } catch (err: any) {
             console.error('Error fetching finance data:', err)
@@ -210,8 +216,9 @@ export default function FinancePage() {
                 </button>
             </div>
 
-            {/* KPI Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {/* KPI Cards Grid */}
+            <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
+                {/* Row 1: Key Financials */}
                 <KPICard
                     label={t('finance.revenue')}
                     value={comparison?.current.revenue ?? null}
@@ -219,24 +226,6 @@ export default function FinancePage() {
                     type="currency"
                     loading={loading}
                     variant="revenue"
-                />
-
-                <KPICard
-                    label={t('finance.gross_profit')}
-                    value={comparison?.current.grossProfit ?? null}
-                    unavailable={comparison?.current.cogs === null}
-                    unavailableReason="COGS data coming soon"
-                    type="currency"
-                    loading={loading}
-                />
-
-                <KPICard
-                    label={t('finance.expenses')}
-                    value={comparison?.current.expenses ?? null}
-                    changePercent={comparison?.changes.expenses}
-                    type="currency"
-                    loading={loading}
-                    variant="expense"
                 />
 
                 <KPICard
@@ -248,10 +237,17 @@ export default function FinancePage() {
                     loading={loading}
                     variant="profit"
                 />
-            </div>
 
-            {/* Product Performance / Stats Row */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {/* Row 2: Costs & Volume */}
+                <KPICard
+                    label={t('finance.expenses')}
+                    value={comparison?.current.expenses ?? null}
+                    changePercent={comparison?.changes.expenses}
+                    type="currency"
+                    loading={loading}
+                    variant="expense"
+                />
+
                 <KPICard
                     label={t('finance.orders')}
                     value={comparison?.current.orderCount ?? null}
@@ -259,7 +255,10 @@ export default function FinancePage() {
                     type="number"
                     loading={loading}
                     variant="orders"
+                    href="/finance/orders"
                 />
+
+                {/* Row 3: Efficiency */}
                 <KPICard
                     label={t('finance.aov')}
                     value={comparison?.current.aov ?? null}
@@ -267,6 +266,7 @@ export default function FinancePage() {
                     type="currency"
                     loading={loading}
                 />
+
                 <KPICard
                     label={t('finance.margin')}
                     value={
@@ -284,15 +284,15 @@ export default function FinancePage() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Combined P&L Overview */}
                 <FinanceChart
-                    title="P&L Overview"
+                    title={t('finance.pl_overview') || 'P&L Overview'}
                     data={timeSeries.map(p => ({
                         name: p.period,
-                        revenue: p.revenue,
-                        expenses: p.expenses,
-                        profit: p.netProfit
+                        [t('finance.revenue')]: p.revenue,
+                        [t('finance.expenses')]: p.expenses,
+                        [t('finance.net_profit')]: p.netProfit
                     }))}
                     type="line"
-                    dataKeys={['revenue', 'expenses', 'profit']}
+                    dataKeys={[t('finance.revenue'), t('finance.expenses'), t('finance.net_profit')]}
                     loading={loading}
                 />
 
@@ -306,20 +306,17 @@ export default function FinancePage() {
 
                 {/* Revenue Trend */}
                 <FinanceChart
-                    title={t('finance.revenue') + ' Trend'}
+                    title={t('finance.revenue_trend') || `${t('finance.revenue')} Trend`}
                     data={timeSeries.map(p => ({ name: p.period, value: p.revenue }))}
                     type="area"
                     loading={loading}
                     variant="profit"
                 />
 
-                {/* Expenses Breakdown */}
-                <FinanceChart
-                    title={t('finance.breakdown_by_category')}
-                    data={expensesByCategory.map(e => ({ name: e.category, value: e.amount }))}
-                    type="bar"
+                {/* Top Selling Products */}
+                <TopProductsList
+                    data={topProducts}
                     loading={loading}
-                    variant="expense"
                 />
             </div>
         </div>

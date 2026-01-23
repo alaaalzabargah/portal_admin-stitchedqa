@@ -66,19 +66,22 @@ export const GlassButton = React.forwardRef<HTMLButtonElement, GlassButtonProps>
             </span>
         ) : null
 
-        // ACCENT - Gold/Premium gradient
+        // ACCENT - Theme gradient (primary action buttons like Add Order)
         if (resolvedVariant === 'accent') {
             return (
                 <button
                     ref={ref}
                     className={cn(
                         baseClasses,
-                        "bg-gradient-to-br from-amber-500 via-yellow-600 to-amber-700 text-white",
-                        "shadow-lg shadow-amber-500/25",
-                        "hover:shadow-xl hover:shadow-amber-500/30 hover:scale-[1.02]",
-                        "focus:ring-amber-500/50",
+                        "shadow-lg hover:shadow-xl hover:scale-[1.02]",
+                        "focus:ring-2 focus:ring-offset-2",
                         className
                     )}
+                    style={{
+                        background: 'linear-gradient(135deg, var(--theme-gradient-from), var(--theme-gradient-via), var(--theme-gradient-to))',
+                        color: 'var(--theme-text-primary)',
+                        boxShadow: '0 10px 25px rgba(0,0,0,0.15), 0 4px 12px rgba(0,0,0,0.1)'
+                    }}
                     disabled={disabled || isLoadingState}
                     {...props}
                 >

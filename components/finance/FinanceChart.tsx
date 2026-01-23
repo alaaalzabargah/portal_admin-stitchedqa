@@ -61,13 +61,13 @@ const formatYAxis = (val: number): string => {
     if (typeof val !== 'number') return String(val)
     const absVal = Math.abs(val)
     if (absVal >= 1000000) return `${(val / 1000000).toFixed(1)}M`
-    if (absVal >= 100000) return `${(val / 100000).toFixed(0)}k`
-    if (absVal >= 10000) return `${(val / 100000).toFixed(1)}k`
+    if (absVal >= 1000) return `${(val / 1000).toFixed(0)}k`
     return formatCurrency(val, false)
 }
 
 const CHART_COLORS = {
-    default: ['#D4AF37', '#B8941F', '#E5C158', '#A67C00', '#C5A028'],
+    // Luxury Mix: Gold, Navy, Emerald, Violet, Rose
+    default: ['#D4AF37', '#1E293B', '#10B981', '#8B5CF6', '#F43F5E', '#0F172A', '#C5A028'],
     profit: ['#10B981', '#059669', '#34D399', '#047857', '#6EE7B7'],
     expense: ['#F43F5E', '#E11D48', '#FB7185', '#BE123C', '#FDA4AF']
 }
@@ -118,13 +118,11 @@ export function FinanceChart({
                                 data={data}
                                 cx="50%"
                                 cy="50%"
-                                innerRadius="40%"
-                                outerRadius="70%"
+                                innerRadius="35%"
+                                outerRadius="55%"
                                 paddingAngle={2}
                                 dataKey="value"
                                 nameKey="name"
-                                label={({ name, percent }) => `${name || ''} ${((percent || 0) * 100).toFixed(0)}%`}
-                                labelLine={{ stroke: '#999', strokeWidth: 1 }}
                             >
                                 {data.map((entry, index) => (
                                     <Cell key={`cell-${index}`} fill={colors[index % colors.length]} />
@@ -133,7 +131,12 @@ export function FinanceChart({
                             <Tooltip content={<CustomTooltip />} />
                             <Legend
                                 wrapperStyle={{ fontSize: '11px' }}
-                                formatter={(value) => <span className="text-muted-foreground">{value}</span>}
+                                formatter={(value, entry: any) => {
+                                    const { payload } = entry
+                                    const total = data.reduce((sum, item) => sum + (item.value || 0), 0)
+                                    const percent = total > 0 ? (payload.value / total) * 100 : 0
+                                    return <span className="text-muted-foreground ml-1">{value} ({percent.toFixed(0)}%)</span>
+                                }}
                             />
                         </PieChart>
                     ) : type === 'line' || isMultiLine ? (
@@ -145,6 +148,7 @@ export function FinanceChart({
                                 tickLine={false}
                                 tick={{ fill: '#999', fontSize: 10 }}
                                 dy={10}
+                                interval={data.length > 15 ? Math.ceil(data.length / 8) - 1 : 0}
                             />
                             <YAxis
                                 axisLine={false}
@@ -228,6 +232,7 @@ export function FinanceChart({
                                 tickLine={false}
                                 tick={{ fill: '#999', fontSize: 10 }}
                                 dy={10}
+                                interval={data.length > 15 ? Math.ceil(data.length / 8) - 1 : 0}
                             />
                             <YAxis
                                 axisLine={false}

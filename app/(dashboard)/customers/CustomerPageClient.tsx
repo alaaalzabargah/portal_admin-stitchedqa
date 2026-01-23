@@ -22,6 +22,7 @@ import { GlassButton } from '@/components/ui/GlassButton'
 import { CustomerImportModal } from '@/components/customers/CustomerImportModal'
 import { useDialog } from '@/lib/dialog'
 import { PageHeader } from '@/components/ui/PageHeader'
+import { CustomersListFAB } from '@/components/customers/CustomersListFAB'
 
 const VIEW_MODE_KEY = 'customers-view-mode'
 
@@ -41,7 +42,6 @@ export function CustomerPageClient({ customers, tiers, dict }: CustomerPageClien
     const [selectedTier, setSelectedTier] = useState<string>('all')
     const [showTierDropdown, setShowTierDropdown] = useState(false)
     const [showImportModal, setShowImportModal] = useState(false)
-    const [showFabMenu, setShowFabMenu] = useState(false)
     const router = useRouter()
 
     // Load view mode from localStorage
@@ -224,24 +224,24 @@ export function CustomerPageClient({ customers, tiers, dict }: CustomerPageClien
                                 <div className="hidden sm:flex items-center gap-3">
                                     <button
                                         onClick={toggleSelectionMode}
-                                        className="flex items-center justify-center px-4 py-2 rounded-xl border-2 border-[var(--theme-primary)] text-[var(--theme-primary)] hover:bg-[var(--theme-primary)]/10 transition-all"
+                                        className="flex items-center justify-center px-3 py-1.5 text-sm font-medium rounded-xl border-2 border-[var(--theme-primary)] text-[var(--theme-primary)] hover:bg-[var(--theme-primary)]/10 transition-all font-medium"
                                     >
                                         <BiSelectMultiple className="w-4 h-4" />
-                                        <span className="ms-2 font-medium">{dict.common?.select || 'Select'}</span>
+                                        <span className="ms-2">{dict.common?.select || 'Select'}</span>
                                     </button>
                                     <button
                                         onClick={() => setShowImportModal(true)}
-                                        className="flex items-center justify-center px-4 py-2 rounded-xl border-2 border-[var(--theme-primary)] text-[var(--theme-primary)] hover:bg-[var(--theme-primary)]/10 transition-all"
+                                        className="flex items-center justify-center px-3 py-1.5 text-sm font-medium rounded-xl border-2 border-[var(--theme-primary)] text-[var(--theme-primary)] hover:bg-[var(--theme-primary)]/10 transition-all font-medium"
                                     >
                                         <CiImport className="w-4 h-4" style={{ strokeWidth: 0.5 }} />
-                                        <span className="ms-2 font-medium">Import</span>
+                                        <span className="ms-2">Import</span>
                                     </button>
                                     <button
                                         onClick={handleExport}
-                                        className="flex items-center justify-center px-4 py-2 rounded-xl border-2 border-[var(--theme-primary)] text-[var(--theme-primary)] hover:bg-[var(--theme-primary)]/10 transition-all"
+                                        className="flex items-center justify-center px-3 py-1.5 text-sm font-medium rounded-xl border-2 border-[var(--theme-primary)] text-[var(--theme-primary)] hover:bg-[var(--theme-primary)]/10 transition-all font-medium"
                                     >
                                         <CiExport className="w-4 h-4" style={{ strokeWidth: 0.5 }} />
-                                        <span className="ms-2 font-medium">Export</span>
+                                        <span className="ms-2">Export</span>
                                     </button>
                                     <Link href="/customers/new">
                                         <GlassButton
@@ -380,130 +380,16 @@ export function CustomerPageClient({ customers, tiers, dict }: CustomerPageClien
                     onSuccess={() => router.refresh()}
                 />
             </div>
-            {/* Floating Action Buttons - Mobile Only */}
+
+            {/* Floating Action Button - Hidden on desktop, visible on mobile */}
             {!isSelectionMode && (
-                <>
-                    {/* Premium Blur Backdrop - covers EVERYTHING */}
-                    {showFabMenu && (
-                        <div
-                            className="fixed inset-0 bg-white/60 backdrop-blur-xl z-[9999] sm:hidden transition-all duration-300"
-                            onClick={() => setShowFabMenu(false)}
-                            style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 9999 }}
-                        />
-                    )}
-
-                    {/* FAB Container */}
-                    <div className="fixed bottom-6 end-6 z-[10000] flex flex-col items-end gap-3 sm:hidden">
-                        {/* Expandable Menu Items - Premium Glassy Design with Labels */}
-                        <div className={cn(
-                            "flex flex-col items-end gap-3 transition-all duration-300 origin-bottom",
-                            showFabMenu ? "opacity-100 scale-100 translate-y-0" : "opacity-0 scale-50 translate-y-8 pointer-events-none"
-                        )}>
-                            {/* Add Client Button - Premium Gradient */}
-                            <Link href="/customers/new" onClick={() => setShowFabMenu(false)}>
-                                <div className="flex items-center gap-3 justify-end me-1">
-                                    <span className="text-sm font-medium text-gray-800 bg-white/95 backdrop-blur-md px-3 py-1.5 rounded-lg shadow-lg">
-                                        Add Client
-                                    </span>
-                                    <button
-                                        className="group relative w-10 h-10 rounded-xl shadow-2xl flex items-center justify-center transition-all hover:scale-110 active:scale-95 overflow-hidden"
-                                        style={{
-                                            background: `linear-gradient(135deg, var(--theme-gradient-from), var(--theme-gradient-to))`,
-                                            boxShadow: '0 12px 40px var(--theme-primary)50, 0 0 0 1px rgba(255,255,255,0.1) inset'
-                                        }}
-                                        aria-label="Add Client"
-                                    >
-                                        {/* Glassy shine effect */}
-                                        <div className="absolute inset-0 bg-gradient-to-br from-white/30 via-transparent to-transparent opacity-40" />
-                                        <IoPersonAddOutline className="relative w-5 h-5" style={{ color: 'var(--theme-text-primary)', strokeWidth: 1.5 }} />
-                                    </button>
-                                </div>
-                            </Link>
-
-                            {/* Select Button - Glassmorphism */}
-                            <div className="flex items-center gap-3 justify-end me-1">
-                                <span className="text-sm font-medium text-gray-800 bg-white/95 backdrop-blur-md px-3 py-1.5 rounded-lg shadow-lg">
-                                    Select
-                                </span>
-                                <button
-                                    onClick={() => { toggleSelectionMode(); setShowFabMenu(false); }}
-                                    className="group relative w-10 h-10 rounded-xl shadow-xl flex items-center justify-center backdrop-blur-xl bg-white/90 border border-white/20 transition-all hover:scale-110 active:scale-95 overflow-hidden"
-                                    style={{
-                                        boxShadow: '0 8px 32px rgba(0,0,0,0.12), 0 0 0 1px rgba(255,255,255,0.5) inset'
-                                    }}
-                                    aria-label="Select"
-                                >
-                                    <div className="absolute inset-0 bg-gradient-to-br from-white/40 via-transparent to-transparent" />
-                                    <BiSelectMultiple className="relative w-5 h-5" style={{ color: 'var(--theme-primary)', strokeWidth: 1 }} />
-                                </button>
-                            </div>
-
-                            {/* Import Button - Glassmorphism */}
-                            <div className="flex items-center gap-3 justify-end me-1">
-                                <span className="text-sm font-medium text-gray-800 bg-white/95 backdrop-blur-md px-3 py-1.5 rounded-lg shadow-lg">
-                                    Import
-                                </span>
-                                <button
-                                    onClick={() => { setShowImportModal(true); setShowFabMenu(false); }}
-                                    className="group relative w-10 h-10 rounded-xl shadow-xl flex items-center justify-center backdrop-blur-xl bg-white/90 border border-white/20 transition-all hover:scale-110 active:scale-95 overflow-hidden"
-                                    style={{
-                                        boxShadow: '0 8px 32px rgba(0,0,0,0.12), 0 0 0 1px rgba(255,255,255,0.5) inset'
-                                    }}
-                                    aria-label="Import"
-                                >
-                                    <div className="absolute inset-0 bg-gradient-to-br from-white/40 via-transparent to-transparent" />
-                                    <CiImport className="relative w-5 h-5" style={{ color: 'var(--theme-primary)', strokeWidth: 1.5 }} />
-                                </button>
-                            </div>
-
-                            {/* Export Button - Glassmorphism */}
-                            <div className="flex items-center gap-3 justify-end me-1">
-                                <span className="text-sm font-medium text-gray-800 bg-white/95 backdrop-blur-md px-3 py-1.5 rounded-lg shadow-lg">
-                                    Export
-                                </span>
-                                <button
-                                    onClick={() => { handleExport(); setShowFabMenu(false); }}
-                                    className="group relative w-10 h-10 rounded-xl shadow-xl flex items-center justify-center backdrop-blur-xl bg-white/90 border border-white/20 transition-all hover:scale-110 active:scale-95 overflow-hidden"
-                                    style={{
-                                        boxShadow: '0 8px 32px rgba(0,0,0,0.12), 0 0 0 1px rgba(255,255,255,0.5) inset'
-                                    }}
-                                    aria-label="Export"
-                                >
-                                    <div className="absolute inset-0 bg-gradient-to-br from-white/40 via-transparent to-transparent" />
-                                    <CiExport className="relative w-5 h-5" style={{ color: 'var(--theme-primary)', strokeWidth: 1.5 }} />
-                                </button>
-                            </div>
-                        </div>
-
-                        {/* Main FAB Toggle Button - Reduced Size */}
-                        <button
-                            onClick={() => setShowFabMenu(!showFabMenu)}
-                            className={cn(
-                                "group relative w-12 h-12 rounded-2xl shadow-2xl flex items-center justify-center transition-all duration-500 overflow-hidden",
-                                showFabMenu ? "rotate-45 scale-105" : "rotate-0 scale-100"
-                            )}
-                            style={{
-                                background: `linear-gradient(135deg, var(--theme-gradient-from), var(--theme-gradient-to))`,
-                                boxShadow: '0 16px 48px var(--theme-primary)60, 0 0 0 1px rgba(255,255,255,0.2) inset'
-                            }}
-                            aria-label={showFabMenu ? "Close menu" : "Open menu"}
-                        >
-                            {/* Animated glassy shine */}
-                            <div className={cn(
-                                "absolute inset-0 bg-gradient-to-br from-white/40 via-white/10 to-transparent transition-opacity duration-500",
-                                showFabMenu ? "opacity-60" : "opacity-30"
-                            )} />
-
-                            {/* Pulse ring on open */}
-                            {showFabMenu && (
-                                <div className="absolute inset-0 rounded-2xl border-2 border-white/30 animate-ping" />
-                            )}
-
-                            <Plus className="relative w-6 h-6" strokeWidth={3} style={{ color: 'var(--theme-text-primary)' }} />
-
-                        </button>
-                    </div>
-                </>
+                <div className="block sm:hidden">
+                    <CustomersListFAB
+                        onSelectClick={toggleSelectionMode}
+                        onImportClick={() => setShowImportModal(true)}
+                        onExportClick={handleExport}
+                    />
+                </div>
             )}
         </>
     )

@@ -37,10 +37,10 @@ export async function POST(request: NextRequest) {
             )
         }
 
-        // Only owners and admins can invite users
-        if (!['owner', 'admin'].includes(profile.role) || !profile.is_active) {
+        // Only owners and managers can invite users
+        if (!['owner', 'manager'].includes(profile.role) || !profile.is_active) {
             return NextResponse.json(
-                { error: 'Forbidden - Owner or Admin access required' },
+                { error: 'Forbidden - Owner or Manager access required' },
                 { status: 403 }
             )
         }
@@ -58,10 +58,10 @@ export async function POST(request: NextRequest) {
 
         const { email, role, display_name } = validation.data
 
-        // Admins cannot invite owners or other admins
-        if (profile.role === 'admin' && ['owner', 'admin'].includes(role)) {
+        // Managers cannot invite owners or other managers
+        if (profile.role === 'manager' && ['owner', 'manager'].includes(role)) {
             return NextResponse.json(
-                { error: 'Admins cannot invite owners or other admins' },
+                { error: 'Managers cannot invite owners or other managers' },
                 { status: 403 }
             )
         }

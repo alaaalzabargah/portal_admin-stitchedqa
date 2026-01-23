@@ -120,7 +120,9 @@
     "walk_in": "Walk-in",
     "total": "Total",
     "share": "Share",
-    "no_data": "No data for this period"
+    "no_data": "No data for this period",
+    "pl_overview": "P&L Overview",
+    "revenue_trend": "Revenue Trend"
   },
   "marketing": {
     "title": "Marketing",
