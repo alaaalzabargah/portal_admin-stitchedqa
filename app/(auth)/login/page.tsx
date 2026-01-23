@@ -4,12 +4,14 @@ import { useState } from 'react'
 import { useActionState } from 'react'
 import { login } from './actions'
 
+import { IMAGES } from '@/lib/constants/images'
+
 // ============================================
 // CONFIGURABLE ASSETS - Easy to swap
 // ============================================
 const ASSETS = {
     backgroundImage: '/images/login-bg.jpg', // Replace with your background image
-    logoImage: '/images/logo.png',           // Replace with your logo
+    logoImage: IMAGES.LOGO,                  // Use the constant
 }
 
 // Fallback SVG icons
@@ -102,9 +104,11 @@ export default function LoginPage() {
             >
                 {/* Logo */}
                 <div className="flex justify-center mb-6">
-                    <div className="w-16 h-16 rounded-full bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center shadow-lg">
-                        <span className="text-white text-2xl font-bold tracking-wide">S</span>
-                    </div>
+                    <img
+                        src={ASSETS.logoImage}
+                        alt="Logo"
+                        className="h-16 w-auto object-contain invert dark:invert-0"
+                    />
                 </div>
 
                 {/* Header */}
