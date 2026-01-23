@@ -21,12 +21,16 @@ import { useLanguage } from '@/lib/i18n/context'
 import { useAuthUser } from '@/lib/auth'
 import { createClient } from '@/lib/supabase/client'
 
+import { useThemeSystem } from '@/lib/themes/context'
+import { IMAGES } from '@/lib/constants/images'
+
 export function MobileNav() {
     const [isOpen, setIsOpen] = useState(false)
     const pathname = usePathname()
     const router = useRouter()
     const { t } = useLanguage()
     const { user, profile, loading } = useAuthUser()
+    const { themeConfig, loading: themeLoading } = useThemeSystem()
     const supabase = createClient()
 
     const mainNavItems = [
@@ -80,17 +84,38 @@ export function MobileNav() {
     return (
         <>
             {/* Mobile Top Bar */}
-            <div className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-white/65 dark:bg-white/10 backdrop-blur-xl border-b border-white/40 dark:border-white/20 z-50 flex items-center justify-between px-4 shadow-sm">
+            <div
+                className="lg:hidden fixed top-0 left-0 right-0 h-20 bg-white/65 dark:bg-white/10 backdrop-blur-xl border-b border-white/40 dark:border-white/20 z-50 flex items-center justify-between px-6 shadow-sm"
+                style={{
+                    background: themeLoading
+                        ? undefined
+                        : `linear-gradient(135deg, ${themeConfig.colors.gradientFrom}, ${themeConfig.colors.gradientVia}, ${themeConfig.colors.gradientTo})`
+                }}
+            >
                 <div className="flex items-center gap-2">
-                    <h1 className="text-xl font-sans font-semibold tracking-tight text-primary">
-                        STITC<span className="text-accent">H</span>ED
-                    </h1>
+                    <img
+                        src={IMAGES.LOGO}
+                        alt="STITCHED"
+                        className={cn(
+                            "h-12 w-auto object-contain",
+                            themeConfig.isDark ? "invert brightness-0 invert" : "brightness-0"
+                        )}
+                        style={{
+                            imageRendering: 'auto',
+                            filter: themeConfig.isDark ? 'brightness(0) invert(1)' : 'brightness(0)'
+                        }}
+                    />
                 </div>
                 <button
                     onClick={() => setIsOpen(true)}
-                    className="p-2 -mr-2 text-primary/80 hover:text-primary"
+                    className={cn(
+                        "p-2 -mr-2 transition-colors",
+                        themeConfig.isDark
+                            ? "text-white/80 hover:text-white"
+                            : "text-black/60 hover:text-black"
+                    )}
                 >
-                    <Menu className="w-6 h-6" />
+                    <Menu className="w-8 h-8" />
                 </button>
             </div>
 
