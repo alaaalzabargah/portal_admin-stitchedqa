@@ -107,22 +107,9 @@ export function OverviewTab({ customer: initialCustomer, tier, lastOrderDate, lo
 
     return (
         <div className="space-y-6 pb-24">
-            {/* Premium Glassmorphic Contact Profile */}
-            <div
-                className="relative overflow-hidden rounded-3xl"
-                style={{
-                    background: 'rgba(255, 255, 255, 0.6)',
-                    backdropFilter: 'blur(16px)',
-                    WebkitBackdropFilter: 'blur(16px)',
-                    border: '1px solid rgba(255, 255, 255, 0.2)',
-                    boxShadow: `
-                        0 10px 40px rgba(0, 0, 0, 0.08),
-                        0 0 0 1px rgba(255, 255, 255, 0.2),
-                        inset 0 1px 0 rgba(255, 255, 255, 0.4)
-                    `
-                }}
-            >
-                <div className="relative z-10 p-5 sm:p-8">
+            {/* Premium Contact Profile Card */}
+            <div className="luxury-gradient-card p-5 sm:p-8">
+                <div className="relative z-10">
                     {/* Header: Edit controls on right */}
                     <div className="flex items-center justify-end mb-5 gap-2">
                         {isEditing && (
@@ -137,8 +124,8 @@ export function OverviewTab({ customer: initialCustomer, tier, lastOrderDate, lo
                         <button
                             onClick={handleEditToggle}
                             className={`p-2.5 rounded-xl transition-all ${isEditing
-                                    ? 'bg-red-100 text-red-600 hover:bg-red-200'
-                                    : 'bg-black/5 text-gray-600 hover:bg-black/10'
+                                ? 'bg-red-100 text-red-600 hover:bg-red-200'
+                                : 'bg-black/5 text-gray-600 hover:bg-black/10'
                                 }`}
                         >
                             {isEditing ? <X className="w-4 h-4" /> : <Pencil className="w-4 h-4" />}
@@ -177,11 +164,11 @@ export function OverviewTab({ customer: initialCustomer, tier, lastOrderDate, lo
                                 <div
                                     className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0"
                                     style={{
-                                        background: 'linear-gradient(135deg, #3B82F6 0%, #2563EB 100%)',
-                                        boxShadow: '0 4px 12px rgba(59, 130, 246, 0.3)'
+                                        background: 'linear-gradient(135deg, var(--theme-gradient-from), var(--theme-gradient-to))',
+                                        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)'
                                     }}
                                 >
-                                    <Phone className="w-5 h-5 text-white" />
+                                    <Phone className="w-5 h-5" style={{ color: 'var(--theme-text-primary)' }} />
                                 </div>
                                 <div className="flex-1 min-w-0">
                                     <p className="text-[10px] text-muted-foreground mb-1 uppercase font-bold" style={{ letterSpacing: '0.1em' }}>
@@ -224,8 +211,8 @@ export function OverviewTab({ customer: initialCustomer, tier, lastOrderDate, lo
                         <div
                             className={`group relative rounded-2xl p-4 transition-all duration-300 ${!isEditing ? 'hover:shadow-md cursor-pointer' : 'opacity-50'}`}
                             style={{
-                                background: 'rgba(16, 185, 129, 0.08)',
-                                border: '1px solid rgba(16, 185, 129, 0.2)',
+                                background: 'rgba(255, 255, 255, 0.8)',
+                                border: '1px solid rgba(255, 255, 255, 0.4)',
                                 boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)',
                             }}
                             onClick={!isEditing ? handleWhatsApp : undefined}
@@ -234,17 +221,17 @@ export function OverviewTab({ customer: initialCustomer, tier, lastOrderDate, lo
                                 <div
                                     className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0"
                                     style={{
-                                        background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
-                                        boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)'
+                                        background: 'linear-gradient(135deg, var(--theme-gradient-from), var(--theme-gradient-to))',
+                                        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)'
                                     }}
                                 >
-                                    <MessageCircle className="w-5 h-5 text-white" />
+                                    <MessageCircle className="w-5 h-5" style={{ color: 'var(--theme-text-primary)' }} />
                                 </div>
                                 <div className="flex-1">
                                     <p className="text-[10px] text-muted-foreground mb-1 uppercase font-bold" style={{ letterSpacing: '0.1em' }}>
                                         WhatsApp
                                     </p>
-                                    <p className="font-semibold text-base text-emerald-700 dark:text-emerald-600">
+                                    <p className="font-semibold text-base text-primary dark:text-gray-800">
                                         {locale === 'en' ? 'Send Message' : 'إرسال رسالة'}
                                     </p>
                                 </div>
@@ -265,11 +252,11 @@ export function OverviewTab({ customer: initialCustomer, tier, lastOrderDate, lo
                                 <div
                                     className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0"
                                     style={{
-                                        background: 'linear-gradient(135deg, #A855F7 0%, #9333EA 100%)',
-                                        boxShadow: '0 4px 12px rgba(168, 85, 247, 0.3)'
+                                        background: 'linear-gradient(135deg, var(--theme-gradient-from), var(--theme-gradient-to))',
+                                        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)'
                                     }}
                                 >
-                                    <Mail className="w-5 h-5 text-white" />
+                                    <Mail className="w-5 h-5" style={{ color: 'var(--theme-text-primary)' }} />
                                 </div>
                                 <div className="flex-1 min-w-0">
                                     <p className="text-[10px] text-muted-foreground mb-1 uppercase font-bold" style={{ letterSpacing: '0.1em' }}>
@@ -325,26 +312,13 @@ export function OverviewTab({ customer: initialCustomer, tier, lastOrderDate, lo
             </div>
 
             {/* KPI Card */}
-            <div
-                className="relative overflow-hidden rounded-3xl"
-                style={{
-                    background: 'rgba(255, 255, 255, 0.6)',
-                    backdropFilter: 'blur(16px)',
-                    WebkitBackdropFilter: 'blur(16px)',
-                    border: '1px solid rgba(255, 255, 255, 0.2)',
-                    boxShadow: `
-                        0 10px 40px rgba(0, 0, 0, 0.08),
-                        0 0 0 1px rgba(255, 255, 255, 0.2),
-                        inset 0 1px 0 rgba(255, 255, 255, 0.4)
-                    `
-                }}
-            >
+            <div className="luxury-gradient-card p-6 sm:p-8">
                 <div
                     className="absolute top-0 right-0 w-32 h-32 rounded-full blur-3xl opacity-10"
                     style={{ background: 'var(--theme-primary)' }}
                 />
 
-                <div className="relative z-10 p-6 sm:p-8">
+                <div className="relative z-10">
                     <div className="flex items-start justify-between mb-4">
                         <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-3 mb-3">

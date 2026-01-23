@@ -4,7 +4,7 @@
  */
 
 import { Period, PeriodType, FinanceQueryParams } from './types'
-import { startOfMonth, endOfMonth, startOfQuarter, endOfQuarter, startOfYear, endOfYear, subMonths, subQuarters, subYears, format } from 'date-fns'
+import { startOfMonth, endOfMonth, startOfQuarter, endOfQuarter, startOfYear, endOfYear, subMonths, subQuarters, subYears, format, endOfDay } from 'date-fns'
 
 /**
  * Get the current period based on type
@@ -92,7 +92,7 @@ export function getSubPeriods(period: Period): Period[] {
                 periods.push({
                     type: 'month',
                     start: new Date(day),
-                    end: new Date(day),
+                    end: endOfDay(day),
                     label: format(day, 'd')
                 })
                 day.setDate(day.getDate() + 1)

@@ -4,6 +4,8 @@ import { formatCurrency } from '@/lib/utils'
 import { TrendingUp, TrendingDown, Minus, AlertCircle, DollarSign, ShoppingCart, Wallet, BarChart3, Percent, LucideIcon } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
+import Link from 'next/link'
+
 interface KPICardProps {
     label: string
     value: number | null
@@ -16,6 +18,8 @@ interface KPICardProps {
     highlighted?: boolean
     variant?: 'default' | 'revenue' | 'expense' | 'profit' | 'orders'
     icon?: LucideIcon
+    className?: string
+    href?: string
 }
 
 // Glassmorphism variant styles
@@ -65,7 +69,9 @@ export function KPICard({
     unavailableReason,
     highlighted = false,
     variant = 'default',
-    icon
+    icon,
+    className,
+    href
 }: KPICardProps) {
     const styles = variantStyles[variant]
     const IconComponent = icon || defaultIcons[variant] || DollarSign
@@ -106,10 +112,64 @@ export function KPICard({
     // Base luxury card classes
     const glassCardClasses = cn(
         "luxury-gradient-card",
-        "p-5 md:p-6",
+        "p-4 md:p-6", // Compact padding on mobile
         "transition-all duration-300",
         "hover:luxury-gradient-card-hover",
-        "group"
+        "group",
+        "h-full flex flex-col justify-between", // Ensure full height
+        className
+    )
+
+    const CardContent = () => (
+        <>
+            {/* Header: Label + Icon */}
+            <div className="flex items-start justify-between mb-3 md:mb-4">
+                <p className="text-[10px] md:text-[11px] font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-400">
+                    {label}
+                </p>
+                <div className={cn(
+                    "p-2 md:p-2.5 rounded-xl transition-transform group-hover:scale-110",
+                    styles.iconBg
+                )}>
+                    <IconComponent className={cn("w-4 h-4 md:w-5 md:h-5", styles.iconColor)} />
+                </div>
+            </div>
+
+            <div>
+                {/* Value */}
+                <div className={cn(
+                    "font-mono font-bold tabular-nums tracking-tight mb-2 md:mb-3 flex items-baseline gap-1 flex-wrap",
+                    "text-gray-900 dark:text-white",
+                    highlighted && "text-[var(--theme-primary)]",
+                    styles.valueBg
+                )}>
+                    {type === 'currency' && typeof value === 'number' ? (
+                        <>
+                            <span className="text-xs sm:text-sm md:text-base font-medium opacity-70">QAR</span>
+                            <span className="text-[17px] sm:text-2xl md:text-2xl">{value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                        </>
+                    ) : (
+                        <span className="text-lg sm:text-2xl md:text-2xl break-all">
+                            {formatValue(value)}
+                        </span>
+                    )}
+                </div>
+
+                {/* Change Indicator */}
+                {changePercent !== undefined && (
+                    <div className={cn(
+                        "inline-flex items-center gap-1 sm:gap-1.5 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-semibold",
+                        getTrendColor()
+                    )}>
+                        {getTrendIcon()}
+                        <span className="tabular-nums">
+                            {changePercent > 0 && '+'}{changePercent.toFixed(1)}%
+                        </span>
+                        <span className="font-normal opacity-70 hidden sm:inline">vs last</span>
+                    </div>
+                )}
+            </div>
+        </>
     )
 
     if (loading) {
@@ -154,47 +214,20 @@ export function KPICard({
         )
     }
 
+    if (href) {
+        return (
+            <Link href={href} className={cn(glassCardClasses, "block hover:scale-[1.02] active:scale-[0.98]")}>
+                <CardContent />
+            </Link>
+        )
+    }
+
     return (
         <div className={cn(
             glassCardClasses,
             highlighted && "ring-2 ring-[var(--theme-primary)]/30"
         )}>
-            {/* Header: Label + Icon */}
-            <div className="flex items-start justify-between mb-3 md:mb-4">
-                <p className="text-[10px] md:text-[11px] font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-400">
-                    {label}
-                </p>
-                <div className={cn(
-                    "p-2 md:p-2.5 rounded-xl transition-transform group-hover:scale-110",
-                    styles.iconBg
-                )}>
-                    <IconComponent className={cn("w-4 h-4 md:w-5 md:h-5", styles.iconColor)} />
-                </div>
-            </div>
-
-            {/* Value */}
-            <p className={cn(
-                "text-2xl md:text-3xl font-mono font-bold tabular-nums tracking-tight mb-2 md:mb-3",
-                "text-gray-900 dark:text-white",
-                highlighted && "text-[var(--theme-primary)]",
-                styles.valueBg
-            )}>
-                {formatValue(value)}
-            </p>
-
-            {/* Change Indicator */}
-            {changePercent !== undefined && (
-                <div className={cn(
-                    "inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-xs font-semibold",
-                    getTrendColor()
-                )}>
-                    {getTrendIcon()}
-                    <span className="tabular-nums">
-                        {changePercent > 0 && '+'}{changePercent.toFixed(1)}%
-                    </span>
-                    <span className="font-normal opacity-70 hidden sm:inline">vs last</span>
-                </div>
-            )}
+            <CardContent />
         </div>
     )
 }
