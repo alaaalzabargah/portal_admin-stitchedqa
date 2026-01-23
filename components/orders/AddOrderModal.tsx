@@ -112,8 +112,8 @@ export function AddOrderModal({ customerId, customerName, isOpen, onClose, onSuc
     if (!isOpen) return null
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-            <div className="bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 backdrop-blur-sm p-0 sm:p-4">
+            <div className="bg-white dark:bg-zinc-900 w-full h-full sm:h-auto sm:max-h-[90vh] sm:max-w-lg sm:rounded-2xl shadow-2xl overflow-y-auto rounded-none">
                 {/* Header */}
                 <div className="flex items-center justify-between p-6 border-b border-sand-200 dark:border-zinc-700">
                     <div>
@@ -176,40 +176,43 @@ export function AddOrderModal({ customerId, customerName, isOpen, onClose, onSuc
 
                         {items.map((item, index) => (
                             <div key={index} className="p-4 bg-sand-50 dark:bg-zinc-800 rounded-xl space-y-3 border border-sand-100 dark:border-zinc-700">
-                                {/* Product Name */}
-                                <div className="flex gap-2 items-start">
-                                    <div className="w-8 h-8 rounded-lg bg-white dark:bg-zinc-700 flex items-center justify-center flex-shrink-0 mt-1">
-                                        <Package className="w-4 h-4 text-muted-foreground" />
+                                {/* Header: Product Name + Delete */}
+                                <div className="flex justify-between items-start gap-3 mb-4">
+                                    <div className="flex-1 space-y-1">
+                                        <label className="text-xs font-medium text-secondary dark:text-zinc-300 ml-1">
+                                            {t('orders.product_name_placeholder') || 'Product Name'}
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={item.product_name}
+                                            onChange={(e) => updateItem(index, 'product_name', e.target.value)}
+                                            placeholder="e.g. Classic Abaya"
+                                            className="w-full px-3 py-2.5 border border-sand-200 dark:border-zinc-600 rounded-lg text-sm bg-white dark:bg-zinc-900 dark:text-white focus:ring-2 focus:ring-accent focus:border-transparent transition-all"
+                                        />
                                     </div>
-                                    <input
-                                        type="text"
-                                        value={item.product_name}
-                                        onChange={(e) => updateItem(index, 'product_name', e.target.value)}
-                                        placeholder={t('orders.product_name_placeholder') || 'Product name'}
-                                        className="flex-1 px-3 py-2 border border-sand-200 dark:border-zinc-600 rounded-lg text-sm bg-white dark:bg-zinc-900 dark:text-white"
-                                    />
                                     {items.length > 1 && (
                                         <button
                                             type="button"
                                             onClick={() => removeItem(index)}
-                                            className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg"
+                                            className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg mt-6"
+                                            title="Remove item"
                                         >
-                                            <Minus className="w-4 h-4" />
+                                            <Minus className="w-5 h-5" />
                                         </button>
                                     )}
                                 </div>
 
-                                {/* Size & Color Row */}
-                                <div className="flex gap-3 ml-10">
-                                    {/* Size Dropdown */}
-                                    <div className="flex-1">
-                                        <label className="text-[10px] uppercase tracking-wide text-muted-foreground mb-1 block">
+                                {/* Attributes Grid: 2x2 on Mobile, 4x1 on Desktop */}
+                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                    {/* Size */}
+                                    <div className="space-y-1">
+                                        <label className="text-[10px] uppercase tracking-wide text-muted-foreground ml-1">
                                             {t('orders.size_label')}
                                         </label>
                                         <select
                                             value={item.size}
                                             onChange={(e) => updateItem(index, 'size', e.target.value)}
-                                            className="w-full px-3 py-2 border border-sand-200 dark:border-zinc-600 rounded-lg text-sm bg-white dark:bg-zinc-900 dark:text-white"
+                                            className="w-full px-3 py-2.5 border border-sand-200 dark:border-zinc-600 rounded-lg text-sm bg-white dark:bg-zinc-900 dark:text-white focus:ring-2 focus:ring-accent focus:border-transparent"
                                         >
                                             <option value="">{t('orders.select_size')}</option>
                                             {SIZES.map(size => (
@@ -218,25 +221,23 @@ export function AddOrderModal({ customerId, customerName, isOpen, onClose, onSuc
                                         </select>
                                     </div>
 
-                                    {/* Color Input */}
-                                    <div className="flex-1">
-                                        <label className="text-[10px] uppercase tracking-wide text-muted-foreground mb-1 block">
+                                    {/* Color */}
+                                    <div className="space-y-1">
+                                        <label className="text-[10px] uppercase tracking-wide text-muted-foreground ml-1">
                                             {t('orders.color_label')}
                                         </label>
                                         <input
                                             type="text"
                                             value={item.color}
                                             onChange={(e) => updateItem(index, 'color', e.target.value)}
-                                            placeholder={t('orders.color_placeholder')}
-                                            className="w-full px-3 py-2 border border-sand-200 dark:border-zinc-600 rounded-lg text-sm bg-white dark:bg-zinc-900 dark:text-white"
+                                            placeholder={t('orders.color_placeholder') || 'e.g. Black'}
+                                            className="w-full px-3 py-2.5 border border-sand-200 dark:border-zinc-600 rounded-lg text-sm bg-white dark:bg-zinc-900 dark:text-white focus:ring-2 focus:ring-accent focus:border-transparent"
                                         />
                                     </div>
-                                </div>
 
-                                {/* Quantity & Price Row */}
-                                <div className="flex gap-3 items-end ml-10">
-                                    <div className="w-20">
-                                        <label className="text-[10px] uppercase tracking-wide text-muted-foreground mb-1 block">
+                                    {/* Quantity */}
+                                    <div className="space-y-1">
+                                        <label className="text-[10px] uppercase tracking-wide text-muted-foreground ml-1">
                                             {t('orders.qty_label') || 'Qty'}
                                         </label>
                                         <input
@@ -244,24 +245,36 @@ export function AddOrderModal({ customerId, customerName, isOpen, onClose, onSuc
                                             value={item.quantity}
                                             onChange={(e) => updateItem(index, 'quantity', parseInt(e.target.value) || 1)}
                                             min={1}
-                                            className="w-full px-3 py-2 border border-sand-200 dark:border-zinc-600 rounded-lg text-sm text-center bg-white dark:bg-zinc-900 dark:text-white"
+                                            dir="ltr"
+                                            className="w-full px-3 py-2.5 border border-sand-200 dark:border-zinc-600 rounded-lg text-sm text-center bg-white dark:bg-zinc-900 dark:text-white focus:ring-2 focus:ring-accent focus:border-transparent"
                                         />
                                     </div>
-                                    <div className="flex-1">
-                                        <label className="text-[10px] uppercase tracking-wide text-muted-foreground mb-1 block">
-                                            {t('orders.price_label') || 'Price'} (QAR)
+
+                                    {/* Price */}
+                                    <div className="space-y-1">
+                                        <label className="text-[10px] uppercase tracking-wide text-muted-foreground ml-1">
+                                            {t('orders.price_label') || 'Price'}
                                         </label>
-                                        <input
-                                            type="number"
-                                            value={item.price || ''}
-                                            onChange={(e) => updateItem(index, 'price', parseFloat(e.target.value) || 0)}
-                                            placeholder="0.00"
-                                            step="0.01"
-                                            className="w-full px-3 py-2 border border-sand-200 dark:border-zinc-600 rounded-lg text-sm bg-white dark:bg-zinc-900 dark:text-white"
-                                        />
+                                        <div className="relative">
+                                            <input
+                                                type="number"
+                                                value={item.price || ''}
+                                                onChange={(e) => updateItem(index, 'price', parseFloat(e.target.value) || 0)}
+                                                placeholder="0.00"
+                                                step="0.01"
+                                                dir="ltr"
+                                                className="w-full px-3 py-2.5 border border-sand-200 dark:border-zinc-600 rounded-lg text-sm bg-white dark:bg-zinc-900 dark:text-white focus:ring-2 focus:ring-accent focus:border-transparent"
+                                            />
+                                            <span className="absolute right-3 top-2.5 text-xs text-muted-foreground pointer-events-none">QAR</span>
+                                        </div>
                                     </div>
-                                    <div className="pb-2 text-sm font-medium text-muted-foreground whitespace-nowrap">
-                                        = {formatCurrency((item.price || 0) * item.quantity * 100)}
+                                </div>
+
+                                {/* Item Subtotal */}
+                                <div className="mt-4 flex justify-end items-center border-t border-sand-200 dark:border-zinc-700 pt-3">
+                                    <div className="text-sm font-medium text-primary dark:text-white">
+                                        <span className="text-muted-foreground mr-2 font-normal">Item Total:</span>
+                                        {formatCurrency((item.price || 0) * item.quantity * 100)}
                                     </div>
                                 </div>
                             </div>

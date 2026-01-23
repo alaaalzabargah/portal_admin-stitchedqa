@@ -280,22 +280,9 @@ export function Sidebar() {
                     })}
                 </div>
 
-                {/* Theme & Language Toggle */}
-                {!isCollapsed && (
-                    <div className="flex items-center justify-center px-2 py-2 mb-3">
-                        <LanguageSwitcher />
-                    </div>
-                )}
-
-                {isCollapsed && (
-                    <div className="flex flex-col items-center gap-2 mb-3">
-                        <LanguageSwitcher />
-                    </div>
-                )}
-
                 {/* User Profile */}
                 <div className={cn(
-                    "rounded-lg transition-colors",
+                    "rounded-lg transition-colors mb-3",
                     isCollapsed
                         ? "flex justify-center"
                         : "flex items-center gap-3 p-2 hover:bg-sand-100 dark:hover:bg-zinc-800"
@@ -331,6 +318,19 @@ export function Sidebar() {
                         </>
                     )}
                 </div>
+
+                {/* Theme & Language Toggle */}
+                {!isCollapsed && (
+                    <div className="flex items-center justify-center px-2 py-2">
+                        <LanguageSwitcher />
+                    </div>
+                )}
+
+                {isCollapsed && (
+                    <div className="flex flex-col items-center gap-2">
+                        <LanguageSwitcher />
+                    </div>
+                )}
 
                 {/* Logout for collapsed mode */}
                 {isCollapsed && (
