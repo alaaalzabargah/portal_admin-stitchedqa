@@ -8,8 +8,12 @@ import { cn } from '@/lib/utils';
 const notoSansArabic = Noto_Sans_Arabic({ subsets: ['arabic'], variable: '--font-noto-arabic' });
 
 export const metadata: Metadata = {
-  title: 'Admin Portal',
+  title: 'Stitched Admin Portal',
   description: 'Premium Administration Portal',
+  icons: {
+    icon: '/images/favicon-icon.png', // Using the uploaded logo as favicon
+    apple: '/images/favicon-icon.png',
+  },
 };
 
 import { LanguageProvider } from '@/lib/i18n/context'
