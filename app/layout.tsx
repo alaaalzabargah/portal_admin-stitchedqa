@@ -79,8 +79,8 @@ export default async function RootLayout({
           <DialogProvider>
             <ThemeProvider
               attribute="class"
-              defaultTheme="system"
-              enableSystem
+              defaultTheme="light"
+              enableSystem={false}
               disableTransitionOnChange
             >
               <ThemeSystemProvider>
