@@ -34,7 +34,7 @@ export function BentoMetrics({ customer, lastOrderDate, locale, dict }: BentoMet
                         />
                     </div>
                     <div className="flex-1 min-w-0">
-                        <p className="text-xs uppercase tracking-wide text-gray-600 dark:text-gray-400 font-medium mb-1">
+                        <p className="text-xs uppercase tracking-wide text-gray-600 font-medium mb-1">
                             {dict.customer_details?.total_spend || 'Total Spend'}
                         </p>
                         <p
@@ -62,7 +62,7 @@ export function BentoMetrics({ customer, lastOrderDate, locale, dict }: BentoMet
                         />
                     </div>
                     <div className="flex-1 min-w-0">
-                        <p className="text-xs uppercase tracking-wide text-gray-600 dark:text-gray-400 font-medium mb-1">
+                        <p className="text-xs uppercase tracking-wide text-gray-600 font-medium mb-1">
                             {dict.customer_details?.orders || 'Orders'}
                         </p>
                         <p
@@ -78,14 +78,14 @@ export function BentoMetrics({ customer, lastOrderDate, locale, dict }: BentoMet
             {/* Last Order */}
             <div className="luxury-gradient-card p-6 col-span-2 lg:col-span-1">
                 <div className="flex items-start gap-4">
-                    <div className="w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center flex-shrink-0">
-                        <Calendar className="w-6 h-6 text-slate-600 dark:text-slate-400" />
+                    <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center flex-shrink-0">
+                        <Calendar className="w-6 h-6 text-slate-600" />
                     </div>
                     <div className="flex-1 min-w-0">
-                        <p className="text-xs uppercase tracking-wide text-gray-600 dark:text-gray-400 font-medium mb-1">
+                        <p className="text-xs uppercase tracking-wide text-gray-600 font-medium mb-1">
                             {dict.customer_details?.last_order || 'Last Order'}
                         </p>
-                        <p className="text-lg font-bold font-mono text-slate-700 dark:text-slate-300">
+                        <p className="text-lg font-bold font-mono text-slate-700">
                             {lastOrderDate
                                 ? new Date(lastOrderDate).toLocaleDateString(
                                     locale === 'ar' ? 'ar-EG' : 'en-US',

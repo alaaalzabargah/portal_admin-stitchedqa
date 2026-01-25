@@ -45,8 +45,8 @@ export function CustomerListMobile({
                         }
                     }}
                     className={cn(
-                        "block bg-white dark:bg-zinc-800 p-4 rounded-2xl border border-sand-200 dark:border-zinc-700 shadow-sm active:scale-[0.99] transition-all relative",
-                        isSelectionMode && selectedIds?.has(customer.id) && 'ring-2 ring-accent bg-accent/5 dark:bg-accent/10'
+                        "block bg-white p-4 rounded-2xl border border-sand-200 shadow-sm active:scale-[0.99] transition-all relative",
+                        isSelectionMode && selectedIds?.has(customer.id) && 'ring-2 ring-accent bg-accent/5'
                     )}
                 >
                     {/* Link wrapper if not selection mode */}
@@ -72,7 +72,7 @@ export function CustomerListMobile({
                                     {customer.full_name?.[0]?.toUpperCase() || '?'}
                                 </div>
                                 <div>
-                                    <h3 className="font-semibold text-primary dark:text-white">{customer.full_name || 'Guest'}</h3>
+                                    <h3 className="font-semibold text-primary">{customer.full_name || 'Guest'}</h3>
                                     <div
                                         className="flex items-center gap-1.5 text-xs text-muted-foreground mt-1 cursor-pointer hover:text-accent"
                                         onClick={(e) => copyPhone(e, customer.phone, customer.id)}
@@ -103,14 +103,14 @@ export function CustomerListMobile({
                             })()}
                         </div>
 
-                        <div className="grid grid-cols-2 gap-4 pt-4 border-t border-sand-100 dark:border-zinc-700">
+                        <div className="grid grid-cols-2 gap-4 pt-4 border-t border-sand-100">
                             <div>
                                 <p className="text-[10px] text-muted-foreground uppercase tracking-widest mb-1">{t('customers.table.total_spend')}</p>
-                                <p className="font-serif font-medium text-primary dark:text-white">{formatCurrency(customer.total_spend_minor)}</p>
+                                <p className="font-serif font-medium text-primary">{formatCurrency(customer.total_spend_minor)}</p>
                             </div>
                             <div className="text-right rtl:text-left">
                                 <p className="text-[10px] text-muted-foreground uppercase tracking-widest mb-1">{t('customers.table.orders')}</p>
-                                <p className="font-medium text-primary dark:text-white flex items-center justify-end rtl:justify-start gap-1">
+                                <p className="font-medium text-primary flex items-center justify-end rtl:justify-start gap-1">
                                     <ShoppingBag className="w-3 h-3 text-sand-400" /> {customer.order_count}
                                 </p>
                             </div>

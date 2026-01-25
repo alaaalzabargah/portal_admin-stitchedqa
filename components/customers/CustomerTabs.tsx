@@ -18,7 +18,7 @@ export function CustomerTabs({ tabs, activeTab, onTabChange }: CustomerTabsProps
     const { themeConfig } = useThemeSystem()
 
     return (
-        <div className="border-b border-gray-200 dark:border-gray-700">
+        <div className="border-b border-gray-200">
             <nav className="flex -mb-px overflow-x-auto scrollbar-hide" aria-label="Tabs">
                 {tabs.map((tab) => {
                     const isActive = activeTab === tab.id
@@ -32,8 +32,8 @@ export function CustomerTabs({ tabs, activeTab, onTabChange }: CustomerTabsProps
                                 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary/20
                                 transition-all duration-200 touch-manipulation
                                 ${isActive 
-                                    ? 'text-primary dark:text-white' 
-                                    : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+                                    ? 'text-primary' 
+                                    : 'text-gray-500 hover:text-gray-700'
                                 }
                             `}
                             aria-current={isActive ? 'page' : undefined}

@@ -42,7 +42,7 @@ export function ProfileCard({ customer, tier, locale }: ProfileCardProps) {
                 </div>
 
                 {/* Name - Serif Font for Premium Feel */}
-                <h1 className="mt-5 text-xl sm:text-2xl font-serif font-semibold text-primary dark:text-white">
+                <h1 className="mt-5 text-xl sm:text-2xl font-serif font-semibold text-primary">
                     {customer.full_name}
                 </h1>
 
@@ -130,7 +130,7 @@ function CopyableContactItem({
                 <span className="text-muted-foreground flex-shrink-0">
                     {icon}
                 </span>
-                <span className="text-sm font-mono text-primary dark:text-white truncate">
+                <span className="text-sm font-mono text-primary truncate">
                     {value}
                 </span>
             </div>

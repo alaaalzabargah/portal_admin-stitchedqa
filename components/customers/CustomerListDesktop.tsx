@@ -60,9 +60,9 @@ export function CustomerListDesktop({
     }
 
     return (
-        <div className="hidden lg:block bg-white/65 dark:bg-white/10 backdrop-blur-xl border border-white/40 dark:border-white/20 overflow-hidden rounded-3xl shadow-[0_25px_50px_-12px_rgba(0,0,0,0.15)]">
+        <div className="hidden lg:block bg-white/65 backdrop-blur-xl border border-white/40 overflow-hidden rounded-3xl shadow-[0_25px_50px_-12px_rgba(0,0,0,0.15)]">
             <table className="w-full text-sm text-left rtl:text-right">
-                <thead className="bg-white/50 dark:bg-white/5 text-gray-600 dark:text-gray-400 font-medium border-b border-white/30 dark:border-white/10">
+                <thead className="bg-white/50 text-gray-600 font-medium border-b border-white/30">
                     <tr>
                         {isSelectionMode && (
                             <th className="px-4 py-5 w-12">
@@ -84,14 +84,14 @@ export function CustomerListDesktop({
                         <th className="px-8 py-5 text-xs uppercase tracking-widest font-semibold text-right rtl:text-left w-12"></th>
                     </tr>
                 </thead>
-                <tbody className="divide-y divide-white/20 dark:divide-white/10">
+                <tbody className="divide-y divide-white/20">
                     {customers?.map((customer, index) => (
                         <tr
                             key={customer.id}
                             className={cn(
                                 "group cursor-pointer transition-all",
-                                "hover:bg-white/40 dark:hover:bg-white/10",
-                                selectedIds?.has(customer.id) ? 'bg-white/30 dark:bg-white/10' : 'bg-transparent'
+                                "hover:bg-white/40",
+                                selectedIds?.has(customer.id) ? 'bg-white/30' : 'bg-transparent'
                             )}
                             onClick={(e) => {
                                 if (isSelectionMode && onToggleSelect) {

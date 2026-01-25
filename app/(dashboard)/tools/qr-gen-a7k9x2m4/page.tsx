@@ -111,9 +111,9 @@ export default function QRGeneratorPage() {
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-sand-50 to-white dark:from-zinc-900 dark:to-zinc-800 p-4 sm:p-6 lg:p-8">
+        <div className="min-h-screen bg-gradient-to-br from-sand-50 to-white p-4 sm:p-6 lg:p-8">
             <div className="max-w-7xl mx-auto mb-8">
-                <h1 className="text-3xl sm:text-4xl font-serif font-bold text-primary dark:text-white mb-2">
+                <h1 className="text-3xl sm:text-4xl font-serif font-bold text-primary mb-2">
                     QR Code Generator
                 </h1>
                 <p className="text-muted-foreground">Advanced QR code customization with full design control</p>
@@ -122,83 +122,83 @@ export default function QRGeneratorPage() {
             <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-8">
                 <div className="space-y-6">
                     <div className="glass-card p-6 rounded-2xl shadow-xl">
-                        <h2 className="text-xl font-semibold text-primary dark:text-white mb-4">Content</h2>
+                        <h2 className="text-xl font-semibold text-primary mb-4">Content</h2>
                         <input type="text" value={qrContent} onChange={(e) => setQRContent(e.target.value)} placeholder="https://example.com"
-                            className="w-full px-4 py-3 border border-sand-200 dark:border-zinc-700 rounded-xl focus:ring-2 focus:ring-accent bg-white dark:bg-zinc-800 dark:text-white" />
+                            className="w-full px-4 py-3 border border-sand-200 rounded-xl focus:ring-2 focus:ring-accent bg-white" />
                     </div>
 
                     <div className="glass-card p-6 rounded-2xl shadow-xl">
-                        <h2 className="text-xl font-semibold text-primary dark:text-white mb-4">Dot Pattern</h2>
+                        <h2 className="text-xl font-semibold text-primary mb-4">Dot Pattern</h2>
                         <div className="space-y-4">
                             <div className="grid grid-cols-3 gap-2">
                                 {(['square', 'dots', 'rounded', 'extra-rounded', 'classy', 'classy-rounded'] as DotType[]).map((type) => (
                                     <button key={type} onClick={() => setDotType(type)}
-                                        className={`px-3 py-2 rounded-lg text-sm border-2 transition-all ${dotType === type ? 'border-accent bg-accent/10 text-accent font-medium' : 'border-sand-200 dark:border-zinc-700 hover:border-accent/50'}`}>
+                                        className={`px-3 py-2 rounded-lg text-sm border-2 transition-all ${dotType === type ? 'border-accent bg-accent/10 text-accent font-medium' : 'border-sand-200 hover:border-accent/50'}`}>
                                         {type.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
                                     </button>
                                 ))}
                             </div>
                             <div className="flex gap-2 items-center">
                                 <input type="color" value={dotColor} onChange={(e) => setDotColor(e.target.value)}
-                                    className="h-12 w-20 rounded-xl border border-sand-200 dark:border-zinc-700 cursor-pointer" />
+                                    className="h-12 w-20 rounded-xl border border-sand-200 cursor-pointer" />
                                 <input type="text" value={dotColor} onChange={(e) => setDotColor(e.target.value)}
-                                    className="flex-1 px-3 py-2 border border-sand-200 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-800 dark:text-white font-mono text-sm" />
+                                    className="flex-1 px-3 py-2 border border-sand-200 rounded-lg bg-white font-mono text-sm" />
                             </div>
                         </div>
                     </div>
 
                     <div className="glass-card p-6 rounded-2xl shadow-xl">
-                        <h2 className="text-xl font-semibold text-primary dark:text-white mb-4">Corner Squares (Eyes)</h2>
+                        <h2 className="text-xl font-semibold text-primary mb-4">Corner Squares (Eyes)</h2>
                         <div className="space-y-4">
                             <div className="grid grid-cols-3 gap-2">
                                 {(['square', 'extra-rounded', 'dot'] as CornerSquareType[]).map((type) => (
                                     <button key={type} onClick={() => setCornerSquareType(type)}
-                                        className={`px-3 py-2 rounded-lg text-sm border-2 transition-all ${cornerSquareType === type ? 'border-accent bg-accent/10 text-accent font-medium' : 'border-sand-200 dark:border-zinc-700 hover:border-accent/50'}`}>
+                                        className={`px-3 py-2 rounded-lg text-sm border-2 transition-all ${cornerSquareType === type ? 'border-accent bg-accent/10 text-accent font-medium' : 'border-sand-200 hover:border-accent/50'}`}>
                                         {type.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
                                     </button>
                                 ))}
                             </div>
                             <div className="flex gap-2 items-center">
                                 <input type="color" value={cornerSquareColor} onChange={(e) => setCornerSquareColor(e.target.value)}
-                                    className="h-12 w-20 rounded-xl border border-sand-200 dark:border-zinc-700 cursor-pointer" />
+                                    className="h-12 w-20 rounded-xl border border-sand-200 cursor-pointer" />
                                 <input type="text" value={cornerSquareColor} onChange={(e) => setCornerSquareColor(e.target.value)}
-                                    className="flex-1 px-3 py-2 border border-sand-200 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-800 dark:text-white font-mono text-sm" />
+                                    className="flex-1 px-3 py-2 border border-sand-200 rounded-lg bg-white font-mono text-sm" />
                             </div>
                         </div>
                     </div>
 
                     <div className="glass-card p-6 rounded-2xl shadow-xl">
-                        <h2 className="text-xl font-semibold text-primary dark:text-white mb-4">Corner Dots (Pupils)</h2>
+                        <h2 className="text-xl font-semibold text-primary mb-4">Corner Dots (Pupils)</h2>
                         <div className="space-y-4">
                             <div className="grid grid-cols-2 gap-2">
                                 {(['square', 'dot'] as CornerDotType[]).map((type) => (
                                     <button key={type} onClick={() => setCornerDotType(type)}
-                                        className={`px-3 py-2 rounded-lg text-sm border-2 transition-all ${cornerDotType === type ? 'border-accent bg-accent/10 text-accent font-medium' : 'border-sand-200 dark:border-zinc-700 hover:border-accent/50'}`}>
+                                        className={`px-3 py-2 rounded-lg text-sm border-2 transition-all ${cornerDotType === type ? 'border-accent bg-accent/10 text-accent font-medium' : 'border-sand-200 hover:border-accent/50'}`}>
                                         {type.charAt(0).toUpperCase() + type.slice(1)}
                                     </button>
                                 ))}
                             </div>
                             <div className="flex gap-2 items-center">
                                 <input type="color" value={cornerDotColor} onChange={(e) => setCornerDotColor(e.target.value)}
-                                    className="h-12 w-20 rounded-xl border border-sand-200 dark:border-zinc-700 cursor-pointer" />
+                                    className="h-12 w-20 rounded-xl border border-sand-200 cursor-pointer" />
                                 <input type="text" value={cornerDotColor} onChange={(e) => setCornerDotColor(e.target.value)}
-                                    className="flex-1 px-3 py-2 border border-sand-200 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-800 dark:text-white font-mono text-sm" />
+                                    className="flex-1 px-3 py-2 border border-sand-200 rounded-lg bg-white font-mono text-sm" />
                             </div>
                         </div>
                     </div>
 
                     <div className="glass-card p-6 rounded-2xl shadow-xl">
-                        <h2 className="text-xl font-semibold text-primary dark:text-white mb-4">Background</h2>
+                        <h2 className="text-xl font-semibold text-primary mb-4">Background</h2>
                         <div className="flex gap-2 items-center">
                             <input type="color" value={backgroundColor} onChange={(e) => setBackgroundColor(e.target.value)}
-                                className="h-12 w-20 rounded-xl border border-sand-200 dark:border-zinc-700 cursor-pointer" />
+                                className="h-12 w-20 rounded-xl border border-sand-200 cursor-pointer" />
                             <input type="text" value={backgroundColor} onChange={(e) => setBackgroundColor(e.target.value)}
-                                className="flex-1 px-3 py-2 border border-sand-200 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-800 dark:text-white font-mono text-sm" />
+                                className="flex-1 px-3 py-2 border border-sand-200 rounded-lg bg-white font-mono text-sm" />
                         </div>
                     </div>
 
                     <div className="glass-card p-6 rounded-2xl shadow-xl">
-                        <h2 className="text-xl font-semibold text-primary dark:text-white mb-4">Center Logo</h2>
+                        <h2 className="text-xl font-semibold text-primary mb-4">Center Logo</h2>
                         <input ref={fileInputRef} type="file" accept="image/*" onChange={handleLogoUpload} className="hidden" />
                         {logoImage ? (
                             <div className="space-y-4">
@@ -215,7 +215,7 @@ export default function QRGeneratorPage() {
                             </div>
                         ) : (
                             <button onClick={() => fileInputRef.current?.click()}
-                                className="w-full py-8 border-2 border-dashed border-sand-200 dark:border-zinc-700 rounded-xl hover:border-accent transition-colors flex flex-col items-center gap-2">
+                                className="w-full py-8 border-2 border-dashed border-sand-200 rounded-xl hover:border-accent transition-colors flex flex-col items-center gap-2">
                                 <Upload className="w-8 h-8 text-muted-foreground" />
                                 <span className="text-sm text-muted-foreground">Click to upload logo</span>
                             </button>
@@ -225,17 +225,17 @@ export default function QRGeneratorPage() {
 
                 <div className="lg:sticky lg:top-8 lg:h-fit space-y-6">
                     <div className="glass-card p-8 rounded-2xl shadow-xl">
-                        <h3 className="text-lg font-semibold text-primary dark:text-white mb-4">Live Preview</h3>
-                        <div className="flex items-center justify-center bg-white dark:bg-zinc-900 rounded-2xl p-8">
+                        <h3 className="text-lg font-semibold text-primary mb-4">Live Preview</h3>
+                        <div className="flex items-center justify-center bg-white rounded-2xl p-8">
                             <div ref={canvasRef} />
                         </div>
                     </div>
 
                     <div className="glass-card p-6 rounded-2xl shadow-xl">
-                        <h3 className="text-lg font-semibold text-primary dark:text-white mb-4">Export Options</h3>
+                        <h3 className="text-lg font-semibold text-primary mb-4">Export Options</h3>
                         <div className="space-y-4">
                             <select value={exportFormat} onChange={(e) => setExportFormat(e.target.value as ExportFormat)}
-                                className="w-full px-4 py-3 border border-sand-200 dark:border-zinc-700 rounded-xl focus:ring-2 focus:ring-accent bg-white dark:bg-zinc-800 dark:text-white">
+                                className="w-full px-4 py-3 border border-sand-200 rounded-xl focus:ring-2 focus:ring-accent bg-white">
                                 <option value="png">PNG (Raster)</option>
                                 <option value="svg">SVG (Vector)</option>
                                 <option value="jpeg">JPEG</option>

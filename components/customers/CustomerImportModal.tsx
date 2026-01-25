@@ -181,26 +181,26 @@ export function CustomerImportModal({ isOpen, onClose, onSuccess }: CustomerImpo
 
             {/* Modal */}
             <div className="relative w-full max-w-2xl max-h-[90vh] overflow-y-auto animate-fade-in">
-                <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-b from-white/95 via-white/90 to-white/85 dark:from-zinc-900/95 dark:via-zinc-900/90 dark:to-zinc-900/85 backdrop-blur-xl border border-white/50 dark:border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.12)]">
+                <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-b from-white/95 via-white/90 to-white/85 backdrop-blur-xl border border-white/50 shadow-[0_8px_32px_rgba(0,0,0,0.12)]">
 
                     {/* Decorative */}
                     <div className="absolute -top-24 -right-24 w-48 h-48 bg-gradient-to-br from-emerald-500/20 to-teal-500/20 rounded-full blur-3xl" />
 
                     {/* Header */}
-                    <div className="relative flex items-center justify-between p-4 sm:p-6 border-b border-sand-200/50 dark:border-zinc-700/50">
+                    <div className="relative flex items-center justify-between p-4 sm:p-6 border-b border-sand-200/50">
                         <div className="flex items-center gap-3 sm:gap-4">
                             <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-lg">
                                 <FileSpreadsheet className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
                             </div>
                             <div>
-                                <h2 className="text-lg sm:text-xl font-bold text-primary dark:text-white">Import Customers</h2>
+                                <h2 className="text-lg sm:text-xl font-bold text-primary">Import Customers</h2>
                                 <p className="text-xs sm:text-sm text-muted-foreground">Upload Excel or CSV file</p>
                             </div>
                         </div>
                         <button
                             onClick={handleClose}
                             disabled={uploading}
-                            className="p-2 hover:bg-sand-100 dark:hover:bg-zinc-800 rounded-xl transition-colors disabled:opacity-50"
+                            className="p-2 hover:bg-sand-100 rounded-xl transition-colors disabled:opacity-50"
                         >
                             <X className="w-5 h-5" />
                         </button>
@@ -210,12 +210,12 @@ export function CustomerImportModal({ isOpen, onClose, onSuccess }: CustomerImpo
                     <div className="relative p-4 sm:p-6 space-y-4 sm:space-y-6">
 
                         {/* Template Download */}
-                        <div className="flex items-center justify-between p-3 sm:p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl">
+                        <div className="flex items-center justify-between p-3 sm:p-4 bg-blue-50 border border-blue-200 rounded-xl">
                             <div className="flex items-center gap-3">
-                                <Download className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                                <Download className="w-5 h-5 text-blue-600" />
                                 <div>
-                                    <p className="font-medium text-sm text-blue-700 dark:text-blue-300">Need a template?</p>
-                                    <p className="text-xs text-blue-600/70 dark:text-blue-400/70">Download with correct column order</p>
+                                    <p className="font-medium text-sm text-blue-700">Need a template?</p>
+                                    <p className="text-xs text-blue-600/70">Download with correct column order</p>
                                 </div>
                             </div>
                             <button
@@ -233,10 +233,10 @@ export function CustomerImportModal({ isOpen, onClose, onSuccess }: CustomerImpo
                             onDrop={handleFileDrop}
                             onClick={() => fileInputRef.current?.click()}
                             className={`relative border-2 border-dashed rounded-2xl p-8 sm:p-12 text-center cursor-pointer transition-all ${dragOver
-                                ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20'
+                                ? 'border-emerald-500 bg-emerald-50'
                                 : file
-                                    ? 'border-emerald-400 bg-emerald-50/50 dark:bg-emerald-900/10'
-                                    : 'border-sand-300 dark:border-zinc-600 hover:border-sand-400 dark:hover:border-zinc-500'
+                                    ? 'border-emerald-400 bg-emerald-50/50'
+                                    : 'border-sand-300 hover:border-sand-400'
                                 }`}
                         >
                             <input
@@ -250,7 +250,7 @@ export function CustomerImportModal({ isOpen, onClose, onSuccess }: CustomerImpo
                             {file ? (
                                 <div className="space-y-2">
                                     <FileSpreadsheet className="w-12 h-12 mx-auto text-emerald-600" />
-                                    <p className="font-semibold text-primary dark:text-white">{file.name}</p>
+                                    <p className="font-semibold text-primary">{file.name}</p>
                                     <p className="text-sm text-muted-foreground">{(file.size / 1024).toFixed(2)} KB</p>
                                     <button
                                         onClick={(e) => { e.stopPropagation(); setFile(null); setResult(null) }}
@@ -262,7 +262,7 @@ export function CustomerImportModal({ isOpen, onClose, onSuccess }: CustomerImpo
                             ) : (
                                 <div className="space-y-3">
                                     <Upload className="w-12 h-12 mx-auto text-muted-foreground/50" />
-                                    <p className="font-medium text-primary dark:text-white">
+                                    <p className="font-medium text-primary">
                                         Drop your file here or <span className="text-emerald-600">browse</span>
                                     </p>
                                     <p className="text-sm text-muted-foreground">Supports Excel (.xlsx, .xls) and CSV files</p>
@@ -272,9 +272,9 @@ export function CustomerImportModal({ isOpen, onClose, onSuccess }: CustomerImpo
 
                         {/* Progress / Result */}
                         {uploading && (
-                            <div className="flex items-center justify-center gap-3 p-4 bg-sand-100 dark:bg-zinc-800 rounded-xl">
+                            <div className="flex items-center justify-center gap-3 p-4 bg-sand-100 rounded-xl">
                                 <Loader2 className="w-5 h-5 animate-spin text-accent" />
-                                <span className="font-medium text-primary dark:text-white">Importing customers...</span>
+                                <span className="font-medium text-primary">Importing customers...</span>
                             </div>
                         )}
 
@@ -282,8 +282,8 @@ export function CustomerImportModal({ isOpen, onClose, onSuccess }: CustomerImpo
                             <div className="space-y-4">
                                 {/* Summary */}
                                 <div className={`p-4 rounded-xl border ${result.success
-                                    ? 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-800'
-                                    : 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800'
+                                    ? 'bg-emerald-50 border-emerald-200'
+                                    : 'bg-amber-50 border-amber-200'
                                     }`}>
                                     <div className="flex items-start gap-3">
                                         {result.imported > 0 ? (
@@ -292,7 +292,7 @@ export function CustomerImportModal({ isOpen, onClose, onSuccess }: CustomerImpo
                                             <AlertTriangle className="w-6 h-6 text-amber-600 flex-shrink-0" />
                                         )}
                                         <div className="flex-1">
-                                            <p className="font-semibold text-primary dark:text-white">
+                                            <p className="font-semibold text-primary">
                                                 {result.imported > 0
                                                     ? `Successfully imported ${result.imported} customers`
                                                     : 'No customers imported'
@@ -309,21 +309,21 @@ export function CustomerImportModal({ isOpen, onClose, onSuccess }: CustomerImpo
 
                                 {/* Errors */}
                                 {result.errors.length > 0 && (
-                                    <div className="border border-red-200 dark:border-red-800 rounded-xl overflow-hidden">
+                                    <div className="border border-red-200 rounded-xl overflow-hidden">
                                         <button
                                             onClick={() => setShowErrors(!showErrors)}
-                                            className="w-full flex items-center justify-between p-3 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors"
+                                            className="w-full flex items-center justify-between p-3 bg-red-50 hover:bg-red-100 transition-colors"
                                         >
                                             <div className="flex items-center gap-2">
                                                 <AlertCircle className="w-4 h-4 text-red-600" />
-                                                <span className="font-medium text-red-700 dark:text-red-400 text-sm">
+                                                <span className="font-medium text-red-700 text-sm">
                                                     {result.errors.length} {result.errors.length === 1 ? 'Error' : 'Errors'}
                                                 </span>
                                             </div>
                                             {showErrors ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
                                         </button>
                                         {showErrors && (
-                                            <div className="max-h-40 overflow-y-auto divide-y divide-red-100 dark:divide-red-900">
+                                            <div className="max-h-40 overflow-y-auto divide-y divide-red-100">
                                                 {result.errors.map((err, idx) => (
                                                     <div key={idx} className="px-3 py-2 text-sm">
                                                         <span className="text-red-600 font-medium">
@@ -340,12 +340,12 @@ export function CustomerImportModal({ isOpen, onClose, onSuccess }: CustomerImpo
 
                                 {/* Logs */}
                                 {result.logs.length > 0 && (
-                                    <div className="border border-sand-200 dark:border-zinc-700 rounded-xl overflow-hidden">
+                                    <div className="border border-sand-200 rounded-xl overflow-hidden">
                                         <button
                                             onClick={() => setShowLogs(!showLogs)}
-                                            className="w-full flex items-center justify-between p-3 bg-sand-50 dark:bg-zinc-800/50 hover:bg-sand-100 dark:hover:bg-zinc-800 transition-colors"
+                                            className="w-full flex items-center justify-between p-3 bg-sand-50 hover:bg-sand-100 transition-colors"
                                         >
-                                            <span className="font-medium text-sm text-secondary dark:text-zinc-300">Import Logs</span>
+                                            <span className="font-medium text-sm text-secondary">Import Logs</span>
                                             {showLogs ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
                                         </button>
                                         {showLogs && (

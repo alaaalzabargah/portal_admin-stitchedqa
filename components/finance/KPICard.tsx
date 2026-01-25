@@ -26,28 +26,28 @@ interface KPICardProps {
 const variantStyles = {
     default: {
         iconBg: 'bg-gray-500/20',
-        iconColor: 'text-gray-600 dark:text-gray-400',
+        iconColor: 'text-gray-600',
         valueBg: ''
     },
     revenue: {
         iconBg: 'bg-emerald-500/20',
-        iconColor: 'text-emerald-600 dark:text-emerald-400',
-        valueBg: 'text-emerald-700 dark:text-emerald-300'
+        iconColor: 'text-emerald-600',
+        valueBg: 'text-emerald-700'
     },
     expense: {
         iconBg: 'bg-rose-500/20',
-        iconColor: 'text-rose-600 dark:text-rose-400',
-        valueBg: 'text-rose-700 dark:text-rose-300'
+        iconColor: 'text-rose-600',
+        valueBg: 'text-rose-700'
     },
     profit: {
         iconBg: 'bg-blue-500/20',
-        iconColor: 'text-blue-600 dark:text-blue-400',
-        valueBg: 'text-blue-700 dark:text-blue-300'
+        iconColor: 'text-blue-600',
+        valueBg: 'text-blue-700'
     },
     orders: {
         iconBg: 'bg-amber-500/20',
-        iconColor: 'text-amber-600 dark:text-amber-400',
-        valueBg: 'text-amber-700 dark:text-amber-300'
+        iconColor: 'text-amber-600',
+        valueBg: 'text-amber-700'
     }
 }
 
@@ -124,7 +124,7 @@ export function KPICard({
         <>
             {/* Header: Label + Icon */}
             <div className="flex items-start justify-between mb-3 md:mb-4">
-                <p className="text-[10px] md:text-[11px] font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-400">
+                <p className="text-[10px] md:text-[11px] font-semibold uppercase tracking-wider text-gray-600">
                     {label}
                 </p>
                 <div className={cn(
@@ -139,7 +139,7 @@ export function KPICard({
                 {/* Value */}
                 <div className={cn(
                     "font-mono font-bold tabular-nums tracking-tight mb-2 md:mb-3 flex items-baseline gap-1 flex-wrap",
-                    "text-gray-900 dark:text-white",
+                    "text-gray-900",
                     highlighted && "text-[var(--theme-primary)]",
                     styles.valueBg
                 )}>
@@ -192,7 +192,7 @@ export function KPICard({
                     <AlertCircle className="w-4 h-4" />
                     <p className="text-xs font-medium uppercase tracking-wider">Error</p>
                 </div>
-                <p className="text-sm text-gray-600 dark:text-gray-400">{error}</p>
+                <p className="text-sm text-gray-600">{error}</p>
             </div>
         )
     }
@@ -200,7 +200,7 @@ export function KPICard({
     if (unavailable) {
         return (
             <div className={glassCardClasses}>
-                <p className="text-[11px] font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-400 mb-3">
+                <p className="text-[11px] font-semibold uppercase tracking-wider text-gray-600 mb-3">
                     {label}
                 </p>
                 <div className="flex items-center gap-2 text-gray-500">

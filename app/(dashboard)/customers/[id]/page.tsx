@@ -72,7 +72,7 @@ export default async function CustomerDetailsPage({ params }: PageProps) {
                 <div className="absolute top-6 ltr:left-6 rtl:right-6 sm:top-8 sm:ltr:left-8 sm:rtl:right-8 z-20">
                     <Link
                         href="/customers"
-                        className="inline-flex items-center gap-2 text-sm text-primary/70 dark:text-white/70 hover:text-primary dark:hover:text-white transition-colors bg-white/50 dark:bg-zinc-900/50 backdrop-blur-sm px-3 py-2 rounded-full"
+                        className="inline-flex items-center gap-2 text-sm text-primary/70 hover:text-primary transition-colors bg-white/50 backdrop-blur-sm px-3 py-2 rounded-full"
                     >
                         <ArrowLeft className={`w-4 h-4 ${locale === 'ar' ? 'rotate-180' : ''}`} />
                         {locale === 'en' ? 'Back' : 'رجوع'}
@@ -91,7 +91,7 @@ export default async function CustomerDetailsPage({ params }: PageProps) {
 
                 {/* Customer Name Header + Tier Badge + Since Date */}
                 <div className="text-center pt-12 sm:pt-4">
-                    <h1 className="text-2xl sm:text-3xl font-serif font-bold text-primary dark:text-white mb-3">
+                    <h1 className="text-2xl sm:text-3xl font-serif font-bold text-primary mb-3">
                         {customer.full_name}
                     </h1>
                     {/* Tier Badge + Since Date */}

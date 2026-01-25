@@ -167,8 +167,8 @@ export const GlassButton = React.forwardRef<HTMLButtonElement, GlassButtonProps>
                     ref={ref}
                     className={cn(
                         baseClasses,
-                        "bg-transparent text-gray-700 dark:text-gray-300",
-                        "hover:bg-gray-100 dark:hover:bg-gray-800",
+                        "bg-transparent text-gray-700",
+                        "hover:bg-gray-100",
                         "focus:ring-gray-300",
                         className
                     )}

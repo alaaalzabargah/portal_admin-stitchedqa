@@ -23,7 +23,7 @@ export function TopProductsList({
     if (loading) {
         return (
             <div className={cn(
-                "bg-white/65 dark:bg-white/10 backdrop-blur-xl border border-white/40 dark:border-white/20 rounded-3xl p-5 md:p-6 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.15)] h-80 md:h-96 flex flex-col animate-pulse",
+                "bg-white/65 backdrop-blur-xl border border-white/40 rounded-3xl p-5 md:p-6 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.15)] h-80 md:h-96 flex flex-col animate-pulse",
                 className
             )}>
                 <div className="h-4 bg-gray-300/50 rounded w-1/3 mb-6"></div>
@@ -45,10 +45,10 @@ export function TopProductsList({
     if (!data || data.length === 0) {
         return (
             <div className={cn(
-                "bg-white/65 dark:bg-white/10 backdrop-blur-xl border border-white/40 dark:border-white/20 rounded-3xl p-5 md:p-6 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.15)] h-80 md:h-96 flex flex-col",
+                "bg-white/65 backdrop-blur-xl border border-white/40 rounded-3xl p-5 md:p-6 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.15)] h-80 md:h-96 flex flex-col",
                 className
             )}>
-                <h3 className="text-[10px] md:text-[11px] font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider mb-4">
+                <h3 className="text-[10px] md:text-[11px] font-semibold text-gray-600 uppercase tracking-wider mb-4">
                     Top Selling Products
                 </h3>
                 <div className="flex-1 flex flex-col items-center justify-center text-gray-500 gap-2">
@@ -61,11 +61,11 @@ export function TopProductsList({
 
     return (
         <div className={cn(
-            "bg-white/65 dark:bg-white/10 backdrop-blur-xl border border-white/40 dark:border-white/20 rounded-3xl p-5 md:p-6 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.15)] h-80 md:h-96 flex flex-col group hover:bg-white/75 dark:hover:bg-white/15 transition-all duration-300",
+            "bg-white/65 backdrop-blur-xl border border-white/40 rounded-3xl p-5 md:p-6 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.15)] h-80 md:h-96 flex flex-col group hover:bg-white/75 transition-all duration-300",
             className
         )}>
             <div className="flex items-center justify-between mb-6">
-                <h3 className="text-[10px] md:text-[11px] font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider flex items-center gap-2">
+                <h3 className="text-[10px] md:text-[11px] font-semibold text-gray-600 uppercase tracking-wider flex items-center gap-2">
                     <Crown className="w-3 h-3 text-[var(--theme-primary)]" />
                     Top Performing Products
                 </h3>
@@ -91,12 +91,12 @@ export function TopProductsList({
                                 )}>
                                     {index + 1}
                                 </span>
-                                <span className="text-sm font-medium text-gray-900 dark:text-white truncate">
+                                <span className="text-sm font-medium text-gray-900 truncate">
                                     {product.name}
                                 </span>
                             </div>
                             <div className="text-right shrink-0">
-                                <p className="text-sm font-mono font-bold text-gray-900 dark:text-gray-100">
+                                <p className="text-sm font-mono font-bold text-gray-900">
                                     {formatCurrency(product.revenue)}
                                 </p>
                             </div>
@@ -104,7 +104,7 @@ export function TopProductsList({
 
                         {/* Progress Bar & Subtext */}
                         <div className="grid grid-cols-[1fr_auto] gap-3 items-center">
-                            <div className="h-1.5 w-full bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
+                            <div className="h-1.5 w-full bg-gray-100 rounded-full overflow-hidden">
                                 <div
                                     className="h-full bg-[var(--theme-primary)] rounded-full transition-all duration-1000 ease-out group-hover/item:brightness-110"
                                     style={{ width: `${(product.revenue / maxRevenue) * 100}%` }}

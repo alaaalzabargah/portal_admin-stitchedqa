@@ -23,11 +23,11 @@ export function PageHeader({ label, title, subtitle, className }: PageHeaderProp
                     {label}
                 </p>
             )}
-            <h1 className="text-2xl sm:text-4xl font-bold tracking-tight text-gray-900 dark:text-white">
+            <h1 className="text-2xl sm:text-4xl font-bold tracking-tight text-gray-900">
                 {title}
             </h1>
             {subtitle && (
-                <p className="text-xs sm:text-base text-gray-600 dark:text-gray-300 mt-1 sm:mt-2">
+                <p className="text-xs sm:text-base text-gray-600 mt-1 sm:mt-2">
                     {subtitle}
                 </p>
             )}

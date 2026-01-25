@@ -85,7 +85,7 @@ export function MobileNav() {
         <>
             {/* Mobile Top Bar */}
             <div
-                className="lg:hidden fixed top-0 left-0 right-0 h-20 bg-white/65 dark:bg-white/10 backdrop-blur-xl border-b border-white/40 dark:border-white/20 z-50 flex items-center justify-between px-6 shadow-sm"
+                className="lg:hidden fixed top-0 left-0 right-0 h-20 bg-white/65 backdrop-blur-xl border-b border-white/40 z-50 flex items-center justify-between px-6 shadow-sm"
                 style={{
                     background: themeLoading
                         ? undefined
@@ -129,7 +129,7 @@ export function MobileNav() {
                     />
 
                     {/* Drawer Panel - Glass Theme */}
-                    <div className="absolute top-0 right-0 w-[280px] h-full bg-white/80 dark:bg-zinc-900/80 backdrop-blur-2xl shadow-2xl flex flex-col animate-slide-in-right border-l border-white/40 dark:border-white/20">
+                    <div className="absolute top-0 right-0 w-[280px] h-full bg-white/95 backdrop-blur-2xl shadow-2xl flex flex-col animate-slide-in-right border-l border-gray-200">
 
                         {/* Header */}
                         <div className="h-16 flex items-center justify-between px-6 border-b border-white/20">
@@ -171,7 +171,7 @@ export function MobileNav() {
                                                     "flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200",
                                                     isActive
                                                         ? "bg-[var(--theme-primary)]/10 text-[var(--theme-primary)] border border-[var(--theme-primary)]/20 shadow-sm font-semibold"
-                                                        : "text-gray-600 dark:text-gray-300 hover:bg-black/5 dark:hover:bg-white/10 border border-transparent"
+                                                        : "text-gray-600 hover:bg-gray-100 border border-transparent"
                                                 )}
                                             >
                                                 <Icon className={cn(
@@ -205,7 +205,7 @@ export function MobileNav() {
                                                     "flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200",
                                                     isActive
                                                         ? "bg-[var(--theme-primary)]/10 text-[var(--theme-primary)] border border-[var(--theme-primary)]/20 shadow-sm font-semibold"
-                                                        : "text-gray-600 dark:text-gray-300 hover:bg-black/5 dark:hover:bg-white/10 border border-transparent"
+                                                        : "text-gray-600 hover:bg-black/5 border border-transparent"
                                                 )}
                                             >
                                                 <Icon className={cn(
@@ -226,8 +226,8 @@ export function MobileNav() {
                         </div>
 
                         {/* Footer */}
-                        <div className="p-4 border-t border-white/20 dark:border-white/10 bg-white/30 dark:bg-white/5">
-                            <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-sand-100/60 dark:hover:bg-sand-200/20 transition-colors mb-3">
+                        <div className="p-4 border-t border-gray-200 bg-gray-50/80">
+                            <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-100 transition-colors mb-3">
                                 <div className="w-9 h-9 rounded-full bg-gradient-to-br from-accent to-accent-dark flex items-center justify-center text-white font-semibold text-sm shadow-md">
                                     {loading ? (
                                         <Loader2 className="w-4 h-4 animate-spin" />
@@ -242,7 +242,7 @@ export function MobileNav() {
                             </div>
                             <button
                                 onClick={handleLogout}
-                                className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border border-white/40 dark:border-white/20 bg-white/20 hover:bg-white/40 text-xs uppercase tracking-wider text-muted-foreground hover:text-[var(--theme-primary)] transition-all shadow-sm"
+                                className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border border-gray-300 bg-white hover:bg-gray-50 text-xs uppercase tracking-wider text-gray-600 hover:text-[var(--theme-primary)] transition-all shadow-sm"
                             >
                                 <LogOut className="w-4 h-4" /> Sign Out
                             </button>

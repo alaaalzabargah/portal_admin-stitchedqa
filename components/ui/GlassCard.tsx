@@ -41,9 +41,9 @@ export function GlassCard({
         <div
             className={cn(
                 // Glass effect
-                "bg-white/65 dark:bg-white/10",
+                "bg-white/65",
                 "backdrop-blur-xl",
-                "border border-white/40 dark:border-white/20",
+                "border border-white/40",
                 "rounded-3xl",
                 "shadow-[0_25px_50px_-12px_rgba(0,0,0,0.15)]",
                 // Animation
@@ -51,7 +51,7 @@ export function GlassCard({
                 // Padding
                 paddingClasses[padding],
                 // Interactivity
-                onClick && "cursor-pointer hover:bg-white/75 dark:hover:bg-white/15 transition-all duration-200",
+                onClick && "cursor-pointer hover:bg-white/75 transition-all duration-200",
                 // Custom classes
                 className
             )}
@@ -97,7 +97,7 @@ export function GlassCardTitle({
     return (
         <h3
             className={cn(
-                "text-lg font-semibold text-gray-900 dark:text-white",
+                "text-lg font-semibold text-gray-900",
                 className
             )}
         >
@@ -119,7 +119,7 @@ export function GlassCardDescription({
     return (
         <p
             className={cn(
-                "text-sm text-gray-600 dark:text-gray-400 mt-1",
+                "text-sm text-gray-600 mt-1",
                 className
             )}
         >

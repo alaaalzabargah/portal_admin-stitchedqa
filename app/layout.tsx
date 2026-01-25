@@ -34,6 +34,7 @@ export default async function RootLayout({
 
   return (
     <html lang={locale} dir={dir} suppressHydrationWarning className={cn(
+      'light', // Force light mode
       GeistSans.variable,
       GeistMono.variable,
       notoSansArabic.variable,

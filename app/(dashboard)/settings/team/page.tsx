@@ -24,32 +24,32 @@ const ROLE_CONFIG: Record<UserRole, {
 }> = {
     owner: {
         icon: Crown,
-        color: 'text-purple-600 dark:text-purple-400',
-        bgColor: 'bg-purple-100 dark:bg-purple-900/30',
+        color: 'text-purple-600',
+        bgColor: 'bg-purple-100',
         gradient: 'from-purple-500 to-violet-600'
     },
     admin: {
         icon: Shield,
-        color: 'text-emerald-600 dark:text-emerald-400',
-        bgColor: 'bg-emerald-100 dark:bg-emerald-900/30',
+        color: 'text-emerald-600',
+        bgColor: 'bg-emerald-100',
         gradient: 'from-emerald-500 to-teal-600'
     },
     manager: {
         icon: Users,
-        color: 'text-blue-600 dark:text-blue-400',
-        bgColor: 'bg-blue-100 dark:bg-blue-900/30',
+        color: 'text-blue-600',
+        bgColor: 'bg-blue-100',
         gradient: 'from-blue-500 to-sky-600'
     },
     editor: {
         icon: Edit,
-        color: 'text-amber-600 dark:text-amber-400',
-        bgColor: 'bg-amber-100 dark:bg-amber-900/30',
+        color: 'text-amber-600',
+        bgColor: 'bg-amber-100',
         gradient: 'from-amber-500 to-orange-600'
     },
     viewer: {
         icon: Eye,
-        color: 'text-gray-600 dark:text-gray-400',
-        bgColor: 'bg-gray-100 dark:bg-gray-900/30',
+        color: 'text-gray-600',
+        bgColor: 'bg-gray-100',
         gradient: 'from-gray-500 to-slate-600'
     }
 }
@@ -366,7 +366,7 @@ export default function TeamSettingsPage() {
                             return (
                                 <div
                                     key={user.id}
-                                    className={`group relative overflow-hidden rounded-xl sm:rounded-2xl bg-white dark:bg-zinc-900 border border-sand-200 dark:border-zinc-800 shadow-sm hover:shadow-md transition-all ${!user.is_active ? 'opacity-60' : ''
+                                    className={`group relative overflow-hidden rounded-xl sm:rounded-2xl bg-white border border-sand-200 shadow-sm hover:shadow-md transition-all ${!user.is_active ? 'opacity-60' : ''
                                         } ${isDeleting ? 'pointer-events-none' : ''}`}
                                 >
                                     {/* Role accent bar */}
@@ -384,7 +384,7 @@ export default function TeamSettingsPage() {
                                             </div>
 
                                             <div className="flex-1 min-w-0">
-                                                <p className="font-semibold text-primary dark:text-white truncate text-sm">
+                                                <p className="font-semibold text-primary truncate text-sm">
                                                     {user.display_name || user.full_name || 'Unnamed'}
                                                 </p>
                                                 <p className="text-xs text-muted-foreground truncate">{user.email}</p>
@@ -441,7 +441,7 @@ export default function TeamSettingsPage() {
                                                             type="text"
                                                             value={editDisplayName}
                                                             onChange={(e) => setEditDisplayName(e.target.value)}
-                                                            className="flex-1 px-3 py-2 rounded-lg border-2 border-accent bg-white dark:bg-zinc-800 text-sm font-semibold focus:ring-2 focus:ring-accent/20 outline-none"
+                                                            className="flex-1 px-3 py-2 rounded-lg border-2 border-accent bg-white text-sm font-semibold focus:ring-2 focus:ring-accent/20 outline-none"
                                                             autoFocus
                                                         />
                                                         <button
@@ -458,7 +458,7 @@ export default function TeamSettingsPage() {
                                                         </button>
                                                     </div>
                                                 ) : (
-                                                    <p className="font-semibold text-primary dark:text-white truncate">
+                                                    <p className="font-semibold text-primary truncate">
                                                         {user.display_name || user.full_name || 'Unnamed User'}
                                                     </p>
                                                 )}
@@ -466,7 +466,7 @@ export default function TeamSettingsPage() {
                                                     <Mail className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />
                                                     <span className="text-sm text-muted-foreground truncate">{user.email}</span>
                                                     {!user.is_active && (
-                                                        <span className="px-2 py-0.5 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-full text-[10px] font-bold uppercase flex-shrink-0">
+                                                        <span className="px-2 py-0.5 bg-red-100 text-red-600 rounded-full text-[10px] font-bold uppercase flex-shrink-0">
                                                             Disabled
                                                         </span>
                                                     )}
@@ -480,7 +480,7 @@ export default function TeamSettingsPage() {
                                                     <select
                                                         value={user.role}
                                                         onChange={(e) => handleRoleChange(user.id, e.target.value as UserRole)}
-                                                        className="px-3 py-2 rounded-lg border-2 border-accent bg-white dark:bg-zinc-800 text-sm font-semibold focus:ring-2 focus:ring-accent/20 outline-none"
+                                                        className="px-3 py-2 rounded-lg border-2 border-accent bg-white text-sm font-semibold focus:ring-2 focus:ring-accent/20 outline-none"
                                                         autoFocus
                                                         onBlur={() => setEditingRoleUserId(null)}
                                                     >
@@ -508,7 +508,7 @@ export default function TeamSettingsPage() {
                                                     <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                                                         <button
                                                             onClick={() => handleStartEdit(user)}
-                                                            className="p-2 text-muted-foreground hover:text-primary hover:bg-sand-100 dark:hover:bg-zinc-800 rounded-lg transition-all"
+                                                            className="p-2 text-muted-foreground hover:text-primary hover:bg-sand-100 rounded-lg transition-all"
                                                             title="Edit display name"
                                                         >
                                                             <Edit2 className="w-4 h-4" />
@@ -548,19 +548,19 @@ export default function TeamSettingsPage() {
             </div>
 
             {/* Roles Legend */}
-            <div className="rounded-xl sm:rounded-2xl bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border border-blue-200 dark:border-blue-800 p-4 sm:p-6">
+            <div className="rounded-xl sm:rounded-2xl bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200 p-4 sm:p-6">
                 <div className="flex items-center gap-3 mb-3 sm:mb-4">
-                    <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
-                        <Shield className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600 dark:text-blue-400" />
+                    <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl bg-blue-100 flex items-center justify-center">
+                        <Shield className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
                     </div>
-                    <h3 className="font-semibold text-primary dark:text-white text-sm sm:text-base">Role Permissions</h3>
+                    <h3 className="font-semibold text-primary text-sm sm:text-base">Role Permissions</h3>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3">
                     {ROLES_ORDER.map(role => {
                         const config = ROLE_CONFIG[role]
                         const Icon = config.icon
                         return (
-                            <div key={role} className="flex items-start gap-2 sm:gap-3 p-2 sm:p-3 rounded-lg sm:rounded-xl bg-white/60 dark:bg-zinc-800/60">
+                            <div key={role} className="flex items-start gap-2 sm:gap-3 p-2 sm:p-3 rounded-lg sm:rounded-xl bg-white/60">
                                 <div className={`w-7 h-7 sm:w-8 sm:h-8 rounded-md sm:rounded-lg ${config.bgColor} flex items-center justify-center flex-shrink-0`}>
                                     <Icon className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${config.color}`} />
                                 </div>
@@ -576,27 +576,27 @@ export default function TeamSettingsPage() {
 
             {/* Activity Log */}
             {canManageUsers && (
-                <div className="rounded-xl sm:rounded-2xl bg-white dark:bg-zinc-900 border border-sand-200 dark:border-zinc-800 overflow-hidden shadow-sm">
+                <div className="rounded-xl sm:rounded-2xl bg-white border border-sand-200 overflow-hidden shadow-sm">
                     <button
                         onClick={handleToggleAuditLogs}
-                        className="w-full flex items-center justify-between p-4 sm:p-5 hover:bg-sand-50 dark:hover:bg-zinc-800/50 transition-colors"
+                        className="w-full flex items-center justify-between p-4 sm:p-5 hover:bg-sand-50 transition-colors"
                     >
                         <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl bg-gradient-to-br from-violet-100 to-purple-100 dark:from-violet-900/30 dark:to-purple-900/30 flex items-center justify-center">
-                                <Activity className="w-4 h-4 sm:w-5 sm:h-5 text-violet-600 dark:text-violet-400" />
+                            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl bg-gradient-to-br from-violet-100 to-purple-100 flex items-center justify-center">
+                                <Activity className="w-4 h-4 sm:w-5 sm:h-5 text-violet-600" />
                             </div>
                             <div className="text-left">
-                                <p className="font-semibold text-primary dark:text-white text-sm sm:text-base">Activity Log</p>
+                                <p className="font-semibold text-primary text-sm sm:text-base">Activity Log</p>
                                 <p className="text-[10px] sm:text-xs text-muted-foreground">View team management history</p>
                             </div>
                         </div>
-                        <div className={`w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-sand-100 dark:bg-zinc-800 flex items-center justify-center transition-transform ${showAuditLogs ? 'rotate-180' : ''}`}>
+                        <div className={`w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-sand-100 flex items-center justify-center transition-transform ${showAuditLogs ? 'rotate-180' : ''}`}>
                             <ChevronDown className="w-4 h-4 text-muted-foreground" />
                         </div>
                     </button>
 
                     {showAuditLogs && (
-                        <div className="border-t border-sand-200 dark:border-zinc-800">
+                        <div className="border-t border-sand-200">
                             {auditLoading ? (
                                 <div className="p-6 sm:p-8 text-center">
                                     <Loader2 className="w-6 h-6 sm:w-8 sm:h-8 animate-spin text-accent mx-auto mb-2" />
@@ -608,16 +608,16 @@ export default function TeamSettingsPage() {
                                     <p className="text-xs sm:text-sm text-muted-foreground">No activity recorded yet</p>
                                 </div>
                             ) : (
-                                <div className="max-h-80 sm:max-h-96 overflow-y-auto divide-y divide-sand-100 dark:divide-zinc-800">
+                                <div className="max-h-80 sm:max-h-96 overflow-y-auto divide-y divide-sand-100">
                                     {auditLogs.map((log) => (
-                                        <div key={log.id} className="flex items-start gap-3 sm:gap-4 p-3 sm:p-4 hover:bg-sand-50/50 dark:hover:bg-zinc-800/30 transition-colors">
-                                            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-gradient-to-br from-sand-200 to-sand-300 dark:from-zinc-700 dark:to-zinc-600 flex items-center justify-center text-[10px] sm:text-xs font-bold text-primary dark:text-white flex-shrink-0">
+                                        <div key={log.id} className="flex items-start gap-3 sm:gap-4 p-3 sm:p-4 hover:bg-sand-50/50 transition-colors">
+                                            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-gradient-to-br from-sand-200 to-sand-300 flex items-center justify-center text-[10px] sm:text-xs font-bold text-primary flex-shrink-0">
                                                 {log.user_email?.charAt(0).toUpperCase() || '?'}
                                             </div>
                                             <div className="flex-1 min-w-0">
                                                 <div className="flex items-center gap-2 flex-wrap">
-                                                    <span className="font-medium text-xs sm:text-sm text-primary dark:text-white truncate">{log.user_email}</span>
-                                                    <span className="text-[10px] sm:text-xs px-2 py-0.5 bg-violet-100 dark:bg-violet-900/30 text-violet-700 dark:text-violet-300 rounded-full font-medium whitespace-nowrap">
+                                                    <span className="font-medium text-xs sm:text-sm text-primary truncate">{log.user_email}</span>
+                                                    <span className="text-[10px] sm:text-xs px-2 py-0.5 bg-violet-100 text-violet-700 rounded-full font-medium whitespace-nowrap">
                                                         {getActionLabel(log.action as any)}
                                                     </span>
                                                 </div>
