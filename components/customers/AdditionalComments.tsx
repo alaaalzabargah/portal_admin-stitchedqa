@@ -31,12 +31,12 @@ export function AdditionalComments({ comments, dict }: AdditionalCommentsProps) 
                 >
                     <MessageSquare className="w-5 h-5 sm:w-6 sm:h-6" style={{ color: 'var(--theme-accent)' }} />
                 </div>
-                <h3 className="text-base sm:text-lg font-bold text-primary dark:text-white">
+                <h3 className="text-base sm:text-lg font-bold text-primary">
                     {dict.customer_details?.additional_comments || 'Additional Comments'}
                 </h3>
             </div>
             <div className="prose prose-sm max-w-none">
-                <p className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
+                <p className="text-sm text-gray-700 whitespace-pre-wrap">
                     {comments}
                 </p>
             </div>

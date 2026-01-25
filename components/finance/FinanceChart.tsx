@@ -36,7 +36,7 @@ interface CustomTooltipProps {
 const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
     if (active && payload && payload.length) {
         return (
-            <div className="bg-background/95 dark:bg-sand-50/95 backdrop-blur-xl rounded-xl shadow-xl border border-sand-200/50 dark:border-sand-300/50 p-3 md:p-4">
+            <div className="bg-background/95 backdrop-blur-xl rounded-xl shadow-xl border border-sand-200/50 p-3 md:p-4">
                 <p className="font-semibold text-primary text-sm mb-2">{label}</p>
                 {payload.map((entry, index) => {
                     const value = entry.value
@@ -89,7 +89,7 @@ export function FinanceChart({
 
     if (loading) {
         return (
-            <div className="bg-white/65 dark:bg-white/10 backdrop-blur-xl border border-white/40 dark:border-white/20 rounded-3xl p-5 md:p-6 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.15)] h-80 md:h-96 flex flex-col animate-pulse">
+            <div className="bg-white/65 backdrop-blur-xl border border-white/40 rounded-3xl p-5 md:p-6 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.15)] h-80 md:h-96 flex flex-col animate-pulse">
                 <div className="h-4 bg-gray-300/50 rounded w-1/3 mb-6"></div>
                 <div className="flex-1 bg-gray-200/30 rounded-xl"></div>
             </div>
@@ -98,8 +98,8 @@ export function FinanceChart({
 
     if (!data || data.length === 0) {
         return (
-            <div className="bg-white/65 dark:bg-white/10 backdrop-blur-xl border border-white/40 dark:border-white/20 rounded-3xl p-5 md:p-6 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.15)] h-80 md:h-96 flex flex-col">
-                <h3 className="text-[11px] font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-400 mb-4">{title}</h3>
+            <div className="bg-white/65 backdrop-blur-xl border border-white/40 rounded-3xl p-5 md:p-6 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.15)] h-80 md:h-96 flex flex-col">
+                <h3 className="text-[11px] font-semibold uppercase tracking-wider text-gray-600 mb-4">{title}</h3>
                 <div className="flex-1 flex items-center justify-center text-gray-500">
                     <p className="text-sm">{t('finance.no_data')}</p>
                 </div>
@@ -108,8 +108,8 @@ export function FinanceChart({
     }
 
     return (
-        <div className="bg-white/65 dark:bg-white/10 backdrop-blur-xl border border-white/40 dark:border-white/20 rounded-3xl p-5 md:p-6 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.15)] h-80 md:h-96 flex flex-col group hover:bg-white/75 dark:hover:bg-white/15 transition-all duration-300">
-            <h3 className="text-[10px] md:text-[11px] font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider mb-4">{title}</h3>
+        <div className="bg-white/65 backdrop-blur-xl border border-white/40 rounded-3xl p-5 md:p-6 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.15)] h-80 md:h-96 flex flex-col group hover:bg-white/75 transition-all duration-300">
+            <h3 className="text-[10px] md:text-[11px] font-semibold text-gray-600 uppercase tracking-wider mb-4">{title}</h3>
             <div className="flex-1 w-full min-h-0">
                 <ResponsiveContainer width="100%" height="100%">
                     {type === 'pie' ? (

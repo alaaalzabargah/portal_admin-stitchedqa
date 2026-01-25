@@ -34,9 +34,9 @@ export function GlassPanel({
     ...props
 }: GlassPanelProps) {
     const variantClasses = {
-        default: 'bg-white/65 dark:bg-white/10 border-white/40 dark:border-white/20',
-        subtle: 'bg-white/50 dark:bg-white/5 border-white/30 dark:border-white/15',
-        strong: 'bg-white/80 dark:bg-white/15 border-white/50 dark:border-white/25',
+        default: 'bg-white/65 border-white/40',
+        subtle: 'bg-white/50 border-white/30',
+        strong: 'bg-white/80 border-white/50',
     }
 
     const paddingClasses = {
@@ -68,7 +68,7 @@ export function GlassPanel({
                 // Rounded
                 roundedClasses[rounded],
                 // Hover effect
-                hover && 'hover:bg-white/75 dark:hover:bg-white/15 hover:shadow-[0_30px_60px_-15px_rgba(0,0,0,0.2)]',
+                hover && 'hover:bg-white/75 hover:shadow-[0_30px_60px_-15px_rgba(0,0,0,0.2)]',
                 className
             )}
             {...props}
@@ -110,7 +110,7 @@ export function GlassPanelTitle({
     return (
         <h3
             className={cn(
-                'text-lg font-semibold text-gray-900 dark:text-white',
+                'text-lg font-semibold text-gray-900',
                 className
             )}
             {...props}
@@ -131,7 +131,7 @@ export function GlassPanelLabel({
     return (
         <p
             className={cn(
-                'text-[11px] uppercase tracking-widest text-gray-600 dark:text-gray-400 font-semibold',
+                'text-[11px] uppercase tracking-widest text-gray-600 font-semibold',
                 className
             )}
             {...props}

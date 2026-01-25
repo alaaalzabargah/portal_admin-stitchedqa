@@ -24,7 +24,7 @@ export function MeasurementsCard({ customer, dict }: MeasurementsCardProps) {
     return (
         <div className="card-premium p-6 rounded-2xl">
             <div className="flex items-center gap-3 mb-6">
-                <div className="w-8 h-8 rounded-lg bg-sand-100 dark:bg-sand-900/80 flex items-center justify-center">
+                <div className="w-8 h-8 rounded-lg bg-sand-100 flex items-center justify-center">
                     <Ruler className="w-4 h-4 text-primary" />
                 </div>
                 <h2 className="text-lg font-semibold text-primary">{dict.customer_details.measurements}</h2>
@@ -42,7 +42,7 @@ export function MeasurementsCard({ customer, dict }: MeasurementsCardProps) {
 
                     {/* Secondary - Length/Notes */}
                     {(customer.additional_comments || customer.product_length_cm) && (
-                        <div className="p-3 bg-sand-50 dark:bg-sand-900/50 rounded-xl border border-sand-100 dark:border-sand-800/50 text-center">
+                        <div className="p-3 bg-sand-50 rounded-xl border border-sand-100 text-center">
                             <p className="text-[10px] text-muted-foreground uppercase tracking-widest mb-1">{dict.customer_details.length || 'Length / Notes'}</p>
                             <p className="text-sm font-medium text-secondary">
                                 {customer.additional_comments || `${customer.product_length_cm} cm`}

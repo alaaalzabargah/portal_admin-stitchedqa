@@ -184,7 +184,7 @@ export function OverviewTab({ customer: initialCustomer, tier, lastOrderDate, lo
                                             placeholder="+974..."
                                         />
                                     ) : (
-                                        <p className="font-mono font-semibold text-base text-primary dark:text-gray-800 truncate">
+                                        <p className="font-mono font-semibold text-base text-primary truncate">
                                             {customer.phone}
                                         </p>
                                     )}
@@ -231,7 +231,7 @@ export function OverviewTab({ customer: initialCustomer, tier, lastOrderDate, lo
                                     <p className="text-[10px] text-muted-foreground mb-1 uppercase font-bold" style={{ letterSpacing: '0.1em' }}>
                                         WhatsApp
                                     </p>
-                                    <p className="font-semibold text-base text-primary dark:text-gray-800">
+                                    <p className="font-semibold text-base text-primary">
                                         {locale === 'en' ? 'Send Message' : 'إرسال رسالة'}
                                     </p>
                                 </div>
@@ -272,7 +272,7 @@ export function OverviewTab({ customer: initialCustomer, tier, lastOrderDate, lo
                                             placeholder="email@example.com"
                                         />
                                     ) : (
-                                        <p className="font-mono text-base font-semibold text-primary dark:text-gray-800 truncate">
+                                        <p className="font-mono text-base font-semibold text-primary truncate">
                                             {customer.email || (locale === 'en' ? 'No email' : 'لا يوجد بريد')}
                                         </p>
                                     )}
@@ -335,7 +335,7 @@ export function OverviewTab({ customer: initialCustomer, tier, lastOrderDate, lo
                                     {dict.customer_details?.total_spend || 'Total Spend'}
                                 </p>
                             </div>
-                            <p className="text-4xl sm:text-5xl md:text-6xl font-bold font-mono bg-clip-text text-transparent bg-gradient-to-br from-primary via-primary to-primary/70 dark:from-gray-800 dark:via-gray-800 dark:to-gray-700 break-words">
+                            <p className="text-4xl sm:text-5xl md:text-6xl font-bold font-mono bg-clip-text text-transparent bg-gradient-to-br from-primary via-primary to-primary/70 break-words">
                                 {formatCurrency(customer.total_spend_minor)}
                             </p>
                         </div>
@@ -346,7 +346,7 @@ export function OverviewTab({ customer: initialCustomer, tier, lastOrderDate, lo
                             <p className="text-[10px] text-muted-foreground mb-2 uppercase font-bold" style={{ letterSpacing: '0.1em' }}>
                                 {dict.customer_details?.orders || 'Orders'}
                             </p>
-                            <p className="text-3xl font-bold text-primary dark:text-gray-800">
+                            <p className="text-3xl font-bold text-primary">
                                 {customer.order_count ?? 0}
                             </p>
                         </div>
@@ -354,7 +354,7 @@ export function OverviewTab({ customer: initialCustomer, tier, lastOrderDate, lo
                             <p className="text-[10px] text-muted-foreground mb-2 uppercase font-bold" style={{ letterSpacing: '0.1em' }}>
                                 {dict.customer_details?.last_order || 'Last Order'}
                             </p>
-                            <p className="text-lg font-semibold text-slate-700 dark:text-slate-600">
+                            <p className="text-lg font-semibold text-slate-700">
                                 {lastOrderDate
                                     ? new Date(lastOrderDate).toLocaleDateString(
                                         locale === 'ar' ? 'ar-EG' : 'en-US',

@@ -17,7 +17,7 @@ export function CustomerDetailsWrapper({ children }: CustomerDetailsWrapperProps
             }}
         >
             {/* Main Container Card */}
-            <div className="max-w-7xl mx-auto bg-white/40 dark:bg-zinc-900/40 backdrop-blur-sm rounded-3xl shadow-xl border border-white/60 dark:border-white/20 overflow-hidden">
+            <div className="max-w-7xl mx-auto bg-white/40 backdrop-blur-sm rounded-3xl shadow-xl border border-white/60 overflow-hidden">
                 {children}
             </div>
         </div>

@@ -183,8 +183,8 @@ export function MeasurementsGrid({ customer: initialCustomer, orders = [], dict 
                 {/* Last Updated Badge */}
                 {updatedDate && !isEditing && (
                     <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold ${isOutdated
-                        ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 border border-amber-300 dark:border-amber-700'
-                        : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400'
+                        ? 'bg-amber-100 text-amber-700 border border-amber-300'
+                        : 'bg-slate-100 text-slate-600'
                         }`}>
                         <span>{isOutdated ? '⚠️' : '📅'}</span>
                         <span>
@@ -350,11 +350,11 @@ export function MeasurementsGrid({ customer: initialCustomer, orders = [], dict 
 
                     {/* Notes */}
                     {displayComments && (
-                        <div className="mt-4 pt-4 border-t border-slate-100 dark:border-zinc-800">
+                        <div className="mt-4 pt-4 border-t border-slate-100">
                             <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">
                                 Notes
                             </p>
-                            <p className="text-sm text-secondary dark:text-zinc-300 whitespace-pre-wrap">
+                            <p className="text-sm text-secondary whitespace-pre-wrap">
                                 {displayComments}
                             </p>
                         </div>

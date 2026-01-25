@@ -107,7 +107,7 @@ export default function LoginPage() {
                     <img
                         src={ASSETS.logoImage}
                         alt="Logo"
-                        className="h-16 w-auto object-contain invert dark:invert-0"
+                        className="h-16 w-auto object-contain invert"
                     />
                 </div>
 

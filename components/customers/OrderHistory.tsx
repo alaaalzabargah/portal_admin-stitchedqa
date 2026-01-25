@@ -75,21 +75,21 @@ export function OrderHistory({ customerId }: { customerId: string }) {
     const getStatusColor = (status: string) => {
         switch (status?.toLowerCase()) {
             case 'paid':
-                return 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400'
+                return 'bg-emerald-100 text-emerald-700'
             case 'pending':
-                return 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
+                return 'bg-amber-100 text-amber-700'
             case 'cancelled':
             case 'refunded':
-                return 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
+                return 'bg-red-100 text-red-700'
             default:
-                return 'bg-sand-100 text-sand-700 dark:bg-zinc-700 dark:text-zinc-300'
+                return 'bg-sand-100 text-sand-700'
         }
     }
 
     if (!orders || orders.length === 0) {
         return (
             <div className="text-center py-12 text-muted-foreground">
-                <ShoppingBag className="w-12 h-12 mx-auto mb-3 text-sand-300 dark:text-zinc-600" />
+                <ShoppingBag className="w-12 h-12 mx-auto mb-3 text-sand-300" />
                 <p className="text-sm">No orders yet.</p>
             </div>
         )
@@ -140,7 +140,7 @@ export function OrderHistory({ customerId }: { customerId: string }) {
                                 {/* Right Column: Order Info - Vertical Stack */}
                                 <div className="flex-1 min-w-0 space-y-1">
                                     {/* Order Number */}
-                                    <div className="font-bold text-primary dark:text-white text-base sm:text-lg font-mono">
+                                    <div className="font-bold text-primary text-base sm:text-lg font-mono">
                                         #{order.id.slice(-8)}
                                     </div>
 
@@ -215,7 +215,7 @@ export function OrderHistory({ customerId }: { customerId: string }) {
                                                 {/* Item Details */}
                                                 <div className="flex justify-between items-start gap-3 mb-2">
                                                     <div className="flex-1 min-w-0">
-                                                        <p className="font-semibold text-primary dark:text-white text-sm sm:text-base">
+                                                        <p className="font-semibold text-primary text-sm sm:text-base">
                                                             {item.product_name}
                                                         </p>
                                                     </div>
@@ -231,18 +231,18 @@ export function OrderHistory({ customerId }: { customerId: string }) {
                                                 {/* Variant Info - Only show size/color if not in variant_title */}
                                                 <div className="flex flex-wrap gap-2">
                                                     {item.variant_title ? (
-                                                        <span className="bg-white/60 dark:bg-zinc-700/60 px-2 py-0.5 rounded-full text-xs">
+                                                        <span className="bg-white/60 px-2 py-0.5 rounded-full text-xs">
                                                             {item.variant_title}
                                                         </span>
                                                     ) : (
                                                         <>
                                                             {item.size && (
-                                                                <span className="bg-white/60 dark:bg-zinc-700/60 px-2 py-0.5 rounded-full text-xs">
+                                                                <span className="bg-white/60 px-2 py-0.5 rounded-full text-xs">
                                                                     {item.size}
                                                                 </span>
                                                             )}
                                                             {item.color && (
-                                                                <span className="bg-white/60 dark:bg-zinc-700/60 px-2 py-0.5 rounded-full text-xs">
+                                                                <span className="bg-white/60 px-2 py-0.5 rounded-full text-xs">
                                                                     {item.color}
                                                                 </span>
                                                             )}

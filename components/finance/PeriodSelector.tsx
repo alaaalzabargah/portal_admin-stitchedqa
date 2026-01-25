@@ -38,7 +38,7 @@ export function PeriodSelector({ periodType, year, month, quarter, onPeriodChang
 
     return (
         <div className="relative">
-            <div className="flex items-center gap-2 bg-background dark:bg-sand-100 p-2 rounded-xl border border-sand-200 dark:border-sand-300 flex-wrap">
+            <div className="flex items-center gap-2 bg-background p-2 rounded-xl border border-sand-200 flex-wrap">
                 {/* Period Type Tabs */}
                 <div className="flex bg-sand-100 rounded-lg p-1">
                     {(['month', 'quarter', 'year'] as PeriodType[]).map((type) => (
@@ -46,7 +46,7 @@ export function PeriodSelector({ periodType, year, month, quarter, onPeriodChang
                             key={type}
                             onClick={() => onPeriodChange({ periodType: type, year, month, quarter })}
                             className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors capitalize ${periodType === type
-                                ? 'bg-sand-50 dark:bg-sand-200 text-primary shadow-sm'
+                                ? 'bg-sand-50 text-primary shadow-sm'
                                 : 'text-muted-foreground hover:text-secondary'
                                 }`}
                         >
@@ -61,7 +61,7 @@ export function PeriodSelector({ periodType, year, month, quarter, onPeriodChang
                 <select
                     value={year}
                     onChange={(e) => onPeriodChange({ periodType, year: parseInt(e.target.value), month, quarter })}
-                    className="bg-sand-50 dark:bg-sand-200 dark:text-primary border-none text-sm rounded-lg py-1.5 px-2 focus:ring-0"
+                    className="bg-sand-50 border-none text-sm rounded-lg py-1.5 px-2 focus:ring-0"
                 >
                     {years.map((y) => (
                         <option key={y} value={y}>{y}</option>
@@ -73,7 +73,7 @@ export function PeriodSelector({ periodType, year, month, quarter, onPeriodChang
                     <select
                         value={month}
                         onChange={(e) => onPeriodChange({ periodType, year, month: parseInt(e.target.value) })}
-                        className="bg-sand-50 dark:bg-sand-200 dark:text-primary border-none text-sm rounded-lg py-1.5 px-2 focus:ring-0"
+                        className="bg-sand-50 border-none text-sm rounded-lg py-1.5 px-2 focus:ring-0"
                     >
                         {months.map((m, i) => (
                             <option key={i} value={i + 1}>{m}</option>
@@ -86,7 +86,7 @@ export function PeriodSelector({ periodType, year, month, quarter, onPeriodChang
                     <select
                         value={quarter}
                         onChange={(e) => onPeriodChange({ periodType, year, quarter: parseInt(e.target.value) })}
-                        className="bg-sand-50 dark:bg-sand-200 dark:text-primary border-none text-sm rounded-lg py-1.5 px-2 focus:ring-0"
+                        className="bg-sand-50 border-none text-sm rounded-lg py-1.5 px-2 focus:ring-0"
                     >
                         {quarters.map((q, i) => (
                             <option key={i} value={i + 1}>{q}</option>

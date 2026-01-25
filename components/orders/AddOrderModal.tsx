@@ -113,16 +113,16 @@ export function AddOrderModal({ customerId, customerName, isOpen, onClose, onSuc
 
     return (
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 backdrop-blur-sm p-0 sm:p-4">
-            <div className="bg-white dark:bg-zinc-900 w-full h-full sm:h-auto sm:max-h-[90vh] sm:max-w-lg sm:rounded-2xl shadow-2xl overflow-y-auto rounded-none">
+            <div className="bg-white w-full h-full sm:h-auto sm:max-h-[90vh] sm:max-w-lg sm:rounded-2xl shadow-2xl overflow-y-auto rounded-none">
                 {/* Header */}
-                <div className="flex items-center justify-between p-6 border-b border-sand-200 dark:border-zinc-700">
+                <div className="flex items-center justify-between p-6 border-b border-sand-200">
                     <div>
-                        <h2 className="text-xl font-semibold text-primary dark:text-white">{t('orders.add_manual_order')}</h2>
+                        <h2 className="text-xl font-semibold text-primary">{t('orders.add_manual_order')}</h2>
                         <p className="text-sm text-muted-foreground mt-1">{t('orders.for')}: {customerName}</p>
                     </div>
                     <button
                         onClick={onClose}
-                        className="p-2 hover:bg-sand-100 dark:hover:bg-zinc-800 rounded-lg transition-colors"
+                        className="p-2 hover:bg-sand-100 rounded-lg transition-colors"
                     >
                         <X className="w-5 h-5" />
                     </button>
@@ -132,7 +132,7 @@ export function AddOrderModal({ customerId, customerName, isOpen, onClose, onSuc
                 <div className="p-6 space-y-6">
                     {/* Status */}
                     <div className="space-y-2">
-                        <label className="block text-sm font-medium text-secondary dark:text-zinc-300">
+                        <label className="block text-sm font-medium text-secondary">
                             {t('orders.status')}
                         </label>
                         <div className="flex gap-3">
@@ -140,8 +140,8 @@ export function AddOrderModal({ customerId, customerName, isOpen, onClose, onSuc
                                 type="button"
                                 onClick={() => setStatus('paid')}
                                 className={`flex-1 py-3 rounded-xl font-medium transition-all ${status === 'paid'
-                                    ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 border-2 border-emerald-300 dark:border-emerald-700'
-                                    : 'bg-sand-50 dark:bg-zinc-800 text-secondary dark:text-zinc-400 border border-sand-200 dark:border-zinc-700'
+                                    ? 'bg-emerald-100 text-emerald-700 border-2 border-emerald-300'
+                                    : 'bg-sand-50 text-secondary border border-sand-200'
                                     }`}
                             >
                                 {t('orders.paid')}
@@ -150,8 +150,8 @@ export function AddOrderModal({ customerId, customerName, isOpen, onClose, onSuc
                                 type="button"
                                 onClick={() => setStatus('pending')}
                                 className={`flex-1 py-3 rounded-xl font-medium transition-all ${status === 'pending'
-                                    ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 border-2 border-amber-300 dark:border-amber-700'
-                                    : 'bg-sand-50 dark:bg-zinc-800 text-secondary dark:text-zinc-400 border border-sand-200 dark:border-zinc-700'
+                                    ? 'bg-amber-100 text-amber-700 border-2 border-amber-300'
+                                    : 'bg-sand-50 text-secondary border border-sand-200'
                                     }`}
                             >
                                 {t('orders.pending')}
@@ -162,7 +162,7 @@ export function AddOrderModal({ customerId, customerName, isOpen, onClose, onSuc
                     {/* Items */}
                     <div className="space-y-3">
                         <div className="flex items-center justify-between">
-                            <label className="block text-sm font-medium text-secondary dark:text-zinc-300">
+                            <label className="block text-sm font-medium text-secondary">
                                 {t('orders.items')}
                             </label>
                             <button
@@ -175,11 +175,11 @@ export function AddOrderModal({ customerId, customerName, isOpen, onClose, onSuc
                         </div>
 
                         {items.map((item, index) => (
-                            <div key={index} className="p-4 bg-sand-50 dark:bg-zinc-800 rounded-xl space-y-3 border border-sand-100 dark:border-zinc-700">
+                            <div key={index} className="p-4 bg-sand-50 rounded-xl space-y-3 border border-sand-100">
                                 {/* Header: Product Name + Delete */}
                                 <div className="flex justify-between items-start gap-3 mb-4">
                                     <div className="flex-1 space-y-1">
-                                        <label className="text-xs font-medium text-secondary dark:text-zinc-300 ml-1">
+                                        <label className="text-xs font-medium text-secondary ml-1">
                                             {t('orders.product_name_placeholder') || 'Product Name'}
                                         </label>
                                         <input
@@ -187,14 +187,14 @@ export function AddOrderModal({ customerId, customerName, isOpen, onClose, onSuc
                                             value={item.product_name}
                                             onChange={(e) => updateItem(index, 'product_name', e.target.value)}
                                             placeholder="e.g. Classic Abaya"
-                                            className="w-full px-3 py-2.5 border border-sand-200 dark:border-zinc-600 rounded-lg text-sm bg-white dark:bg-zinc-900 dark:text-white focus:ring-2 focus:ring-accent focus:border-transparent transition-all"
+                                            className="w-full px-3 py-2.5 border border-sand-200 rounded-lg text-sm bg-white focus:ring-2 focus:ring-accent focus:border-transparent transition-all"
                                         />
                                     </div>
                                     {items.length > 1 && (
                                         <button
                                             type="button"
                                             onClick={() => removeItem(index)}
-                                            className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg mt-6"
+                                            className="p-2 text-red-500 hover:bg-red-50 rounded-lg mt-6"
                                             title="Remove item"
                                         >
                                             <Minus className="w-5 h-5" />
@@ -212,7 +212,7 @@ export function AddOrderModal({ customerId, customerName, isOpen, onClose, onSuc
                                         <select
                                             value={item.size}
                                             onChange={(e) => updateItem(index, 'size', e.target.value)}
-                                            className="w-full px-3 py-2.5 border border-sand-200 dark:border-zinc-600 rounded-lg text-sm bg-white dark:bg-zinc-900 dark:text-white focus:ring-2 focus:ring-accent focus:border-transparent"
+                                            className="w-full px-3 py-2.5 border border-sand-200 rounded-lg text-sm bg-white focus:ring-2 focus:ring-accent focus:border-transparent"
                                         >
                                             <option value="">{t('orders.select_size')}</option>
                                             {SIZES.map(size => (
@@ -231,7 +231,7 @@ export function AddOrderModal({ customerId, customerName, isOpen, onClose, onSuc
                                             value={item.color}
                                             onChange={(e) => updateItem(index, 'color', e.target.value)}
                                             placeholder={t('orders.color_placeholder') || 'e.g. Black'}
-                                            className="w-full px-3 py-2.5 border border-sand-200 dark:border-zinc-600 rounded-lg text-sm bg-white dark:bg-zinc-900 dark:text-white focus:ring-2 focus:ring-accent focus:border-transparent"
+                                            className="w-full px-3 py-2.5 border border-sand-200 rounded-lg text-sm bg-white focus:ring-2 focus:ring-accent focus:border-transparent"
                                         />
                                     </div>
 
@@ -246,7 +246,7 @@ export function AddOrderModal({ customerId, customerName, isOpen, onClose, onSuc
                                             onChange={(e) => updateItem(index, 'quantity', parseInt(e.target.value) || 1)}
                                             min={1}
                                             dir="ltr"
-                                            className="w-full px-3 py-2.5 border border-sand-200 dark:border-zinc-600 rounded-lg text-sm text-center bg-white dark:bg-zinc-900 dark:text-white focus:ring-2 focus:ring-accent focus:border-transparent"
+                                            className="w-full px-3 py-2.5 border border-sand-200 rounded-lg text-sm text-center bg-white focus:ring-2 focus:ring-accent focus:border-transparent"
                                         />
                                     </div>
 
@@ -263,7 +263,7 @@ export function AddOrderModal({ customerId, customerName, isOpen, onClose, onSuc
                                                 placeholder="0.00"
                                                 step="0.01"
                                                 dir="ltr"
-                                                className="w-full px-3 py-2.5 border border-sand-200 dark:border-zinc-600 rounded-lg text-sm bg-white dark:bg-zinc-900 dark:text-white focus:ring-2 focus:ring-accent focus:border-transparent"
+                                                className="w-full px-3 py-2.5 border border-sand-200 rounded-lg text-sm bg-white focus:ring-2 focus:ring-accent focus:border-transparent"
                                             />
                                             <span className="absolute right-3 top-2.5 text-xs text-muted-foreground pointer-events-none">QAR</span>
                                         </div>
@@ -271,8 +271,8 @@ export function AddOrderModal({ customerId, customerName, isOpen, onClose, onSuc
                                 </div>
 
                                 {/* Item Subtotal */}
-                                <div className="mt-4 flex justify-end items-center border-t border-sand-200 dark:border-zinc-700 pt-3">
-                                    <div className="text-sm font-medium text-primary dark:text-white">
+                                <div className="mt-4 flex justify-end items-center border-t border-sand-200 pt-3">
+                                    <div className="text-sm font-medium text-primary">
                                         <span className="text-muted-foreground mr-2 font-normal">Item Total:</span>
                                         {formatCurrency((item.price || 0) * item.quantity * 100)}
                                     </div>
@@ -282,21 +282,21 @@ export function AddOrderModal({ customerId, customerName, isOpen, onClose, onSuc
                     </div>
 
                     {/* Auto-Calculated Total */}
-                    <div className="flex items-center justify-between p-4 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl border border-emerald-200 dark:border-emerald-800">
+                    <div className="flex items-center justify-between p-4 bg-emerald-50 rounded-xl border border-emerald-200">
                         <div className="flex items-center gap-2">
-                            <DollarSign className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
-                            <span className="font-medium text-emerald-700 dark:text-emerald-300">
+                            <DollarSign className="w-5 h-5 text-emerald-600" />
+                            <span className="font-medium text-emerald-700">
                                 {t('orders.total_amount') || 'Total Amount'}
                             </span>
                         </div>
-                        <span className="text-xl font-bold text-emerald-700 dark:text-emerald-300 font-mono">
+                        <span className="text-xl font-bold text-emerald-700 font-mono">
                             {formatCurrency(calculatedTotal * 100)}
                         </span>
                     </div>
 
                     {/* Notes */}
                     <div className="space-y-2">
-                        <label className="block text-sm font-medium text-secondary dark:text-zinc-300">
+                        <label className="block text-sm font-medium text-secondary">
                             {t('orders.notes')}
                         </label>
                         <textarea
@@ -304,24 +304,24 @@ export function AddOrderModal({ customerId, customerName, isOpen, onClose, onSuc
                             onChange={(e) => setNotes(e.target.value)}
                             placeholder={t('orders.additional_notes') || 'Additional notes...'}
                             rows={2}
-                            className="w-full px-4 py-3 border border-sand-200 dark:border-zinc-600 rounded-xl focus:ring-2 focus:ring-accent focus:border-accent resize-none bg-white dark:bg-zinc-900 dark:text-white"
+                            className="w-full px-4 py-3 border border-sand-200 rounded-xl focus:ring-2 focus:ring-accent focus:border-accent resize-none bg-white"
                         />
                     </div>
 
                     {/* Error */}
                     {error && (
-                        <div className="p-3 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 rounded-lg text-sm">
+                        <div className="p-3 bg-red-50 text-red-700 rounded-lg text-sm">
                             {error}
                         </div>
                     )}
                 </div>
 
                 {/* Footer */}
-                <div className="p-6 border-t border-sand-200 dark:border-zinc-700 flex gap-3">
+                <div className="p-6 border-t border-sand-200 flex gap-3">
                     <button
                         type="button"
                         onClick={onClose}
-                        className="flex-1 py-3 border border-sand-200 dark:border-zinc-600 rounded-xl font-medium text-secondary dark:text-zinc-400 hover:bg-sand-50 dark:hover:bg-zinc-800 transition-colors"
+                        className="flex-1 py-3 border border-sand-200 rounded-xl font-medium text-secondary hover:bg-sand-50 transition-colors"
                     >
                         {t('orders.cancel')}
                     </button>

@@ -76,7 +76,7 @@ export default async function DashboardPage() {
                                 <p className="text-[10px] sm:text-xs uppercase tracking-widest font-bold mb-2" style={{ color: 'var(--theme-primary)' }}>
                                     {dict.common.dashboard.toUpperCase()}
                                 </p>
-                                <h1 className="text-2xl sm:text-4xl font-bold tracking-tight text-gray-900 dark:text-white">
+                                <h1 className="text-2xl sm:text-4xl font-bold tracking-tight text-gray-900">
                                     {dict.dashboard.welcome} {firstName}
                                 </h1>
                                 <p className="text-sm text-muted-foreground mt-1">
@@ -97,7 +97,7 @@ export default async function DashboardPage() {
                                     <DollarSign className="w-4 h-4 text-[var(--theme-primary)]" />
                                 </div>
                             </div>
-                            <p className="text-2xl font-mono font-bold text-gray-900 dark:text-white tabular-nums animate-count-up">
+                            <p className="text-2xl font-mono font-bold text-gray-900 tabular-nums animate-count-up">
                                 {formatCurrency(stats.totalRevenue)}
                             </p>
                             <div className="mt-2 flex items-center gap-1.5 text-xs font-medium text-[var(--theme-primary)] bg-[var(--theme-primary)]/10 w-fit px-2 py-1 rounded-full">
@@ -116,10 +116,10 @@ export default async function DashboardPage() {
                                         <ShoppingBag className="w-4 h-4 text-[var(--theme-primary)]" />
                                     </div>
                                 </div>
-                                <p className="text-2xl font-mono font-bold text-gray-900 dark:text-white tabular-nums animate-count-up">
+                                <p className="text-2xl font-mono font-bold text-gray-900 tabular-nums animate-count-up">
                                     {stats.totalOrders.toLocaleString()}
                                 </p>
-                                <div className="mt-2 flex items-center gap-1.5 text-xs font-medium text-gray-600 dark:text-gray-300">
+                                <div className="mt-2 flex items-center gap-1.5 text-xs font-medium text-gray-600">
                                     <span>{dict.dashboard_new.total_orders_placed}</span>
                                 </div>
                             </div>
@@ -132,10 +132,10 @@ export default async function DashboardPage() {
                                         <Users className="w-4 h-4 text-[var(--theme-primary)]" />
                                     </div>
                                 </div>
-                                <p className="text-2xl font-mono font-bold text-gray-900 dark:text-white tabular-nums animate-count-up">
+                                <p className="text-2xl font-mono font-bold text-gray-900 tabular-nums animate-count-up">
                                     {stats.totalCustomers.toLocaleString()}
                                 </p>
-                                <div className="mt-2 flex items-center gap-1.5 text-xs font-medium text-gray-600 dark:text-gray-300">
+                                <div className="mt-2 flex items-center gap-1.5 text-xs font-medium text-gray-600">
                                     <span>{dict.dashboard_new.active_in_db}</span>
                                 </div>
                             </div>
@@ -147,11 +147,11 @@ export default async function DashboardPage() {
                         <div className="flex items-center justify-between p-5 border-b border-white/20">
                             <div className="flex items-center gap-3">
                                 <Clock className="w-4 h-4 text-amber-500" />
-                                <h3 className="text-sm font-semibold text-gray-900 dark:text-white uppercase tracking-wide">{dict.dashboard_new.recent_orders}</h3>
+                                <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wide">{dict.dashboard_new.recent_orders}</h3>
                             </div>
                             <Link
                                 href="/finance/orders"
-                                className="text-xs font-medium text-amber-600 dark:text-amber-400 hover:underline flex items-center gap-1"
+                                className="text-xs font-medium text-amber-600 hover:underline flex items-center gap-1"
                             >
                                 {dict.dashboard_new.view_all} <ArrowRight className="w-3 h-3 transform rtl:rotate-180" />
                             </Link>
@@ -160,9 +160,9 @@ export default async function DashboardPage() {
                         <div className="divide-y divide-white/20">
                             {stats.recentOrders.length > 0 ? (
                                 stats.recentOrders.map((order) => (
-                                    <div key={order.id} className="p-4 hover:bg-sand-50/50 dark:hover:bg-sand-100/30 transition-colors flex items-center justify-between">
+                                    <div key={order.id} className="p-4 hover:bg-sand-50/50 transition-colors flex items-center justify-between">
                                         <div className="flex items-center gap-3">
-                                            <div className="w-9 h-9 rounded-lg bg-sand-100 dark:bg-sand-200 flex items-center justify-center">
+                                            <div className="w-9 h-9 rounded-lg bg-sand-100 flex items-center justify-center">
                                                 <ShoppingBag className="w-4 h-4 text-muted-foreground" />
                                             </div>
                                             <div>

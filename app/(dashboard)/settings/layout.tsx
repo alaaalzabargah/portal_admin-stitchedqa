@@ -38,7 +38,7 @@ export default function SettingsLayout({
             />
 
             {/* Tabs */}
-            <div className="flex items-center gap-1 p-1 bg-black/5 dark:bg-white/5 rounded-xl w-fit overflow-x-auto">
+            <div className="flex items-center gap-1 p-1 bg-black/5 rounded-xl w-fit overflow-x-auto">
                 {tabs.map((tab) => {
                     const isActive = pathname.startsWith(tab.href)
                     const Icon = tab.icon
@@ -49,7 +49,7 @@ export default function SettingsLayout({
                             className={cn(
                                 "flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 whitespace-nowrap",
                                 isActive
-                                    ? "bg-white dark:bg-white/10 text-primary shadow-sm"
+                                    ? "bg-white text-primary shadow-sm"
                                     : "text-muted-foreground hover:text-primary hover:bg-white/50"
                             )}
                         >

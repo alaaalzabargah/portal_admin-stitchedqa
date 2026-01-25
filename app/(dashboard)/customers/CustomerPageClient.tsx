@@ -361,10 +361,10 @@ export function CustomerPageClient({ customers, tiers, dict }: CustomerPageClien
                 {/* Pagination Footer */}
                 {
                     filteredCustomers.length > 0 && (
-                        <div className="flex items-center justify-between pt-4 border-t border-sand-200 dark:border-zinc-800">
+                        <div className="flex items-center justify-between pt-4 border-t border-sand-200">
                             <p className="text-sm text-muted-foreground">
-                                Showing <span className="font-medium text-primary dark:text-white">1-{filteredCustomers.length}</span> of{' '}
-                                <span className="font-medium text-primary dark:text-white">{customers.length}</span> customers
+                                Showing <span className="font-medium text-primary">1-{filteredCustomers.length}</span> of{' '}
+                                <span className="font-medium text-primary">{customers.length}</span> customers
                                 {selectedTier !== 'all' && (
                                     <span> ({selectedTier})</span>
                                 )}

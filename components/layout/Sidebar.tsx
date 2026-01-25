@@ -174,7 +174,7 @@ export function Sidebar() {
             {isCollapsed && (
                 <button
                     onClick={toggleCollapsed}
-                    className="mx-auto mt-4 p-2 rounded-lg hover:bg-sand-100 dark:hover:bg-zinc-800 transition-colors text-muted-foreground"
+                    className="mx-auto mt-4 p-2 rounded-lg hover:bg-sand-100 transition-colors text-muted-foreground"
                     title="Expand sidebar"
                 >
                     <PanelLeft className="w-5 h-5" />
@@ -214,8 +214,8 @@ export function Sidebar() {
                                     "group flex items-center rounded-xl transition-all duration-200",
                                     isCollapsed ? "justify-center p-3" : "gap-3 px-3 py-2.5",
                                     isActive
-                                        ? "bg-white/85 dark:bg-white/20 text-gray-900 dark:text-white border border-white/60 dark:border-white/30 shadow-sm"
-                                        : "text-gray-700 dark:text-gray-300 hover:bg-white/30 dark:hover:bg-white/10 border border-transparent"
+                                        ? "bg-white/85 text-gray-900 border border-white/60 shadow-sm"
+                                        : "text-gray-700 hover:bg-white/30 border border-transparent"
                                 )}
                                 title={isCollapsed ? item.label : undefined}
                             >
@@ -257,8 +257,8 @@ export function Sidebar() {
                                     "group flex items-center rounded-xl transition-all duration-200",
                                     isCollapsed ? "justify-center p-3" : "gap-3 px-3 py-2.5",
                                     isActive
-                                        ? "bg-white/85 dark:bg-white/20 text-gray-900 dark:text-white border border-white/60 dark:border-white/30 shadow-sm"
-                                        : "text-gray-700 dark:text-gray-300 hover:bg-white/30 dark:hover:bg-white/10 border border-transparent"
+                                        ? "bg-white/85 text-gray-900 border border-white/60 shadow-sm"
+                                        : "text-gray-700 hover:bg-white/30 border border-transparent"
                                 )}
                                 title={isCollapsed ? item.label : undefined}
                             >
@@ -285,7 +285,7 @@ export function Sidebar() {
                     "rounded-lg transition-colors mb-3",
                     isCollapsed
                         ? "flex justify-center"
-                        : "flex items-center gap-3 p-2 hover:bg-sand-100 dark:hover:bg-zinc-800"
+                        : "flex items-center gap-3 p-2 hover:bg-sand-100"
                 )}>
                     <div className={cn(
                         "rounded-full bg-gradient-to-br from-accent to-accent-dark flex items-center justify-center text-white font-semibold shadow-md",
@@ -301,7 +301,7 @@ export function Sidebar() {
                     {!isCollapsed && (
                         <>
                             <div className="flex-1 min-w-0">
-                                <p className="text-sm font-semibold text-primary dark:text-white truncate">
+                                <p className="text-sm font-semibold text-primary truncate">
                                     {getDisplayName()}
                                 </p>
                                 <p className="text-[11px] text-muted-foreground truncate">
@@ -310,7 +310,7 @@ export function Sidebar() {
                             </div>
                             <button
                                 onClick={handleLogout}
-                                className="p-1.5 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors text-muted-foreground hover:text-red-500"
+                                className="p-1.5 hover:bg-red-50 rounded-lg transition-colors text-muted-foreground hover:text-red-500"
                                 title="Sign out"
                             >
                                 <LogOut className="w-4 h-4" />
@@ -336,7 +336,7 @@ export function Sidebar() {
                 {isCollapsed && (
                     <button
                         onClick={handleLogout}
-                        className="w-full mt-2 p-3 flex justify-center hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors text-muted-foreground hover:text-red-500"
+                        className="w-full mt-2 p-3 flex justify-center hover:bg-red-50 rounded-lg transition-colors text-muted-foreground hover:text-red-500"
                         title="Sign out"
                     >
                         <LogOut className="w-5 h-5" />

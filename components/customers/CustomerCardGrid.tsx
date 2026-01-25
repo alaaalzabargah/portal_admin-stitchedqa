@@ -112,7 +112,7 @@ export function CustomerCardGrid({
                         )}
 
                         {/* Card Header - Avatar + Name + Tier */}
-                        <div className="p-4 pb-3 border-b border-sand-100 dark:border-zinc-800">
+                        <div className="p-4 pb-3 border-b border-sand-100">
                             <div className="flex items-center gap-3">
                                 {/* Avatar */}
                                 <div
@@ -127,7 +127,7 @@ export function CustomerCardGrid({
 
                                 {/* Name + Tier */}
                                 <div className="min-w-0 flex-1">
-                                    <h3 className="font-semibold text-primary dark:text-white truncate group-hover:text-accent transition-colors">
+                                    <h3 className="font-semibold text-primary truncate group-hover:text-accent transition-colors">
                                         {customer.full_name || 'Unnamed'}
                                     </h3>
                                     {tier && (
@@ -206,8 +206,8 @@ function InfoField({
     highlight?: 'emerald' | 'amber'
 }) {
     const highlightStyles = {
-        emerald: 'text-emerald-600 dark:text-emerald-400',
-        amber: 'text-amber-600 dark:text-amber-400'
+        emerald: 'text-emerald-600',
+        amber: 'text-amber-600'
     }
 
     return (
@@ -219,14 +219,14 @@ function InfoField({
             <div className="flex items-center gap-1">
                 <p className={cn(
                     "text-sm font-medium truncate",
-                    highlight ? highlightStyles[highlight] : "text-primary dark:text-white"
+                    highlight ? highlightStyles[highlight] : "text-primary"
                 )}>
                     {value}
                 </p>
                 {copyable && (
                     <button
                         onClick={onCopy}
-                        className="flex-shrink-0 p-1 rounded hover:bg-sand-100 dark:hover:bg-zinc-800 transition-colors"
+                        className="flex-shrink-0 p-1 rounded hover:bg-sand-100 transition-colors"
                         title="Copy"
                     >
                         {isCopied ? (
