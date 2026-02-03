@@ -15,7 +15,8 @@ import {
     PanelLeft,
     Loader2,
     HelpCircle,
-    Package
+    Package,
+    Factory
 } from 'lucide-react'
 import { LanguageSwitcher } from '@/components/ui/LanguageSwitcher'
 import { useLanguage } from '@/lib/i18n/context'
@@ -58,6 +59,8 @@ export function Sidebar() {
         { href: '/customers', label: t('common.customers'), icon: Users },
         { href: '/finance', label: t('common.finance'), icon: Wallet },
         { href: '/finance/orders', label: t('common.orders'), icon: Package },
+        { href: '/production', label: 'Production', icon: Factory },
+        { href: '/tailors', label: 'Tailors', icon: Users },
         { href: '/marketing', label: t('common.marketing'), icon: Megaphone },
     ]
 
