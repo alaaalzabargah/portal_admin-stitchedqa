@@ -21,7 +21,7 @@ async function getStats(): Promise<KPIStats> {
     // Get order stats
     const { data: orders, count: totalOrders } = await supabase
         .from('orders')
-        .select('total_amount_minor, created_at, id, status', { count: 'exact' })
+        .select('total_amount_minor, created_at, id, shopify_order_number, status', { count: 'exact' })
         .order('created_at', { ascending: false })
         .limit(5)
 
@@ -166,7 +166,7 @@ export default async function DashboardPage() {
                                                 <ShoppingBag className="w-4 h-4 text-muted-foreground" />
                                             </div>
                                             <div>
-                                                <p className="text-sm font-medium text-primary">{dict.dashboard_new.orders} #{order.id.slice(0, 8)}</p>
+                                                <p className="text-sm font-medium text-primary">{dict.dashboard_new.orders} #{order.shopify_order_number || order.id.slice(0, 8)}</p>
                                                 <p className="text-xs text-muted-foreground">
                                                     {new Date(order.created_at).toLocaleDateString(locale === 'ar' ? 'ar-EG' : 'en-US')}
                                                 </p>
