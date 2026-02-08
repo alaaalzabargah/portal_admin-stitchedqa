@@ -18,6 +18,7 @@ interface OrderItem {
 
 interface Order {
     id: string
+    shopify_order_number?: string | null
     created_at: string
     source: string
     status: string
@@ -42,6 +43,7 @@ export function OrderHistory({ customerId }: { customerId: string }) {
                 .from('orders')
                 .select(`
                     id,
+                    shopify_order_number,
                     created_at,
                     source,
                     status,
@@ -141,7 +143,7 @@ export function OrderHistory({ customerId }: { customerId: string }) {
                                 <div className="flex-1 min-w-0 space-y-1">
                                     {/* Order Number */}
                                     <div className="font-bold text-primary text-base sm:text-lg font-mono">
-                                        #{order.id.slice(-8)}
+                                        #{order.shopify_order_number || order.id.slice(0, 8)}
                                     </div>
 
                                     {/* Price */}
