@@ -111,7 +111,7 @@ export function MeasurementsGrid({ customer: initialCustomer, orders = [], dict 
             }
 
             if (editForm.measurement_type === 'standard') {
-                updateData.standard_size = editForm.standard_size || null
+                updateData.standard_size = editForm.standard_size ? editForm.standard_size.toLowerCase() : null
             }
 
             // Always update these common fields
@@ -174,8 +174,8 @@ export function MeasurementsGrid({ customer: initialCustomer, orders = [], dict 
     const primaryMeasurement = measurements.find(m => m.primary)
     const secondaryMeasurements = measurements.filter(m => !m.primary)
 
-    // Size options for standard size
-    const sizeOptions = ['XS', 'S', 'M', 'L', 'XL', 'XXL', '3XL', '4XL']
+    // Size options for standard size (must match DB constraint)
+    const sizeOptions = ['XS', 'S', 'M', 'L', 'XL', '2XL', '3XL']
 
     return (
         <div className="luxury-gradient-card p-5 sm:p-6">

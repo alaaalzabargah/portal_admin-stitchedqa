@@ -46,6 +46,14 @@ export async function POST(request: NextRequest) {
 
     try {
         const body: SendCampaignRequest = await request.json()
+        console.log('📨 Campaign request received:', {
+            customersCount: body.customers?.length,
+            templateName: body.templateName,
+            languageCode: body.languageCode,
+            hasHeaderImage: !!body.headerImageUrl,
+            bodyVariablesCount: body.bodyVariables?.length || 0,
+            buttonVariablesCount: body.buttonVariables?.length || 0
+        })
         const { customers, templateName, languageCode, headerImageUrl, bodyVariables, buttonVariables } = body
 
         if (!customers?.length) {
@@ -102,8 +110,9 @@ export async function POST(request: NextRequest) {
 
                 // Add button parameters (for Dynamic URL buttons)
                 if (buttonVariables && buttonVariables.length > 0) {
+                    console.log('🔘 Button variables received:', buttonVariables)
                     for (const btnVar of buttonVariables) {
-                        components.push({
+                        const buttonComponent = {
                             type: 'button',
                             sub_type: 'url',
                             index: String(btnVar.buttonIndex),
@@ -111,7 +120,9 @@ export async function POST(request: NextRequest) {
                                 type: 'text',
                                 text: btnVar.urlSuffix || ''
                             }]
-                        })
+                        }
+                        console.log('🔘 Adding button component:', JSON.stringify(buttonComponent, null, 2))
+                        components.push(buttonComponent)
                     }
                 }
 
@@ -122,15 +133,20 @@ export async function POST(request: NextRequest) {
                 }
 
                 // Build Meta API payload
-                const payload = {
+                // Only include template.components if there are actual components
+                const payload: any = {
                     messaging_product: 'whatsapp',
                     to: phone,
                     type: 'template',
                     template: {
                         name: templateName,
-                        language: { code: languageCode },
-                        components: components.length > 0 ? components : undefined
+                        language: { code: languageCode }
                     }
+                }
+
+                // Only add components if we have any
+                if (components.length > 0) {
+                    payload.template.components = components
                 }
 
                 // Send to Meta API
@@ -147,6 +163,10 @@ export async function POST(request: NextRequest) {
                 )
 
                 const data = await response.json()
+
+                // Debug logging
+                console.log('📤 Payload sent to Meta:', JSON.stringify(payload, null, 2))
+                console.log('📥 Meta API response:', JSON.stringify(data, null, 2))
 
                 if (response.ok) {
                     results.push({

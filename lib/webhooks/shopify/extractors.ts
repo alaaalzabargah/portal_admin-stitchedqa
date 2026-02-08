@@ -455,7 +455,7 @@ export function extractCustomerMeasurements(
 
     // Standard sizes valid values (lowercase for comparison AND storage)
     // Must match DB constraint: customers_standard_size_check
-    const validSizes = ['xs', 's', 'm', 'l', 'xl', 'xxl', '2xl', '3xl', '4xl'];
+    const validSizes = ['xs', 's', 'm', 'l', 'xl', '2xl', '3xl'];
 
     for (const item of lineItems) {
         let measurementType: 'standard' | 'custom' = 'standard';

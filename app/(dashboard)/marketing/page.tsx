@@ -40,6 +40,11 @@ interface BodyVariable {
     source: 'static' | 'customer_name' | 'customer_phone' | 'collection_name'
 }
 
+interface TemplateConfig {
+    bodyVariableCount: number
+    buttonVariableCount: number
+}
+
 interface ButtonVariable {
     buttonIndex: number
     urlSuffix: string
@@ -70,10 +75,11 @@ export default function MarketingPage() {
     const [sending, setSending] = useState(false)
     const [logs, setLogs] = useState<LogEntry[]>([])
 
-    // Saved Templates
+    // Saved Templates and Configurations
     const [savedTemplates, setSavedTemplates] = useState<string[]>([])
+    const [templateConfigs, setTemplateConfigs] = useState<Record<string, TemplateConfig>>({})
 
-    // Load saved templates on mount
+    // Load saved templates and configs on mount
     useEffect(() => {
         const saved = localStorage.getItem('saved_templates')
         if (saved) {
@@ -83,15 +89,34 @@ export default function MarketingPage() {
                 console.error('Failed to parse saved templates', e)
             }
         }
+
+        const configs = localStorage.getItem('template_configs')
+        if (configs) {
+            try {
+                setTemplateConfigs(JSON.parse(configs))
+            } catch (e) {
+                console.error('Failed to parse template configs', e)
+            }
+        }
     }, [])
 
-    // Save template to history
-    const saveToHistory = (name: string) => {
+    // Save template to history and config
+    const saveToHistory = (name: string, bodyCount: number, buttonCount: number) => {
         setSavedTemplates(prev => {
             if (prev.includes(name)) return prev
             const newHistory = [name, ...prev].slice(0, 10) // Limit to 10 recent
             localStorage.setItem('saved_templates', JSON.stringify(newHistory))
             return newHistory
+        })
+
+        // Save template configuration
+        setTemplateConfigs(prev => {
+            const newConfigs = {
+                ...prev,
+                [name]: { bodyVariableCount: bodyCount, buttonVariableCount: buttonCount }
+            }
+            localStorage.setItem('template_configs', JSON.stringify(newConfigs))
+            return newConfigs
         })
     }
 
@@ -218,6 +243,30 @@ export default function MarketingPage() {
         setLogs(pendingLogs)
 
         try {
+            // Validate that all variables have values (prevent parameter format mismatch)
+            const invalidBodyVars = bodyVariables.filter(v =>
+                (v.source === 'static' || v.source === 'collection_name') && !v.value.trim()
+            )
+            const invalidButtonVars = buttonVariables.filter(v => !v.urlSuffix.trim())
+
+            if (invalidBodyVars.length > 0) {
+                await dialog.alert(
+                    `Please fill in all body variable values. Empty variables at positions: ${invalidBodyVars.map(v => v.position).join(', ')}`,
+                    'Incomplete Variables'
+                )
+                setSending(false)
+                return
+            }
+
+            if (invalidButtonVars.length > 0) {
+                await dialog.alert(
+                    `Please fill in all button URL suffixes. Empty buttons at indices: ${invalidButtonVars.map(v => v.buttonIndex).join(', ')}`,
+                    'Incomplete Variables'
+                )
+                setSending(false)
+                return
+            }
+
             const response = await fetch('/api/marketing/send-campaign', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -226,8 +275,9 @@ export default function MarketingPage() {
                     templateName: templateName.trim(),
                     languageCode,
                     headerImageUrl: headerImageUrl.trim() || undefined,
-                    bodyVariables: bodyVariables.filter(v => v.source !== 'static' || v.value.trim()),
-                    buttonVariables: buttonVariables.filter(v => v.urlSuffix.trim())
+                    // Send all variables in their original positions - don't filter!
+                    bodyVariables: bodyVariables,
+                    buttonVariables: buttonVariables
                 })
             })
 
@@ -244,9 +294,16 @@ export default function MarketingPage() {
                 }))
                 setLogs(resultLogs)
 
-                // Save template if successful
+                // Save template config if successful
                 if (data.summary && data.summary.sent > 0) {
-                    saveToHistory(templateName.trim())
+                    saveToHistory(
+                        templateName.trim(),
+                        bodyVariables.length,
+                        buttonVariables.length
+                    )
+                    // Clear values but keep structure
+                    setBodyVariables(bodyVariables.map(v => ({ ...v, value: '' })))
+                    setButtonVariables(buttonVariables.map(v => ({ ...v, urlSuffix: '' })))
                 }
             }
 
@@ -330,7 +387,7 @@ export default function MarketingPage() {
                     </div>
 
                     {/* Customer Table */}
-                    <div className="max-h-[400px] overflow-y-auto space-y-1 custom-scrollbar pr-1">
+                    <div className="max-h-[600px] md:max-h-[600px] lg:max-h-[500px] overflow-y-auto space-y-1 custom-scrollbar pr-1">
                         {loading ? (
                             <div className="flex items-center justify-center py-8">
                                 <Loader2 className="w-6 h-6 animate-spin text-accent" />
@@ -344,7 +401,7 @@ export default function MarketingPage() {
                                 <div
                                     key={customer.id}
                                     onClick={() => toggleCustomer(customer.id)}
-                                    className={`flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-all ${selectedIds.has(customer.id)
+                                    className={`flex items-center gap-3 p-4 md:p-3 rounded-xl cursor-pointer transition-all ${selectedIds.has(customer.id)
                                         ? 'bg-accent/10 border border-accent/30'
                                         : 'hover:bg-sand-50 border border-transparent'
                                         }`}
@@ -433,6 +490,24 @@ export default function MarketingPage() {
                                                         onClick={() => {
                                                             setTemplateName(name)
                                                             setShowSuggestions(false)
+
+                                                            // Auto-load saved configuration
+                                                            const config = templateConfigs[name]
+                                                            if (config) {
+                                                                // Create empty body variables
+                                                                const emptyBodyVars: BodyVariable[] = Array.from(
+                                                                    { length: config.bodyVariableCount },
+                                                                    (_, i) => ({ position: i + 1, value: '', source: 'customer_name' as const })
+                                                                )
+                                                                setBodyVariables(emptyBodyVars)
+
+                                                                // Create empty button variables
+                                                                const emptyButtonVars: ButtonVariable[] = Array.from(
+                                                                    { length: config.buttonVariableCount },
+                                                                    (_, i) => ({ buttonIndex: i, urlSuffix: '', source: 'static' as const })
+                                                                )
+                                                                setButtonVariables(emptyButtonVars)
+                                                            }
                                                         }}
                                                         className="flex items-center gap-3 flex-1 text-left"
                                                     >
@@ -510,11 +585,16 @@ export default function MarketingPage() {
                                 onChange={(e) => setLanguageCode(e.target.value)}
                                 className={`w-full ${direction === 'rtl' ? 'pr-10 pl-4' : 'pl-10 pr-4'} py-3 border border-sand-200 rounded-xl focus:ring-2 focus:ring-accent focus:border-accent bg-white appearance-none`}
                             >
-                                <option value="ar">Arabic (العربية)</option>
-                                <option value="en_US">English (US)</option>
-                                <option value="en_GB">English (UK)</option>
+                                <option value="ar">Arabic - ar (العربية)</option>
+                                <option value="ar_AR">Arabic - ar_AR (العربية - AR)</option>
+                                <option value="en_US">English (US) - en_US</option>
+                                <option value="en_GB">English (UK) - en_GB</option>
+                                <option value="en">English - en</option>
                             </select>
                         </div>
+                        <p className="text-xs text-muted-foreground">
+                            ⚠️ Language code must <strong>exactly match</strong> your template's language in Meta Business Manager
+                        </p>
                     </div>
 
                     {/* Live Preview */}
@@ -570,14 +650,14 @@ export default function MarketingPage() {
 
                     {/* Body Variables Section */}
                     <div className="space-y-3">
-                        <div className="flex items-center justify-between">
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                             <label className="block text-sm font-medium text-secondary">
                                 Body Variables (Text)
                             </label>
                             <button
                                 type="button"
                                 onClick={addBodyVariable}
-                                className="text-sm text-accent hover:underline"
+                                className="text-sm px-3 py-1.5 text-accent hover:bg-accent/10 rounded-lg transition-colors font-medium w-fit"
                             >
                                 + Add Body Variable
                             </button>
@@ -587,59 +667,59 @@ export default function MarketingPage() {
                         </p>
 
                         {bodyVariables.map((variable, index) => (
-                            <div key={index} className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 p-3 bg-sand-50 rounded-xl">
-                                <span className="text-sm font-mono text-muted-foreground whitespace-nowrap mb-1 sm:mb-0">
-                                    {`{{${variable.position}}}`}
-                                </span>
-                                <span className="text-muted-foreground hidden sm:inline">→</span>
-                                <select
-                                    value={variable.source}
-                                    onChange={(e) => updateBodyVariable(index, 'source', e.target.value)}
-                                    className="flex-1 px-3 py-2 border border-sand-200 rounded-lg text-sm bg-white"
-                                >
-                                    <option value="customer_name">Customer Name</option>
-                                    <option value="customer_phone">Customer Phone</option>
-                                    <option value="collection_name">Collection Name (Static)</option>
-                                    <option value="static">Other Static Value</option>
-                                </select>
+                            <div key={index} className="flex flex-col gap-2 p-3 bg-sand-50 rounded-xl">
+                                <div className="flex items-center gap-2 flex-wrap">
+                                    <span className="text-sm font-mono text-muted-foreground whitespace-nowrap">
+                                        {`{{${variable.position}}}`}
+                                    </span>
+                                    <span className="text-muted-foreground">→</span>
+                                    <select
+                                        value={variable.source}
+                                        onChange={(e) => updateBodyVariable(index, 'source', e.target.value)}
+                                        className="flex-1 min-w-[180px] px-3 py-2 border border-sand-200 rounded-lg text-sm bg-white"
+                                    >
+                                        <option value="customer_name">Customer Name</option>
+                                        <option value="customer_phone">Customer Phone</option>
+                                        <option value="collection_name">Collection Name (Static)</option>
+                                        <option value="static">Other Static Value</option>
+                                    </select>
+                                    <button
+                                        type="button"
+                                        onClick={() => removeBodyVariable(index)}
+                                        className="p-1 text-red-500 hover:bg-red-50 rounded ml-auto"
+                                    >
+                                        <XCircle className="w-4 h-4" />
+                                    </button>
+                                </div>
                                 {(variable.source === 'static' || variable.source === 'collection_name') && (
                                     <input
                                         type="text"
                                         value={variable.value}
                                         onChange={(e) => updateBodyVariable(index, 'value', e.target.value)}
-                                        placeholder={variable.source === 'collection_name' ? 'e.g., Sorbet Summers' : 'Enter value'}
-                                        className="flex-1 px-3 py-2 border border-sand-200 rounded-lg text-sm"
+                                        placeholder={variable.source === 'collection_name' ? 'Collection name' : 'Enter value'}
+                                        className="w-full px-3 py-2 border border-sand-200 rounded-lg text-sm"
                                     />
                                 )}
-                                <div className="flex justify-end sm:block mt-1 sm:mt-0">
-                                    <button
-                                        type="button"
-                                        onClick={() => removeBodyVariable(index)}
-                                        className="p-1 text-red-500 hover:bg-red-50 rounded"
-                                    >
-                                        <XCircle className="w-5 h-5 md:w-4 md:h-4" />
-                                    </button>
-                                </div>
                             </div>
                         ))}
                     </div>
 
                     {/* Button Variables Section (Dynamic URL) */}
                     <div className="space-y-3">
-                        <div className="flex items-center justify-between">
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                             <label className="block text-sm font-medium text-secondary">
                                 Button Variables (Dynamic URL)
                             </label>
                             <button
                                 type="button"
                                 onClick={addButtonVariable}
-                                className="text-sm text-accent hover:underline"
+                                className="text-sm px-3 py-1.5 text-accent hover:bg-accent/10 rounded-lg transition-colors font-medium w-fit"
                             >
                                 + Add Button Variable
                             </button>
                         </div>
                         <p className="text-xs text-muted-foreground">
-                            For dynamic URL buttons, enter only the <strong>suffix</strong> (e.g., <code>sorbet-summers</code> for <code>your-site.com/collections/sorbet-summers</code>).
+                            For dynamic URL buttons, enter only the <strong>suffix</strong> that will be appended to your template's base URL.
                         </p>
 
                         {buttonVariables.map((btnVar, index) => (
@@ -652,7 +732,7 @@ export default function MarketingPage() {
                                     type="text"
                                     value={btnVar.urlSuffix}
                                     onChange={(e) => updateButtonVariable(index, 'urlSuffix', e.target.value)}
-                                    placeholder="e.g., sorbet-summers"
+                                    placeholder="URL suffix"
                                     className="flex-1 px-3 py-2 border border-blue-200 rounded-lg text-sm"
                                     dir="ltr"
                                 />

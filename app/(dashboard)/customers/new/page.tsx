@@ -61,7 +61,7 @@ export default function NewCustomerPage() {
                 phone: customer.phone,
                 email: customer.email || null,
                 measurement_type: customer.measurement_type,
-                standard_size: customer.measurement_type === 'standard' ? customer.standard_size : null,
+                standard_size: customer.measurement_type === 'standard' ? customer.standard_size?.toLowerCase() : null,
                 height_cm: customer.measurement_type === 'custom' ? customer.height_cm : null,
                 product_length_cm: customer.product_length_cm || null,
                 sleeve_length_cm: customer.sleeve_length_cm || null,
