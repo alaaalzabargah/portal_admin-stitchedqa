@@ -43,6 +43,7 @@ interface BodyVariable {
 interface TemplateConfig {
     bodyVariableCount: number
     buttonVariableCount: number
+    languageCode: string
 }
 
 interface ButtonVariable {
@@ -113,7 +114,11 @@ export default function MarketingPage() {
         setTemplateConfigs(prev => {
             const newConfigs = {
                 ...prev,
-                [name]: { bodyVariableCount: bodyCount, buttonVariableCount: buttonCount }
+                [name]: {
+                    bodyVariableCount: bodyCount,
+                    buttonVariableCount: buttonCount,
+                    languageCode: languageCode
+                }
             }
             localStorage.setItem('template_configs', JSON.stringify(newConfigs))
             return newConfigs
@@ -202,7 +207,25 @@ export default function MarketingPage() {
     const updateButtonVariable = (index: number, field: keyof ButtonVariable, value: string) => {
         const newVars = [...buttonVariables]
         if (field === 'urlSuffix') {
-            newVars[index].urlSuffix = value
+            // Auto-extract suffix from full URLs
+            let extractedValue = value
+
+            // Common URL patterns to extract suffix from
+            const urlPatterns = [
+                /^https?:\/\/maps\.app\.goo\.gl\/(.+)$/i,
+                /^https?:\/\/stitchedqa\.com\/collections\/(.+)$/i,
+                /^https?:\/\/[^\/]+\/(.+)$/i  // Generic: extract everything after domain
+            ]
+
+            for (const pattern of urlPatterns) {
+                const match = value.match(pattern)
+                if (match && match[1]) {
+                    extractedValue = match[1]
+                    break
+                }
+            }
+
+            newVars[index].urlSuffix = extractedValue
         } else if (field === 'source') {
             newVars[index].source = value as ButtonVariable['source']
         }
@@ -494,6 +517,11 @@ export default function MarketingPage() {
                                                             // Auto-load saved configuration
                                                             const config = templateConfigs[name]
                                                             if (config) {
+                                                                // Set language code
+                                                                if (config.languageCode) {
+                                                                    setLanguageCode(config.languageCode)
+                                                                }
+
                                                                 // Create empty body variables
                                                                 const emptyBodyVars: BodyVariable[] = Array.from(
                                                                     { length: config.bodyVariableCount },
@@ -586,9 +614,6 @@ export default function MarketingPage() {
                                 className={`w-full ${direction === 'rtl' ? 'pr-10 pl-4' : 'pl-10 pr-4'} py-3 border border-sand-200 rounded-xl focus:ring-2 focus:ring-accent focus:border-accent bg-white appearance-none`}
                             >
                                 <option value="ar">Arabic - ar (العربية)</option>
-                                <option value="ar_AR">Arabic - ar_AR (العربية - AR)</option>
-                                <option value="en_US">English (US) - en_US</option>
-                                <option value="en_GB">English (UK) - en_GB</option>
                                 <option value="en">English - en</option>
                             </select>
                         </div>
@@ -667,39 +692,25 @@ export default function MarketingPage() {
                         </p>
 
                         {bodyVariables.map((variable, index) => (
-                            <div key={index} className="flex flex-col gap-2 p-3 bg-sand-50 rounded-xl">
-                                <div className="flex items-center gap-2 flex-wrap">
-                                    <span className="text-sm font-mono text-muted-foreground whitespace-nowrap">
-                                        {`{{${variable.position}}}`}
-                                    </span>
-                                    <span className="text-muted-foreground">→</span>
-                                    <select
-                                        value={variable.source}
-                                        onChange={(e) => updateBodyVariable(index, 'source', e.target.value)}
-                                        className="flex-1 min-w-[180px] px-3 py-2 border border-sand-200 rounded-lg text-sm bg-white"
-                                    >
-                                        <option value="customer_name">Customer Name</option>
-                                        <option value="customer_phone">Customer Phone</option>
-                                        <option value="collection_name">Collection Name (Static)</option>
-                                        <option value="static">Other Static Value</option>
-                                    </select>
-                                    <button
-                                        type="button"
-                                        onClick={() => removeBodyVariable(index)}
-                                        className="p-1 text-red-500 hover:bg-red-50 rounded ml-auto"
-                                    >
-                                        <XCircle className="w-4 h-4" />
-                                    </button>
-                                </div>
-                                {(variable.source === 'static' || variable.source === 'collection_name') && (
-                                    <input
-                                        type="text"
-                                        value={variable.value}
-                                        onChange={(e) => updateBodyVariable(index, 'value', e.target.value)}
-                                        placeholder={variable.source === 'collection_name' ? 'Collection name' : 'Enter value'}
-                                        className="w-full px-3 py-2 border border-sand-200 rounded-lg text-sm"
-                                    />
-                                )}
+                            <div key={index} className="flex items-center gap-2 p-3 bg-sand-50 rounded-xl">
+                                <span className="text-sm font-mono text-muted-foreground whitespace-nowrap">
+                                    {`{{${variable.position}}}`}
+                                </span>
+                                <span className="text-muted-foreground">→</span>
+                                <input
+                                    type="text"
+                                    value={variable.value}
+                                    onChange={(e) => updateBodyVariable(index, 'value', e.target.value)}
+                                    placeholder="Enter value"
+                                    className="flex-1 px-3 py-2 border border-sand-200 rounded-lg text-sm"
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => removeBodyVariable(index)}
+                                    className="p-1 text-red-500 hover:bg-red-50 rounded"
+                                >
+                                    <XCircle className="w-4 h-4" />
+                                </button>
                             </div>
                         ))}
                     </div>
