@@ -14,10 +14,15 @@ interface SendCampaignRequest {
     templateName: string
     languageCode: string
     headerImageUrl?: string
-    variables: Array<{
+    bodyVariables: Array<{
         position: number
         value: string
-        source: 'static' | 'customer_name' | 'customer_phone'
+        source: 'static' | 'customer_name' | 'customer_phone' | 'collection_name'
+    }>
+    buttonVariables: Array<{
+        buttonIndex: number
+        urlSuffix: string
+        source: 'static' | 'collection_slug'
     }>
 }
 
@@ -41,7 +46,15 @@ export async function POST(request: NextRequest) {
 
     try {
         const body: SendCampaignRequest = await request.json()
-        const { customers, templateName, languageCode, headerImageUrl, variables } = body
+        console.log('📨 Campaign request received:', {
+            customersCount: body.customers?.length,
+            templateName: body.templateName,
+            languageCode: body.languageCode,
+            hasHeaderImage: !!body.headerImageUrl,
+            bodyVariablesCount: body.bodyVariables?.length || 0,
+            buttonVariablesCount: body.buttonVariables?.length || 0
+        })
+        const { customers, templateName, languageCode, headerImageUrl, bodyVariables, buttonVariables } = body
 
         if (!customers?.length) {
             return NextResponse.json(
@@ -77,21 +90,40 @@ export async function POST(request: NextRequest) {
                 }
 
                 // Add body parameters
-                if (variables.length > 0) {
-                    const bodyParams = variables.map(v => {
+                if (bodyVariables && bodyVariables.length > 0) {
+                    const bodyParams = bodyVariables.map(v => {
                         let value = v.value
                         if (v.source === 'customer_name') {
                             value = customer.name
                         } else if (v.source === 'customer_phone') {
                             value = customer.phone
                         }
-                        return { type: 'text', text: value }
+                        // 'collection_name' and 'static' use the provided value
+                        return { type: 'text', text: value || '' }
                     })
 
                     components.push({
                         type: 'body',
                         parameters: bodyParams
                     })
+                }
+
+                // Add button parameters (for Dynamic URL buttons)
+                if (buttonVariables && buttonVariables.length > 0) {
+                    console.log('🔘 Button variables received:', buttonVariables)
+                    for (const btnVar of buttonVariables) {
+                        const buttonComponent = {
+                            type: 'button',
+                            sub_type: 'url',
+                            index: String(btnVar.buttonIndex),
+                            parameters: [{
+                                type: 'text',
+                                text: btnVar.urlSuffix || ''
+                            }]
+                        }
+                        console.log('🔘 Adding button component:', JSON.stringify(buttonComponent, null, 2))
+                        components.push(buttonComponent)
+                    }
                 }
 
                 // Format phone number (remove non-digits, ensure country code)
@@ -101,15 +133,20 @@ export async function POST(request: NextRequest) {
                 }
 
                 // Build Meta API payload
-                const payload = {
+                // Only include template.components if there are actual components
+                const payload: any = {
                     messaging_product: 'whatsapp',
                     to: phone,
                     type: 'template',
                     template: {
                         name: templateName,
-                        language: { code: languageCode },
-                        components: components.length > 0 ? components : undefined
+                        language: { code: languageCode }
                     }
+                }
+
+                // Only add components if we have any
+                if (components.length > 0) {
+                    payload.template.components = components
                 }
 
                 // Send to Meta API
@@ -126,6 +163,10 @@ export async function POST(request: NextRequest) {
                 )
 
                 const data = await response.json()
+
+                // Debug logging
+                console.log('📤 Payload sent to Meta:', JSON.stringify(payload, null, 2))
+                console.log('📥 Meta API response:', JSON.stringify(data, null, 2))
 
                 if (response.ok) {
                     results.push({

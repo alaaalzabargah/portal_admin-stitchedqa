@@ -34,10 +34,21 @@ interface LogEntry {
     timestamp: Date
 }
 
-interface Variable {
+interface BodyVariable {
     position: number
     value: string
-    source: 'static' | 'customer_name' | 'customer_phone'
+    source: 'static' | 'customer_name' | 'customer_phone' | 'collection_name'
+}
+
+interface TemplateConfig {
+    bodyVariableCount: number
+    buttonVariableCount: number
+}
+
+interface ButtonVariable {
+    buttonIndex: number
+    urlSuffix: string
+    source: 'static' | 'collection_slug'
 }
 
 export default function MarketingPage() {
@@ -54,19 +65,21 @@ export default function MarketingPage() {
 
     // Campaign State
     const [templateName, setTemplateName] = useState('')
-    const [languageCode, setLanguageCode] = useState('en_US')
+    const [languageCode, setLanguageCode] = useState('ar')
     const [headerImageUrl, setHeaderImageUrl] = useState('')
-    const [variables, setVariables] = useState<Variable[]>([])
+    const [bodyVariables, setBodyVariables] = useState<BodyVariable[]>([])
+    const [buttonVariables, setButtonVariables] = useState<ButtonVariable[]>([])
     const [showSuggestions, setShowSuggestions] = useState(false)
 
     // Send State
     const [sending, setSending] = useState(false)
     const [logs, setLogs] = useState<LogEntry[]>([])
 
-    // Saved Templates
+    // Saved Templates and Configurations
     const [savedTemplates, setSavedTemplates] = useState<string[]>([])
+    const [templateConfigs, setTemplateConfigs] = useState<Record<string, TemplateConfig>>({})
 
-    // Load saved templates on mount
+    // Load saved templates and configs on mount
     useEffect(() => {
         const saved = localStorage.getItem('saved_templates')
         if (saved) {
@@ -76,15 +89,34 @@ export default function MarketingPage() {
                 console.error('Failed to parse saved templates', e)
             }
         }
+
+        const configs = localStorage.getItem('template_configs')
+        if (configs) {
+            try {
+                setTemplateConfigs(JSON.parse(configs))
+            } catch (e) {
+                console.error('Failed to parse template configs', e)
+            }
+        }
     }, [])
 
-    // Save template to history
-    const saveToHistory = (name: string) => {
+    // Save template to history and config
+    const saveToHistory = (name: string, bodyCount: number, buttonCount: number) => {
         setSavedTemplates(prev => {
             if (prev.includes(name)) return prev
             const newHistory = [name, ...prev].slice(0, 10) // Limit to 10 recent
             localStorage.setItem('saved_templates', JSON.stringify(newHistory))
             return newHistory
+        })
+
+        // Save template configuration
+        setTemplateConfigs(prev => {
+            const newConfigs = {
+                ...prev,
+                [name]: { bodyVariableCount: bodyCount, buttonVariableCount: buttonCount }
+            }
+            localStorage.setItem('template_configs', JSON.stringify(newConfigs))
+            return newConfigs
         })
     }
 
@@ -133,28 +165,48 @@ export default function MarketingPage() {
         }
     }
 
-    // Add variable
-    const addVariable = () => {
-        setVariables([
-            ...variables,
-            { position: variables.length + 1, value: '', source: 'static' }
+    // Body Variable functions
+    const addBodyVariable = () => {
+        setBodyVariables([
+            ...bodyVariables,
+            { position: bodyVariables.length + 1, value: '', source: 'customer_name' }
         ])
     }
 
-    // Remove variable
-    const removeVariable = (index: number) => {
-        setVariables(variables.filter((_, i) => i !== index))
+    const removeBodyVariable = (index: number) => {
+        setBodyVariables(bodyVariables.filter((_, i) => i !== index))
     }
 
-    // Update variable
-    const updateVariable = (index: number, field: keyof Variable, value: string) => {
-        const newVars = [...variables]
+    const updateBodyVariable = (index: number, field: keyof BodyVariable, value: string) => {
+        const newVars = [...bodyVariables]
         if (field === 'source') {
-            newVars[index].source = value as Variable['source']
+            newVars[index].source = value as BodyVariable['source']
         } else if (field === 'value') {
             newVars[index].value = value
         }
-        setVariables(newVars)
+        setBodyVariables(newVars)
+    }
+
+    // Button Variable functions
+    const addButtonVariable = () => {
+        setButtonVariables([
+            ...buttonVariables,
+            { buttonIndex: buttonVariables.length, urlSuffix: '', source: 'static' }
+        ])
+    }
+
+    const removeButtonVariable = (index: number) => {
+        setButtonVariables(buttonVariables.filter((_, i) => i !== index))
+    }
+
+    const updateButtonVariable = (index: number, field: keyof ButtonVariable, value: string) => {
+        const newVars = [...buttonVariables]
+        if (field === 'urlSuffix') {
+            newVars[index].urlSuffix = value
+        } else if (field === 'source') {
+            newVars[index].source = value as ButtonVariable['source']
+        }
+        setButtonVariables(newVars)
     }
 
     // Send campaign
@@ -191,6 +243,30 @@ export default function MarketingPage() {
         setLogs(pendingLogs)
 
         try {
+            // Validate that all variables have values (prevent parameter format mismatch)
+            const invalidBodyVars = bodyVariables.filter(v =>
+                (v.source === 'static' || v.source === 'collection_name') && !v.value.trim()
+            )
+            const invalidButtonVars = buttonVariables.filter(v => !v.urlSuffix.trim())
+
+            if (invalidBodyVars.length > 0) {
+                await dialog.alert(
+                    `Please fill in all body variable values. Empty variables at positions: ${invalidBodyVars.map(v => v.position).join(', ')}`,
+                    'Incomplete Variables'
+                )
+                setSending(false)
+                return
+            }
+
+            if (invalidButtonVars.length > 0) {
+                await dialog.alert(
+                    `Please fill in all button URL suffixes. Empty buttons at indices: ${invalidButtonVars.map(v => v.buttonIndex).join(', ')}`,
+                    'Incomplete Variables'
+                )
+                setSending(false)
+                return
+            }
+
             const response = await fetch('/api/marketing/send-campaign', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -199,7 +275,9 @@ export default function MarketingPage() {
                     templateName: templateName.trim(),
                     languageCode,
                     headerImageUrl: headerImageUrl.trim() || undefined,
-                    variables: variables.filter(v => v.source !== 'static' || v.value.trim())
+                    // Send all variables in their original positions - don't filter!
+                    bodyVariables: bodyVariables,
+                    buttonVariables: buttonVariables
                 })
             })
 
@@ -216,9 +294,16 @@ export default function MarketingPage() {
                 }))
                 setLogs(resultLogs)
 
-                // Save template if successful
+                // Save template config if successful
                 if (data.summary && data.summary.sent > 0) {
-                    saveToHistory(templateName.trim())
+                    saveToHistory(
+                        templateName.trim(),
+                        bodyVariables.length,
+                        buttonVariables.length
+                    )
+                    // Clear values but keep structure
+                    setBodyVariables(bodyVariables.map(v => ({ ...v, value: '' })))
+                    setButtonVariables(buttonVariables.map(v => ({ ...v, urlSuffix: '' })))
                 }
             }
 
@@ -302,7 +387,7 @@ export default function MarketingPage() {
                     </div>
 
                     {/* Customer Table */}
-                    <div className="max-h-[400px] overflow-y-auto space-y-1 custom-scrollbar pr-1">
+                    <div className="max-h-[600px] md:max-h-[600px] lg:max-h-[500px] overflow-y-auto space-y-1 custom-scrollbar pr-1">
                         {loading ? (
                             <div className="flex items-center justify-center py-8">
                                 <Loader2 className="w-6 h-6 animate-spin text-accent" />
@@ -316,7 +401,7 @@ export default function MarketingPage() {
                                 <div
                                     key={customer.id}
                                     onClick={() => toggleCustomer(customer.id)}
-                                    className={`flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-all ${selectedIds.has(customer.id)
+                                    className={`flex items-center gap-3 p-4 md:p-3 rounded-xl cursor-pointer transition-all ${selectedIds.has(customer.id)
                                         ? 'bg-accent/10 border border-accent/30'
                                         : 'hover:bg-sand-50 border border-transparent'
                                         }`}
@@ -405,6 +490,24 @@ export default function MarketingPage() {
                                                         onClick={() => {
                                                             setTemplateName(name)
                                                             setShowSuggestions(false)
+
+                                                            // Auto-load saved configuration
+                                                            const config = templateConfigs[name]
+                                                            if (config) {
+                                                                // Create empty body variables
+                                                                const emptyBodyVars: BodyVariable[] = Array.from(
+                                                                    { length: config.bodyVariableCount },
+                                                                    (_, i) => ({ position: i + 1, value: '', source: 'customer_name' as const })
+                                                                )
+                                                                setBodyVariables(emptyBodyVars)
+
+                                                                // Create empty button variables
+                                                                const emptyButtonVars: ButtonVariable[] = Array.from(
+                                                                    { length: config.buttonVariableCount },
+                                                                    (_, i) => ({ buttonIndex: i, urlSuffix: '', source: 'static' as const })
+                                                                )
+                                                                setButtonVariables(emptyButtonVars)
+                                                            }
                                                         }}
                                                         className="flex items-center gap-3 flex-1 text-left"
                                                     >
@@ -482,10 +585,48 @@ export default function MarketingPage() {
                                 onChange={(e) => setLanguageCode(e.target.value)}
                                 className={`w-full ${direction === 'rtl' ? 'pr-10 pl-4' : 'pl-10 pr-4'} py-3 border border-sand-200 rounded-xl focus:ring-2 focus:ring-accent focus:border-accent bg-white appearance-none`}
                             >
-                                <option value="en_US">English (US)</option>
-                                <option value="en_GB">English (UK)</option>
-                                <option value="ar">Arabic</option>
+                                <option value="ar">Arabic - ar (العربية)</option>
+                                <option value="ar_AR">Arabic - ar_AR (العربية - AR)</option>
+                                <option value="en_US">English (US) - en_US</option>
+                                <option value="en_GB">English (UK) - en_GB</option>
+                                <option value="en">English - en</option>
                             </select>
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                            ⚠️ Language code must <strong>exactly match</strong> your template's language in Meta Business Manager
+                        </p>
+                    </div>
+
+                    {/* Live Preview */}
+                    <div className="space-y-2">
+                        <label className="block text-sm font-medium text-secondary">
+                            Live Preview
+                        </label>
+                        <div className="p-4 bg-sand-50 rounded-xl border border-sand-200 text-sm text-muted-foreground">
+                            <p>This is a live preview of your message.</p>
+                            <p>Template: <strong>{templateName || 'N/A'}</strong></p>
+                            <p>Language: <strong>{languageCode || 'N/A'}</strong></p>
+                            {headerImageUrl && <img src={headerImageUrl} alt="Header Preview" className="mt-2 max-w-full h-auto rounded-md" />}
+                            {bodyVariables.length > 0 && (
+                                <div className="mt-2">
+                                    <p className="font-medium">Body Variables:</p>
+                                    {bodyVariables.map((v, i) => (
+                                        <p key={i} className="ml-2 text-xs">
+                                            {`{{${v.position}}}`}: {v.source === 'static' || v.source === 'collection_name' ? v.value : `(${v.source})`}
+                                        </p>
+                                    ))}
+                                </div>
+                            )}
+                            {buttonVariables.length > 0 && (
+                                <div className="mt-2">
+                                    <p className="font-medium">Button Variables:</p>
+                                    {buttonVariables.map((v, i) => (
+                                        <p key={i} className="ml-2 text-xs">
+                                            Button {v.buttonIndex} {"{{1}}"}: {v.urlSuffix}
+                                        </p>
+                                    ))}
+                                </div>
+                            )}
                         </div>
                     </div>
 
@@ -507,49 +648,98 @@ export default function MarketingPage() {
                         </div>
                     </div>
 
-                    {/* Variable Mapping */}
+                    {/* Body Variables Section */}
                     <div className="space-y-3">
-                        <div className="flex items-center justify-between">
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                             <label className="block text-sm font-medium text-secondary">
-                                {t('marketing.variable_mapping')}
+                                Body Variables (Text)
                             </label>
                             <button
                                 type="button"
-                                onClick={addVariable}
-                                className="text-sm text-accent hover:underline"
+                                onClick={addBodyVariable}
+                                className="text-sm px-3 py-1.5 text-accent hover:bg-accent/10 rounded-lg transition-colors font-medium w-fit"
                             >
-                                {t('marketing.add_variable')}
+                                + Add Body Variable
                             </button>
                         </div>
+                        <p className="text-xs text-muted-foreground">
+                            Map template placeholders like {"{{1}}"}, {"{{2}}"} to dynamic values.
+                        </p>
 
-                        {variables.map((variable, index) => (
-                            <div key={index} className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 p-3 bg-sand-50 rounded-xl">
-                                <span className="text-sm font-mono text-muted-foreground whitespace-nowrap mb-1 sm:mb-0">
-                                    {`{{${variable.position}}}`}
-                                </span>
-                                <span className="text-muted-foreground hidden sm:inline">→</span>
-                                <select
-                                    value={variable.source}
-                                    onChange={(e) => updateVariable(index, 'source', e.target.value)}
-                                    className="flex-1 px-3 py-2 border border-sand-200 rounded-lg text-sm bg-white"
-                                >
-                                    <option value="customer_name">Customer Name</option>
-                                    <option value="customer_phone">Customer Phone</option>
-                                    <option value="static">Static Value</option>
-                                </select>
-                                {variable.source === 'static' && (
+                        {bodyVariables.map((variable, index) => (
+                            <div key={index} className="flex flex-col gap-2 p-3 bg-sand-50 rounded-xl">
+                                <div className="flex items-center gap-2 flex-wrap">
+                                    <span className="text-sm font-mono text-muted-foreground whitespace-nowrap">
+                                        {`{{${variable.position}}}`}
+                                    </span>
+                                    <span className="text-muted-foreground">→</span>
+                                    <select
+                                        value={variable.source}
+                                        onChange={(e) => updateBodyVariable(index, 'source', e.target.value)}
+                                        className="flex-1 min-w-[180px] px-3 py-2 border border-sand-200 rounded-lg text-sm bg-white"
+                                    >
+                                        <option value="customer_name">Customer Name</option>
+                                        <option value="customer_phone">Customer Phone</option>
+                                        <option value="collection_name">Collection Name (Static)</option>
+                                        <option value="static">Other Static Value</option>
+                                    </select>
+                                    <button
+                                        type="button"
+                                        onClick={() => removeBodyVariable(index)}
+                                        className="p-1 text-red-500 hover:bg-red-50 rounded ml-auto"
+                                    >
+                                        <XCircle className="w-4 h-4" />
+                                    </button>
+                                </div>
+                                {(variable.source === 'static' || variable.source === 'collection_name') && (
                                     <input
                                         type="text"
                                         value={variable.value}
-                                        onChange={(e) => updateVariable(index, 'value', e.target.value)}
-                                        placeholder="Enter value"
-                                        className="flex-1 px-3 py-2 border border-sand-200 rounded-lg text-sm"
+                                        onChange={(e) => updateBodyVariable(index, 'value', e.target.value)}
+                                        placeholder={variable.source === 'collection_name' ? 'Collection name' : 'Enter value'}
+                                        className="w-full px-3 py-2 border border-sand-200 rounded-lg text-sm"
                                     />
                                 )}
+                            </div>
+                        ))}
+                    </div>
+
+                    {/* Button Variables Section (Dynamic URL) */}
+                    <div className="space-y-3">
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                            <label className="block text-sm font-medium text-secondary">
+                                Button Variables (Dynamic URL)
+                            </label>
+                            <button
+                                type="button"
+                                onClick={addButtonVariable}
+                                className="text-sm px-3 py-1.5 text-accent hover:bg-accent/10 rounded-lg transition-colors font-medium w-fit"
+                            >
+                                + Add Button Variable
+                            </button>
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                            For dynamic URL buttons, enter only the <strong>suffix</strong> that will be appended to your template's base URL.
+                        </p>
+
+                        {buttonVariables.map((btnVar, index) => (
+                            <div key={index} className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 p-3 bg-blue-50 rounded-xl">
+                                <span className="text-sm font-mono text-blue-600 whitespace-nowrap mb-1 sm:mb-0">
+                                    Button {btnVar.buttonIndex} {"{{1}}"}
+                                </span>
+                                <span className="text-muted-foreground hidden sm:inline">→</span>
+                                <input
+                                    type="text"
+                                    value={btnVar.urlSuffix}
+                                    onChange={(e) => updateButtonVariable(index, 'urlSuffix', e.target.value)}
+                                    placeholder="URL suffix"
+                                    className="flex-1 px-3 py-2 border border-blue-200 rounded-lg text-sm"
+                                    dir="ltr"
+                                />
                                 <div className="flex justify-end sm:block mt-1 sm:mt-0">
                                     <button
                                         type="button"
-                                        onClick={() => removeVariable(index)}
+                                        onClick={() => removeButtonVariable(index)}
                                         className="p-1 text-red-500 hover:bg-red-50 rounded"
                                     >
                                         <XCircle className="w-5 h-5 md:w-4 md:h-4" />
