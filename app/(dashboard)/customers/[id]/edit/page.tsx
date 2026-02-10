@@ -259,7 +259,7 @@ export default function EditCustomerPage({ params }: { params: Promise<{ id: str
                         {/* Common Fields - Sleeve & Length (for BOTH types) */}
                         <div className="grid grid-cols-2 gap-4 mb-4">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Sleeve Length (cm)</label>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Sleeve Length (in)</label>
                                 <input
                                     type="number"
                                     value={customer.sleeve_length_cm || ''}
@@ -268,7 +268,7 @@ export default function EditCustomerPage({ params }: { params: Promise<{ id: str
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Abaya Length (cm)</label>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Abaya Length (in)</label>
                                 <input
                                     type="number"
                                     value={customer.product_length_cm || ''}
@@ -282,12 +282,12 @@ export default function EditCustomerPage({ params }: { params: Promise<{ id: str
                         {customer.measurement_type === 'custom' && (
                             <div className="grid grid-cols-2 gap-4">
                                 {[
-                                    { key: 'height_cm', label: 'Height (cm)' },
-                                    { key: 'shoulder_width_cm', label: 'Shoulder (cm)' },
-                                    { key: 'bust_cm', label: 'Bust (cm)' },
-                                    { key: 'waist_cm', label: 'Waist (cm)' },
-                                    { key: 'hips_cm', label: 'Hips (cm)' },
-                                    { key: 'arm_hole_cm', label: 'Arm Hole (cm)' },
+                                    { key: 'height_cm', label: 'Height (in)' },
+                                    { key: 'shoulder_width_cm', label: 'Shoulder (in)' },
+                                    { key: 'bust_cm', label: 'Bust (in)' },
+                                    { key: 'waist_cm', label: 'Waist (in)' },
+                                    { key: 'hips_cm', label: 'Hips (in)' },
+                                    { key: 'arm_hole_cm', label: 'Arm Hole (in)' },
                                 ].map(({ key, label }) => (
                                     <div key={key}>
                                         <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
