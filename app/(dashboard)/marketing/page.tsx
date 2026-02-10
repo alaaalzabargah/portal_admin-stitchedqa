@@ -12,11 +12,16 @@ import {
     MessageSquare,
     Image,
     Globe,
-    Hash
+    Hash,
+    Eye,
+    FileText,
+    ChevronRight
 } from 'lucide-react'
 import { useLanguage } from '@/lib/i18n/context'
 import { useDialog } from '@/lib/dialog'
 import { PageHeader } from '@/components/ui/PageHeader'
+import { WizardProgress } from '@/components/marketing/WizardProgress'
+import { WizardNavigation } from '@/components/marketing/WizardNavigation'
 
 interface Customer {
     id: string
@@ -43,6 +48,7 @@ interface BodyVariable {
 interface TemplateConfig {
     bodyVariableCount: number
     buttonVariableCount: number
+    languageCode: string
 }
 
 interface ButtonVariable {
@@ -70,6 +76,9 @@ export default function MarketingPage() {
     const [bodyVariables, setBodyVariables] = useState<BodyVariable[]>([])
     const [buttonVariables, setButtonVariables] = useState<ButtonVariable[]>([])
     const [showSuggestions, setShowSuggestions] = useState(false)
+
+    // Mobile Wizard State
+    const [mobileStep, setMobileStep] = useState(1) // 1: Audience, 2: Campaign, 3: Review
 
     // Send State
     const [sending, setSending] = useState(false)
@@ -113,7 +122,11 @@ export default function MarketingPage() {
         setTemplateConfigs(prev => {
             const newConfigs = {
                 ...prev,
-                [name]: { bodyVariableCount: bodyCount, buttonVariableCount: buttonCount }
+                [name]: {
+                    bodyVariableCount: bodyCount,
+                    buttonVariableCount: buttonCount,
+                    languageCode: languageCode
+                }
             }
             localStorage.setItem('template_configs', JSON.stringify(newConfigs))
             return newConfigs
@@ -183,6 +196,11 @@ export default function MarketingPage() {
             newVars[index].source = value as BodyVariable['source']
         } else if (field === 'value') {
             newVars[index].value = value
+            // When user enters a custom value, change source to 'static'
+            // This prevents the API from overriding with customer_name
+            if (value.trim() && newVars[index].source === 'customer_name') {
+                newVars[index].source = 'static'
+            }
         }
         setBodyVariables(newVars)
     }
@@ -202,11 +220,53 @@ export default function MarketingPage() {
     const updateButtonVariable = (index: number, field: keyof ButtonVariable, value: string) => {
         const newVars = [...buttonVariables]
         if (field === 'urlSuffix') {
-            newVars[index].urlSuffix = value
+            // Auto-extract suffix from full URLs
+            let extractedValue = value
+
+            // Common URL patterns to extract suffix from
+            const urlPatterns = [
+                /^https?:\/\/maps\.app\.goo\.gl\/(.+)$/i,
+                /^https?:\/\/stitchedqa\.com\/collections\/(.+)$/i,
+                /^https?:\/\/[^\/]+\/(.+)$/i  // Generic: extract everything after domain
+            ]
+
+            for (const pattern of urlPatterns) {
+                const match = value.match(pattern)
+                if (match && match[1]) {
+                    extractedValue = match[1]
+                    break
+                }
+            }
+
+            newVars[index].urlSuffix = extractedValue
         } else if (field === 'source') {
             newVars[index].source = value as ButtonVariable['source']
         }
         setButtonVariables(newVars)
+    }
+
+    // Mobile Wizard Navigation
+    const goToNextStep = () => {
+        if (mobileStep < 3 && canProceedToNextStep()) {
+            setMobileStep(prev => prev + 1)
+        }
+    }
+
+    const goToPreviousStep = () => {
+        if (mobileStep > 1) {
+            setMobileStep(prev => prev - 1)
+        }
+    }
+
+    const canProceedToNextStep = (): boolean => {
+        if (mobileStep === 1) {
+            // Step 1: Must have selected at least one customer
+            return selectedIds.size > 0
+        } else if (mobileStep === 2) {
+            // Step 2: Must have template name
+            return templateName.trim().length > 0
+        }
+        return true
     }
 
     // Send campaign
@@ -333,8 +393,8 @@ export default function MarketingPage() {
                 subtitle={t('marketing.subtitle')}
             />
 
-            {/* Two Column Layout */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8">
+            {/* Desktop: Two Column Layout */}
+            <div className="max-lg:hidden grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8">
 
                 {/* Left Column: Customer Selection */}
                 <div className="bg-white rounded-2xl border border-sand-200 shadow-sm p-4 md:p-6 space-y-4">
@@ -494,6 +554,11 @@ export default function MarketingPage() {
                                                             // Auto-load saved configuration
                                                             const config = templateConfigs[name]
                                                             if (config) {
+                                                                // Set language code
+                                                                if (config.languageCode) {
+                                                                    setLanguageCode(config.languageCode)
+                                                                }
+
                                                                 // Create empty body variables
                                                                 const emptyBodyVars: BodyVariable[] = Array.from(
                                                                     { length: config.bodyVariableCount },
@@ -586,9 +651,6 @@ export default function MarketingPage() {
                                 className={`w-full ${direction === 'rtl' ? 'pr-10 pl-4' : 'pl-10 pr-4'} py-3 border border-sand-200 rounded-xl focus:ring-2 focus:ring-accent focus:border-accent bg-white appearance-none`}
                             >
                                 <option value="ar">Arabic - ar (العربية)</option>
-                                <option value="ar_AR">Arabic - ar_AR (العربية - AR)</option>
-                                <option value="en_US">English (US) - en_US</option>
-                                <option value="en_GB">English (UK) - en_GB</option>
                                 <option value="en">English - en</option>
                             </select>
                         </div>
@@ -667,39 +729,25 @@ export default function MarketingPage() {
                         </p>
 
                         {bodyVariables.map((variable, index) => (
-                            <div key={index} className="flex flex-col gap-2 p-3 bg-sand-50 rounded-xl">
-                                <div className="flex items-center gap-2 flex-wrap">
-                                    <span className="text-sm font-mono text-muted-foreground whitespace-nowrap">
-                                        {`{{${variable.position}}}`}
-                                    </span>
-                                    <span className="text-muted-foreground">→</span>
-                                    <select
-                                        value={variable.source}
-                                        onChange={(e) => updateBodyVariable(index, 'source', e.target.value)}
-                                        className="flex-1 min-w-[180px] px-3 py-2 border border-sand-200 rounded-lg text-sm bg-white"
-                                    >
-                                        <option value="customer_name">Customer Name</option>
-                                        <option value="customer_phone">Customer Phone</option>
-                                        <option value="collection_name">Collection Name (Static)</option>
-                                        <option value="static">Other Static Value</option>
-                                    </select>
-                                    <button
-                                        type="button"
-                                        onClick={() => removeBodyVariable(index)}
-                                        className="p-1 text-red-500 hover:bg-red-50 rounded ml-auto"
-                                    >
-                                        <XCircle className="w-4 h-4" />
-                                    </button>
-                                </div>
-                                {(variable.source === 'static' || variable.source === 'collection_name') && (
-                                    <input
-                                        type="text"
-                                        value={variable.value}
-                                        onChange={(e) => updateBodyVariable(index, 'value', e.target.value)}
-                                        placeholder={variable.source === 'collection_name' ? 'Collection name' : 'Enter value'}
-                                        className="w-full px-3 py-2 border border-sand-200 rounded-lg text-sm"
-                                    />
-                                )}
+                            <div key={index} className="flex items-center gap-2 p-3 bg-sand-50 rounded-xl">
+                                <span className="text-sm font-mono text-muted-foreground whitespace-nowrap">
+                                    {`{{${variable.position}}}`}
+                                </span>
+                                <span className="text-muted-foreground">→</span>
+                                <input
+                                    type="text"
+                                    value={variable.value}
+                                    onChange={(e) => updateBodyVariable(index, 'value', e.target.value)}
+                                    placeholder="Enter value"
+                                    className="flex-1 px-3 py-2 border border-sand-200 rounded-lg text-sm"
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => removeBodyVariable(index)}
+                                    className="p-1 text-red-500 hover:bg-red-50 rounded"
+                                >
+                                    <XCircle className="w-4 h-4" />
+                                </button>
                             </div>
                         ))}
                     </div>
@@ -768,6 +816,400 @@ export default function MarketingPage() {
                         )}
                     </button>
                 </div>
+            </div>
+
+            {/* Mobile: Step-by-Step Wizard */}
+            <div className="lg:hidden space-y-4">
+                {/* Progress Indicator */}
+                <WizardProgress currentStep={mobileStep} />
+
+                {/* Step 1: Audience Selection */}
+                <div className={mobileStep === 1 ? 'block space-y-4' : 'hidden'}>
+                    <div className="bg-white rounded-2xl border border-sand-200 shadow-sm p-4 space-y-4">
+                        <div className="flex items-center gap-3 mb-4">
+                            <div className="p-2.5 bg-primary/10 rounded-xl">
+                                <Users className="w-5 h-5 text-primary" />
+                            </div>
+                            <div>
+                                <h2 className="text-lg font-bold text-primary">{t('marketing.audience')}</h2>
+                                <p className="text-sm text-muted-foreground">{t('marketing.audience_subtitle')}</p>
+                            </div>
+                        </div>
+
+                        {/* Search Bar */}
+                        <div className="relative">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                            <input
+                                type="text"
+                                placeholder={t('marketing.search_placeholder')}
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                className="w-full pl-10 pr-4 py-2 border border-sand-200 rounded-xl focus:ring-2 focus:ring-accent focus:border-accent text-sm"
+                            />
+                        </div>
+
+                        {/* Stats */}
+                        <div className="flex items-center justify-between text-sm">
+                            <span className="text-muted-foreground">
+                                {filteredCustomers.length} {t('marketing.customers')}
+                            </span>
+                            <span className="font-medium text-accent">
+                                {selectedIds.size} {t('marketing.selected')}
+                            </span>
+                        </div>
+
+                        {/* Customer List */}
+                        <div className="max-h-[50vh] overflow-y-auto space-y-2">
+                            {filteredCustomers.map(customer => (
+                                <label
+                                    key={customer.id}
+                                    className={`flex items-center gap-3 p-3 rounded-xl border-2 cursor-pointer transition-all ${selectedIds.has(customer.id)
+                                        ? 'border-accent bg-accent/5'
+                                        : 'border-sand-200 hover:border-sand-300'
+                                        }`}
+                                >
+                                    <input
+                                        type="checkbox"
+                                        checked={selectedIds.has(customer.id)}
+                                        onChange={() => toggleCustomer(customer.id)}
+                                        className="w-5 h-5 rounded border-sand-300 text-accent focus:ring-accent"
+                                    />
+                                    <div className="flex-1 min-w-0">
+                                        <p className="font-medium text-sm truncate">{customer.full_name}</p>
+                                        <p className="text-xs text-muted-foreground truncate">{customer.phone}</p>
+                                    </div>
+                                </label>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+
+                {/* Step 2: Campaign Configuration */}
+                <div className={mobileStep === 2 ? 'block space-y-4' : 'hidden'}>
+                    <div className="bg-white rounded-2xl border border-sand-200 shadow-sm p-4 space-y-4">
+                        <div className="flex items-center gap-3 mb-4">
+                            <div className="p-2.5 bg-accent/10 rounded-xl">
+                                <MessageSquare className="w-5 h-5 text-accent" />
+                            </div>
+                            <div>
+                                <h2 className="text-lg font-bold text-primary">{t('marketing.campaign')}</h2>
+                                <p className="text-sm text-muted-foreground">Configure your message</p>
+                            </div>
+                        </div>
+
+                        {/* Saved Templates (Mobile) */}
+                        {savedTemplates.length > 0 && (
+                            <div className="bg-gradient-to-br from-green-50 to-green-100/50 rounded-xl p-3 border border-green-200">
+                                <div className="flex items-center justify-between mb-2">
+                                    <div className="flex items-center gap-2">
+                                        <FileText className="w-4 h-4 text-green-600" />
+                                        <h4 className="text-sm font-semibold text-green-900">Recent Templates</h4>
+                                    </div>
+                                    <span className="text-xs text-green-700 bg-green-200/50 px-2 py-0.5 rounded-full">
+                                        {savedTemplates.length}
+                                    </span>
+                                </div>
+                                <div className="space-y-1.5 max-h-32 overflow-y-auto">
+                                    {savedTemplates.slice(0, 5).map((name, index) => (
+                                        <button
+                                            key={name}
+                                            type="button"
+                                            onClick={() => {
+                                                setTemplateName(name)
+
+                                                // Auto-load saved configuration
+                                                const config = templateConfigs[name]
+                                                if (config) {
+                                                    // Set language code
+                                                    if (config.languageCode) {
+                                                        setLanguageCode(config.languageCode)
+                                                    }
+
+                                                    // Create empty body variables
+                                                    const emptyBodyVars: BodyVariable[] = Array.from(
+                                                        { length: config.bodyVariableCount },
+                                                        (_, i) => ({ position: i + 1, value: '', source: 'customer_name' as const })
+                                                    )
+                                                    setBodyVariables(emptyBodyVars)
+
+                                                    // Create empty button variables
+                                                    const emptyButtonVars: ButtonVariable[] = Array.from(
+                                                        { length: config.buttonVariableCount },
+                                                        (_, i) => ({ buttonIndex: i, urlSuffix: '', source: 'static' as const })
+                                                    )
+                                                    setButtonVariables(emptyButtonVars)
+                                                }
+                                            }}
+                                            className="w-full flex items-center gap-2 p-2 bg-white/60 hover:bg-white rounded-lg transition-all group"
+                                        >
+                                            <div className="w-6 h-6 rounded-md bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center text-white text-xs font-bold shrink-0">
+                                                {index + 1}
+                                            </div>
+                                            <span className="text-sm font-medium text-green-900 group-hover:text-green-700 truncate flex-1 text-left">
+                                                {name}
+                                            </span>
+                                            <ChevronRight className="w-4 h-4 text-green-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+                                        </button>
+                                    ))}
+                                </div>
+                                {savedTemplates.length > 5 && (
+                                    <p className="text-xs text-green-700 mt-2 text-center">
+                                        +{savedTemplates.length - 5} more in desktop view
+                                    </p>
+                                )}
+                            </div>
+                        )}
+
+                        {/* Template Name */}
+                        <div className="space-y-2">
+                            <label className="block text-sm font-medium text-secondary">
+                                {t('marketing.template_name')} *
+                            </label>
+                            <input
+                                type="text"
+                                value={templateName}
+                                onChange={(e) => setTemplateName(e.target.value)}
+                                placeholder="e.g., hello_world"
+                                className="w-full px-4 py-2.5 border border-sand-200 rounded-xl focus:ring-2 focus:ring-accent focus:border-accent text-sm"
+                                dir="ltr"
+                            />
+                            <p className="text-xs text-muted-foreground">
+                                {t('marketing.template_hint')}
+                            </p>
+                        </div>
+
+                        {/* Language */}
+                        <div className="space-y-2">
+                            <label className="block text-sm font-medium text-secondary">
+                                {t('marketing.language_code')}
+                            </label>
+                            <select
+                                value={languageCode}
+                                onChange={(e) => setLanguageCode(e.target.value)}
+                                className="w-full px-4 py-2.5 border border-sand-200 rounded-xl focus:ring-2 focus:ring-accent focus:border-accent bg-white text-sm"
+                            >
+                                <option value="ar">Arabic - ar (العربية)</option>
+                                <option value="en">English - en</option>
+                            </select>
+                        </div>
+
+                        {/* Header Image */}
+                        <div className="space-y-2">
+                            <label className="block text-sm font-medium text-secondary">
+                                {t('marketing.header_image')}
+                            </label>
+                            <input
+                                type="url"
+                                value={headerImageUrl}
+                                onChange={(e) => setHeaderImageUrl(e.target.value)}
+                                placeholder="https://example.com/promo.jpg"
+                                className="w-full px-4 py-2.5 border border-sand-200 rounded-xl focus:ring-2 focus:ring-accent focus:border-accent text-sm"
+                                dir="ltr"
+                            />
+                        </div>
+
+                        {/* Body Variables */}
+                        <div className="space-y-3">
+                            <div className="flex items-center justify-between">
+                                <label className="block text-sm font-medium text-secondary">
+                                    Body Variables
+                                </label>
+                                <button
+                                    type="button"
+                                    onClick={addBodyVariable}
+                                    className="text-sm px-3 py-1 text-accent hover:bg-accent/10 rounded-lg transition-colors font-medium"
+                                >
+                                    + Add
+                                </button>
+                            </div>
+                            {bodyVariables.map((variable, index) => (
+                                <div key={index} className="flex items-center gap-2 p-2.5 bg-sand-50 rounded-lg">
+                                    <span className="text-sm font-mono text-muted-foreground whitespace-nowrap">
+                                        {`{{${variable.position}}}`}
+                                    </span>
+                                    <span className="text-muted-foreground">→</span>
+                                    <input
+                                        type="text"
+                                        value={variable.value}
+                                        onChange={(e) => updateBodyVariable(index, 'value', e.target.value)}
+                                        placeholder="Enter value"
+                                        className="flex-1 px-2 py-1.5 border border-sand-200 rounded text-sm"
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => removeBodyVariable(index)}
+                                        className="p-1 text-red-500 hover:bg-red-50 rounded"
+                                    >
+                                        <XCircle className="w-4 h-4" />
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
+
+                        {/* Button Variables */}
+                        <div className="space-y-3">
+                            <div className="flex items-center justify-between">
+                                <label className="block text-sm font-medium text-secondary">
+                                    Button Variables
+                                </label>
+                                <button
+                                    type="button"
+                                    onClick={addButtonVariable}
+                                    className="text-sm px-3 py-1 text-accent hover:bg-accent/10 rounded-lg transition-colors font-medium"
+                                >
+                                    + Add
+                                </button>
+                            </div>
+                            <p className="text-xs text-muted-foreground">
+                                Paste full URL - suffix will be auto-extracted
+                            </p>
+                            {buttonVariables.map((btnVar, index) => (
+                                <div key={index} className="flex items-center gap-2 p-2.5 bg-blue-50 rounded-lg">
+                                    <span className="text-sm font-mono text-blue-600 whitespace-nowrap">
+                                        Btn {btnVar.buttonIndex}
+                                    </span>
+                                    <span className="text-muted-foreground">→</span>
+                                    <input
+                                        type="text"
+                                        value={btnVar.urlSuffix}
+                                        onChange={(e) => updateButtonVariable(index, 'urlSuffix', e.target.value)}
+                                        placeholder="URL or suffix"
+                                        className="flex-1 px-2 py-1.5 border border-blue-200 rounded text-sm"
+                                        dir="ltr"
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => removeButtonVariable(index)}
+                                        className="p-1 text-red-500 hover:bg-red-50 rounded"
+                                    >
+                                        <XCircle className="w-4 h-4" />
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+
+                {/* Step 3: Review & Send */}
+                <div className={mobileStep === 3 ? 'block space-y-4' : 'hidden'}>
+                    <div className="bg-white rounded-2xl border border-sand-200 shadow-sm p-4 space-y-4">
+                        <div className="flex items-center gap-3 mb-4">
+                            <div className="p-2.5 bg-green-500/10 rounded-xl">
+                                <Eye className="w-5 h-5 text-green-600" />
+                            </div>
+                            <div>
+                                <h2 className="text-lg font-bold text-primary">Review & Send</h2>
+                                <p className="text-sm text-muted-foreground">Verify before sending</p>
+                            </div>
+                        </div>
+
+                        {/* Review Summary */}
+                        <div className="space-y-4">
+                            {/* Audience Summary */}
+                            <div className="bg-gradient-to-br from-primary/5 to-primary/10 rounded-xl p-4 border border-primary/20">
+                                <div className="flex items-center gap-2 mb-2">
+                                    <Users className="w-4 h-4 text-primary" />
+                                    <h3 className="text-sm font-semibold text-primary">Audience</h3>
+                                </div>
+                                <p className="text-2xl font-bold text-primary">{selectedIds.size}</p>
+                                <p className="text-xs text-muted-foreground">customers will receive this message</p>
+                            </div>
+
+                            {/* Campaign Summary */}
+                            <div className="bg-gradient-to-br from-accent/5 to-accent/10 rounded-xl p-4 border border-accent/20">
+                                <div className="flex items-center gap-2 mb-3">
+                                    <MessageSquare className="w-4 h-4 text-accent" />
+                                    <h3 className="text-sm font-semibold text-accent">Campaign Details</h3>
+                                </div>
+
+                                <div className="space-y-2 text-sm">
+                                    <div className="flex justify-between">
+                                        <span className="text-muted-foreground">Template:</span>
+                                        <span className="font-mono font-medium text-primary">{templateName || 'Not set'}</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                        <span className="text-muted-foreground">Language:</span>
+                                        <span className="font-medium text-primary">{languageCode === 'ar' ? 'Arabic (ar)' : 'English (en)'}</span>
+                                    </div>
+                                    {headerImageUrl && (
+                                        <div className="pt-2 border-t border-accent/10">
+                                            <p className="text-muted-foreground mb-2">Header Image:</p>
+                                            <img
+                                                src={headerImageUrl}
+                                                alt="Header Preview"
+                                                className="w-full h-auto rounded-lg border border-sand-200"
+                                                onError={(e) => {
+                                                    e.currentTarget.style.display = 'none'
+                                                }}
+                                            />
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Variables Summary */}
+                            {(bodyVariables.length > 0 || buttonVariables.length > 0) && (
+                                <div className="bg-gradient-to-br from-blue-50 to-blue-100/50 rounded-xl p-4 border border-blue-200">
+                                    <div className="flex items-center gap-2 mb-3">
+                                        <Hash className="w-4 h-4 text-blue-600" />
+                                        <h3 className="text-sm font-semibold text-blue-900">Variables</h3>
+                                    </div>
+
+                                    {bodyVariables.length > 0 && (
+                                        <div className="mb-3">
+                                            <p className="text-xs font-medium text-blue-900 mb-2">Body Variables:</p>
+                                            <div className="space-y-1">
+                                                {bodyVariables.map((v, i) => (
+                                                    <div key={i} className="flex items-center gap-2 text-xs bg-white/60 rounded px-2 py-1">
+                                                        <span className="font-mono text-blue-600">{`{{${v.position}}}`}</span>
+                                                        <span className="text-muted-foreground">→</span>
+                                                        <span className="font-medium text-blue-900 truncate">{v.value || '(empty)'}</span>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {buttonVariables.length > 0 && (
+                                        <div>
+                                            <p className="text-xs font-medium text-blue-900 mb-2">Button Variables:</p>
+                                            <div className="space-y-1">
+                                                {buttonVariables.map((v, i) => (
+                                                    <div key={i} className="flex items-center gap-2 text-xs bg-white/60 rounded px-2 py-1">
+                                                        <span className="font-mono text-blue-600">Btn {v.buttonIndex}</span>
+                                                        <span className="text-muted-foreground">→</span>
+                                                        <span className="font-medium text-blue-900 truncate" dir="ltr">{v.urlSuffix || '(empty)'}</span>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+
+                            {/* Ready to Send Message */}
+                            <div className="bg-green-50 border border-green-200 rounded-xl p-4 text-center">
+                                <div className="flex items-center justify-center gap-2 mb-2">
+                                    <CheckCircle className="w-5 h-5 text-green-600" />
+                                    <p className="font-semibold text-green-900">Ready to Send</p>
+                                </div>
+                                <p className="text-xs text-green-700">
+                                    Review the details above and tap "Send" to start the campaign
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Navigation */}
+                <WizardNavigation
+                    currentStep={mobileStep}
+                    onPrevious={goToPreviousStep}
+                    onNext={goToNextStep}
+                    onSend={sendCampaign}
+                    canProceed={canProceedToNextStep()}
+                    sending={sending}
+                />
             </div>
 
             {/* Logs Section */}
