@@ -14,14 +14,23 @@ interface ImportRow {
     phone?: string
     email?: string
     notes?: string
+    // Measurements (with or without _cm suffix)
     height_cm?: number | string
+    height?: number | string
     shoulder_width_cm?: number | string
+    shoulder_width?: number | string
     bust_cm?: number | string
+    bust?: number | string
     waist_cm?: number | string
+    waist?: number | string
     hips_cm?: number | string
+    hips?: number | string
     sleeve_length_cm?: number | string
+    sleeve_length?: number | string
     product_length_cm?: number | string
+    product_length?: number | string
     arm_hole_cm?: number | string
+    arm_hole?: number | string
     measurement_type?: string
     standard_size?: string
 }
@@ -171,14 +180,14 @@ export async function POST(request: NextRequest) {
                 }
 
                 // Measurements
-                const heightCm = parseNumber(row.height_cm)
-                const shoulderWidthCm = parseNumber(row.shoulder_width_cm)
-                const bustCm = parseNumber(row.bust_cm)
-                const waistCm = parseNumber(row.waist_cm)
-                const hipsCm = parseNumber(row.hips_cm)
-                const sleeveLengthCm = parseNumber(row.sleeve_length_cm)
-                const productLengthCm = parseNumber(row.product_length_cm)
-                const armHoleCm = parseNumber(row.arm_hole_cm)
+                const heightCm = parseNumber(row.height_cm) || parseNumber(row.height)
+                const shoulderWidthCm = parseNumber(row.shoulder_width_cm) || parseNumber(row.shoulder_width)
+                const bustCm = parseNumber(row.bust_cm) || parseNumber(row.bust)
+                const waistCm = parseNumber(row.waist_cm) || parseNumber(row.waist)
+                const hipsCm = parseNumber(row.hips_cm) || parseNumber(row.hips)
+                const sleeveLengthCm = parseNumber(row.sleeve_length_cm) || parseNumber(row.sleeve_length)
+                const productLengthCm = parseNumber(row.product_length_cm) || parseNumber(row.product_length)
+                const armHoleCm = parseNumber(row.arm_hole_cm) || parseNumber(row.arm_hole)
 
                 if (heightCm) customer.height_cm = heightCm
                 if (shoulderWidthCm) customer.shoulder_width_cm = shoulderWidthCm

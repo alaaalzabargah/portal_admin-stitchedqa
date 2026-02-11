@@ -6,6 +6,7 @@ import {
     Loader2, Download, ChevronDown, ChevronRight, AlertTriangle
 } from 'lucide-react'
 import { GlassButton } from '@/components/ui/GlassButton'
+import * as XLSX from 'xlsx'
 
 interface ImportResult {
     success: boolean
@@ -123,20 +124,20 @@ export function CustomerImportModal({ isOpen, onClose, onSuccess }: CustomerImpo
     }
 
     const downloadTemplate = () => {
-        // Create template CSV
+        // Create template XLSX
         const headers = [
             'phone',
             'full_name',
             'email',
             'standard_size',
-            'height_cm',
-            'shoulder_width_cm',
-            'bust_cm',
-            'waist_cm',
-            'hips_cm',
-            'sleeve_length_cm',
-            'product_length_cm',
-            'arm_hole_cm',
+            'height',
+            'shoulder_width',
+            'bust',
+            'waist',
+            'hips',
+            'sleeve_length',
+            'product_length',
+            'arm_hole',
             'measurement_type',
             'notes'
         ]
@@ -146,30 +147,27 @@ export function CustomerImportModal({ isOpen, onClose, onSuccess }: CustomerImpo
             'Sara Ahmed',
             'sara@example.com',
             'm',
-            '165',
-            '40',
-            '90',
-            '70',
-            '95',
-            '60',
-            '140',
-            '22',
+            165,
+            40,
+            90,
+            70,
+            95,
+            60,
+            140,
+            22,
             'custom',
             'Regular customer'
         ]
 
-        const csvContent = [
-            headers.join(','),
-            exampleRow.join(',')
-        ].join('\n')
+        // Create workbook and worksheet
+        const wb = XLSX.utils.book_new()
+        const ws = XLSX.utils.aoa_to_sheet([headers, exampleRow])
 
-        const blob = new Blob([csvContent], { type: 'text/csv' })
-        const url = URL.createObjectURL(blob)
-        const a = document.createElement('a')
-        a.href = url
-        a.download = 'customer_import_template.csv'
-        a.click()
-        URL.revokeObjectURL(url)
+        // Add worksheet to workbook
+        XLSX.utils.book_append_sheet(wb, ws, 'Template')
+
+        // Generate and download file
+        XLSX.writeFile(wb, 'customer_import_template.xlsx')
     }
 
     if (!isOpen) return null
@@ -194,7 +192,7 @@ export function CustomerImportModal({ isOpen, onClose, onSuccess }: CustomerImpo
                             </div>
                             <div>
                                 <h2 className="text-lg sm:text-xl font-bold text-primary">Import Customers</h2>
-                                <p className="text-xs sm:text-sm text-muted-foreground">Upload Excel or CSV file</p>
+                                <p className="text-xs sm:text-sm text-muted-foreground">Upload Excel (.xlsx) or CSV file</p>
                             </div>
                         </div>
                         <button
@@ -365,7 +363,7 @@ export function CustomerImportModal({ isOpen, onClose, onSuccess }: CustomerImpo
                             <p className="font-semibold">Required columns:</p>
                             <p><strong>phone</strong> (required, unique)</p>
                             <p className="font-semibold mt-2">Optional columns:</p>
-                            <p>full_name, email, standard_size, height_cm, shoulder_width_cm, bust_cm, waist_cm, hips_cm, sleeve_length_cm, product_length_cm, arm_hole_cm, measurement_type, notes</p>
+                            <p>full_name, email, standard_size, height, shoulder_width, bust, waist, hips, sleeve_length, product_length, arm_hole, measurement_type, notes</p>
                             <p className="text-xs text-muted-foreground/70 mt-2 italic">Note: Status tier is calculated automatically based on spending.</p>
                         </div>
                     </div>
