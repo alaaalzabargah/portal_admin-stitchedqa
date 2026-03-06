@@ -61,6 +61,7 @@ export async function middleware(request: NextRequest) {
         path === '/reset-password' ||
         path.startsWith('/auth/callback') ||
         path.startsWith('/api/webhooks') ||
+        path.startsWith('/api/create-deposit-order') ||
         path.startsWith('/_next') ||
         path.startsWith('/static');
 
