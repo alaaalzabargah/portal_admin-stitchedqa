@@ -55,7 +55,7 @@ export async function POST(req: NextRequest) {
                     },
                 ],
                 applied_discount: {
-                    description: 'Remaining Amount (Cash on Delivery)',
+                    description: 'Pay 50% Deposit Now (Rest Upon Delivery)',
                     value: '50.0',
                     value_type: 'percentage',
                 },
