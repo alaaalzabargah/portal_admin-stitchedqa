@@ -4,9 +4,6 @@ import { NextRequest, NextResponse } from 'next/server';
  * Helper to get CORS headers
  */
 const getCorsHeaders = (origin: string | null) => {
-    // Determine the allowed origin. 
-    // If it's your storefront, you might want to specifically allow it, or use '*'
-    // 'https://stitchedqa.com' is seen in the error message.
     const allowedOrigin = origin === 'https://stitchedqa.com' ? 'https://stitchedqa.com' : '*';
 
     return {
@@ -23,7 +20,7 @@ const getCorsHeaders = (origin: string | null) => {
 export async function OPTIONS(req: NextRequest) {
     const origin = req.headers.get('origin');
     return new NextResponse(null, {
-        status: 204, // 204 No Content is standard for OPTIONS preflight
+        status: 204,
         headers: getCorsHeaders(origin)
     });
 }
@@ -33,11 +30,12 @@ export async function POST(req: NextRequest) {
     const corsHeaders = getCorsHeaders(origin);
 
     try {
-        // Parse the incoming JSON body
         const body = await req.json();
-        const { variant_id, quantity, customer_id, shop_domain } = body;
 
-        // Validate required fields
+        // Ensure customer_id is truly null if it's an empty string from Liquid
+        const { variant_id, quantity, shop_domain } = body;
+        const customer_id = body.customer_id ? body.customer_id.trim() : null;
+
         if (!variant_id || !quantity) {
             return NextResponse.json(
                 { success: false, error: 'Missing required parameters: variant_id and quantity' },
@@ -45,7 +43,6 @@ export async function POST(req: NextRequest) {
             );
         }
 
-        // Construct the draft order payload following the required structure
         const draftOrderPayload: any = {
             draft_order: {
                 line_items: [
@@ -55,7 +52,7 @@ export async function POST(req: NextRequest) {
                     },
                 ],
                 applied_discount: {
-                    description: 'Pay 50% Deposit Now (Rest Upon Delivery)', // Dynamic deposit description text
+                    description: 'Pay 50% Deposit Now (Rest Upon Delivery)',
                     value: '50.0',
                     value_type: 'percentage',
                 },
@@ -66,21 +63,17 @@ export async function POST(req: NextRequest) {
                         value: '50%',
                     },
                 ],
-                use_customer_default_address: true,
             },
         };
 
-        // Only include customer if provided
-        if (customer_id) {
+        // Only add customer data if a real ID exists (Guest checkouts won't have one)
+        if (customer_id && customer_id !== "") {
             draftOrderPayload.draft_order.customer = {
                 id: customer_id,
             };
-        } else {
-            // Optional: avoid sending use_customer_default_address if there's no customer attached
-            delete draftOrderPayload.draft_order.use_customer_default_address;
+            draftOrderPayload.draft_order.use_customer_default_address = true;
         }
 
-        // Identify the Shopify store domain
         const targetShop = shop_domain || process.env.SHOPIFY_STORE_DOMAIN;
         if (!targetShop) {
             return NextResponse.json(
@@ -89,7 +82,6 @@ export async function POST(req: NextRequest) {
             );
         }
 
-        // Load the Admin Access Token from the environment variable
         const accessToken = process.env.SHOPIFY_ACCESS_TOKEN;
         if (!accessToken) {
             return NextResponse.json(
@@ -98,7 +90,6 @@ export async function POST(req: NextRequest) {
             );
         }
 
-        // Call the Shopify Admin Draft Orders REST API
         const shopifyRestApiUrl = `https://${targetShop}/admin/api/2024-01/draft_orders.json`;
 
         const shopifyResponse = await fetch(shopifyRestApiUrl, {
@@ -112,7 +103,6 @@ export async function POST(req: NextRequest) {
 
         const result = await shopifyResponse.json();
 
-        // Handle Shopify errors
         if (!shopifyResponse.ok) {
             console.error('Shopify Draft Order Creation Failed:', result.errors || result);
             return NextResponse.json(
@@ -125,17 +115,20 @@ export async function POST(req: NextRequest) {
             );
         }
 
-        // Extract the invoice URL from the newly created draft order
         const invoiceUrl = result.draft_order?.invoice_url;
 
         if (!invoiceUrl) {
             return NextResponse.json(
-                { success: false, error: 'Draft Order was created but invoice_url was missing' },
+                {
+                    success: false,
+                    error: 'Draft Order was created but invoice_url was missing',
+                    // 👇 THIS IS THE MAGIC LINE TO REVEAL THE ISSUE 👇
+                    shopify_raw_response: result
+                },
                 { status: 500, headers: corsHeaders }
             );
         }
 
-        // Return the successful response mapped identically to the requested output
         return NextResponse.json(
             { success: true, invoice_url: invoiceUrl },
             { status: 200, headers: corsHeaders }
@@ -144,7 +137,7 @@ export async function POST(req: NextRequest) {
     } catch (error) {
         console.error('Internal Server Error:', error);
         return NextResponse.json(
-            { success: false, error: 'Internal Server Error' },
+            { success: false, error: 'Internal Server Error', details: String(error) },
             { status: 500, headers: corsHeaders }
         );
     }
