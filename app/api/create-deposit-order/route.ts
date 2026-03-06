@@ -91,7 +91,7 @@ export async function POST(req: NextRequest) {
             );
         }
 
-        const shopifyRestApiUrl = `https://${targetShop}/admin/api/2024-01/draft_orders.json`;
+        const shopifyRestApiUrl = `https://${targetShop}/admin/api/2026-01/draft_orders.json`;
 
         const shopifyResponse = await fetch(shopifyRestApiUrl, {
             method: 'POST',
