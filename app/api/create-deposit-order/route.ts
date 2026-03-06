@@ -74,7 +74,8 @@ export async function POST(req: NextRequest) {
             draftOrderPayload.draft_order.use_customer_default_address = true;
         }
 
-        const targetShop = shop_domain || process.env.SHOPIFY_STORE_DOMAIN;
+        // Always strictly use the secure ENV variable (.myshopify.com domain)
+        const targetShop = process.env.SHOPIFY_STORE_DOMAIN;
         if (!targetShop) {
             return NextResponse.json(
                 { success: false, error: 'Shop domain is missing' },
