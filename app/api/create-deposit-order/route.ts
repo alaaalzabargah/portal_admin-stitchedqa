@@ -55,7 +55,7 @@ export async function POST(req: NextRequest) {
                     },
                 ],
                 applied_discount: {
-                    description: 'المبلغ المتبقي (يُدفع نقداً عند الاستلام)',
+                    description: 'Remaining Amount (Cash on Delivery)',
                     value: '50.0',
                     value_type: 'percentage',
                 },
