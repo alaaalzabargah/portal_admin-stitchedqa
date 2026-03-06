@@ -1,18 +1,37 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 /**
+ * Helper to get CORS headers
+ */
+const getCorsHeaders = (origin: string | null) => {
+    // Determine the allowed origin. 
+    // If it's your storefront, you might want to specifically allow it, or use '*'
+    // 'https://stitchedqa.com' is seen in the error message.
+    const allowedOrigin = origin === 'https://stitchedqa.com' ? 'https://stitchedqa.com' : '*';
+
+    return {
+        'Access-Control-Allow-Origin': allowedOrigin,
+        'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Requested-With',
+        'Access-Control-Max-Age': '86400',
+    };
+};
+
+/**
  * Handle CORS preflight requests
  */
-export async function OPTIONS() {
-    const headers = new Headers();
-    headers.set('Access-Control-Allow-Origin', '*');
-    headers.set('Access-Control-Allow-Methods', 'POST, OPTIONS');
-    headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-
-    return new NextResponse(null, { status: 200, headers });
+export async function OPTIONS(req: NextRequest) {
+    const origin = req.headers.get('origin');
+    return new NextResponse(null, {
+        status: 204, // 204 No Content is standard for OPTIONS preflight
+        headers: getCorsHeaders(origin)
+    });
 }
 
 export async function POST(req: NextRequest) {
+    const origin = req.headers.get('origin');
+    const corsHeaders = getCorsHeaders(origin);
+
     try {
         // Parse the incoming JSON body
         const body = await req.json();
@@ -22,7 +41,7 @@ export async function POST(req: NextRequest) {
         if (!variant_id || !quantity) {
             return NextResponse.json(
                 { success: false, error: 'Missing required parameters: variant_id and quantity' },
-                { status: 400, headers: { 'Access-Control-Allow-Origin': '*' } }
+                { status: 400, headers: corsHeaders }
             );
         }
 
@@ -66,7 +85,7 @@ export async function POST(req: NextRequest) {
         if (!targetShop) {
             return NextResponse.json(
                 { success: false, error: 'Shop domain is missing' },
-                { status: 500, headers: { 'Access-Control-Allow-Origin': '*' } }
+                { status: 500, headers: corsHeaders }
             );
         }
 
@@ -75,7 +94,7 @@ export async function POST(req: NextRequest) {
         if (!accessToken) {
             return NextResponse.json(
                 { success: false, error: 'Shopify Admin Access Token is missing' },
-                { status: 500, headers: { 'Access-Control-Allow-Origin': '*' } }
+                { status: 500, headers: corsHeaders }
             );
         }
 
@@ -102,7 +121,7 @@ export async function POST(req: NextRequest) {
                     error: 'Failed to create Draft Order in Shopify.',
                     details: result.errors || result
                 },
-                { status: 500, headers: { 'Access-Control-Allow-Origin': '*' } }
+                { status: 500, headers: corsHeaders }
             );
         }
 
@@ -112,21 +131,21 @@ export async function POST(req: NextRequest) {
         if (!invoiceUrl) {
             return NextResponse.json(
                 { success: false, error: 'Draft Order was created but invoice_url was missing' },
-                { status: 500, headers: { 'Access-Control-Allow-Origin': '*' } }
+                { status: 500, headers: corsHeaders }
             );
         }
 
         // Return the successful response mapped identically to the requested output
         return NextResponse.json(
             { success: true, invoice_url: invoiceUrl },
-            { status: 200, headers: { 'Access-Control-Allow-Origin': '*' } }
+            { status: 200, headers: corsHeaders }
         );
 
     } catch (error) {
         console.error('Internal Server Error:', error);
         return NextResponse.json(
             { success: false, error: 'Internal Server Error' },
-            { status: 500, headers: { 'Access-Control-Allow-Origin': '*' } }
+            { status: 500, headers: corsHeaders }
         );
     }
 }
