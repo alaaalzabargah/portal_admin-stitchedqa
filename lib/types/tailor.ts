@@ -13,6 +13,7 @@ export interface Tailor {
     // From production system
     full_name: string
     phone: string | null
+    telegram_chat_id: string | null
     specialty: string | null  // Legacy field
     status: string
     commission_rate: number | null

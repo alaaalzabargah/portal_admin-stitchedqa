@@ -5,7 +5,9 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-import { calculateProductionHealth, formatProductionAlert, sendTelegramMessage } from '@/lib/telegram'
+import { calculateProductionHealth } from '@/lib/telegram'
+import { sendMessage, sendAdminMessage, getActiveChannel } from '@/lib/messaging'
+import { productionAlertMessage } from '@/lib/messaging/templates'
 
 export async function GET(request: NextRequest) {
     const supabase = createClient(
@@ -39,7 +41,8 @@ export async function GET(request: NextRequest) {
                 tailors (
                     id,
                     full_name,
-                    phone
+                    phone,
+                    telegram_chat_id
                 )
             `)
             .not('stage', 'in', '(ready,delivered)')
@@ -65,25 +68,26 @@ export async function GET(request: NextRequest) {
 
             // Check if we need to send 50% alert
             if (health.percentElapsed >= 50 && !assignment.alert_50_sent) {
-                const message = formatProductionAlert({
+                const message = productionAlertMessage({
                     itemName: assignment.order_items?.product_name || 'Unknown',
                     orderNumber: assignment.order_items?.orders?.external_id || assignment.order_items?.orders?.id || 'N/A',
                     stage: assignment.stage,
                     tailorName: assignment.tailors?.full_name || 'Unassigned',
                     percentElapsed: health.percentElapsed,
-                    targetDue: new Date(assignment.target_due_at)
+                    targetDue: new Date(assignment.target_due_at).toLocaleDateString('en-GB')
                 })
 
-                // Send to tailor if phone exists
-                if (assignment.tailors?.phone) {
-                    await sendTelegramMessage(assignment.tailors.phone, message)
+                // Send to tailor via correct channel
+                const channel = getActiveChannel()
+                const tailorRecipient = channel === 'telegram'
+                    ? assignment.tailors?.telegram_chat_id
+                    : assignment.tailors?.phone
+                if (tailorRecipient) {
+                    await sendMessage(tailorRecipient, message)
                 }
 
-                // Send to admin (use a configured admin chat ID)
-                const adminChatId = process.env.TELEGRAM_ADMIN_CHAT_ID
-                if (adminChatId) {
-                    await sendTelegramMessage(adminChatId, message)
-                }
+                // Send to admin
+                await sendAdminMessage(message)
 
                 alerts.push({ assignment_id: assignment.id, threshold: '50%' })
                 updates.push({
@@ -94,23 +98,24 @@ export async function GET(request: NextRequest) {
 
             // Check if we need to send 80% alert
             if (health.percentElapsed >= 80 && !assignment.alert_80_sent) {
-                const message = formatProductionAlert({
+                const message = productionAlertMessage({
                     itemName: assignment.order_items?.product_name || 'Unknown',
                     orderNumber: assignment.order_items?.orders?.external_id || assignment.order_items?.orders?.id || 'N/A',
                     stage: assignment.stage,
                     tailorName: assignment.tailors?.full_name || 'Unassigned',
                     percentElapsed: health.percentElapsed,
-                    targetDue: new Date(assignment.target_due_at)
+                    targetDue: new Date(assignment.target_due_at).toLocaleDateString('en-GB')
                 })
 
-                if (assignment.tailors?.phone) {
-                    await sendTelegramMessage(assignment.tailors.phone, message)
+                const channel80 = getActiveChannel()
+                const tailorRecipient80 = channel80 === 'telegram'
+                    ? assignment.tailors?.telegram_chat_id
+                    : assignment.tailors?.phone
+                if (tailorRecipient80) {
+                    await sendMessage(tailorRecipient80, message)
                 }
 
-                const adminChatId = process.env.TELEGRAM_ADMIN_CHAT_ID
-                if (adminChatId) {
-                    await sendTelegramMessage(adminChatId, message)
-                }
+                await sendAdminMessage(message)
 
                 alerts.push({ assignment_id: assignment.id, threshold: '80%' })
                 updates.push({

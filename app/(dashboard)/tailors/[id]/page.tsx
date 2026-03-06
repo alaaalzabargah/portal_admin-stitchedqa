@@ -5,7 +5,7 @@ import { useRouter, useParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { useThemeSystem } from '@/lib/themes/context'
 import { PageHeader } from '@/components/ui/PageHeader'
-import { ArrowLeft, Edit2, DollarSign, Award, TrendingUp, Package, Clock, CheckCircle } from 'lucide-react'
+import { ArrowLeft, Edit2, DollarSign, Award, TrendingUp, Package, Clock, CheckCircle, Bell, Send, Loader2, X, Save } from 'lucide-react'
 import type { Tailor, TailorAssignment } from '@/lib/types/tailor'
 import { formatMoney, calculateCapacityPercentage, getStatusLabel, getStatusColor } from '@/lib/types/tailor'
 
@@ -20,6 +20,92 @@ export default function TailorDetailPage() {
     const [tailor, setTailor] = useState<Tailor | null>(null)
     const [assignments, setAssignments] = useState<TailorAssignment[]>([])
     const [loading, setLoading] = useState(true)
+    const [notifying, setNotifying] = useState(false)
+    const [notificationResult, setNotificationResult] = useState<{ message: string; success: boolean } | null>(null)
+
+    // Edit modal state
+    const [showEditModal, setShowEditModal] = useState(false)
+    const [saving, setSaving] = useState(false)
+    const [editForm, setEditForm] = useState({
+        full_name: '',
+        phone: '',
+        telegram_chat_id: '',
+        email: '',
+        location: '',
+        specialty: '',
+        max_capacity: '10',
+        commission_rate: '0',
+        status: 'active' as 'active' | 'inactive'
+    })
+
+    function openEditModal() {
+        if (!tailor) return
+        setEditForm({
+            full_name: tailor.full_name,
+            phone: tailor.phone || '',
+            telegram_chat_id: tailor.telegram_chat_id || '',
+            email: tailor.email || '',
+            location: tailor.location || '',
+            specialty: tailor.specialty || '',
+            max_capacity: String(tailor.max_capacity || 10),
+            commission_rate: String(tailor.commission_rate || 0),
+            status: tailor.status as 'active' | 'inactive'
+        })
+        setShowEditModal(true)
+    }
+
+    async function handleSaveEdit() {
+        if (!tailor || !editForm.full_name.trim()) {
+            alert('Name is required')
+            return
+        }
+        setSaving(true)
+        const { error } = await supabase
+            .from('tailors')
+            .update({
+                full_name: editForm.full_name.trim(),
+                phone: editForm.phone.trim() || null,
+                telegram_chat_id: editForm.telegram_chat_id.trim() || null,
+                email: editForm.email.trim() || null,
+                location: editForm.location.trim() || null,
+                specialty: editForm.specialty.trim() || null,
+                max_capacity: parseInt(editForm.max_capacity) || 10,
+                commission_rate: parseFloat(editForm.commission_rate) || 0,
+                status: editForm.status
+            })
+            .eq('id', tailor.id)
+
+        if (error) {
+            alert('Failed to update: ' + error.message)
+        } else {
+            setShowEditModal(false)
+            await loadTailorData()
+        }
+        setSaving(false)
+    }
+
+    async function sendTestNotification() {
+        if (!tailor) return
+        setNotifying(true)
+        setNotificationResult(null)
+        try {
+            const res = await fetch('/api/notifications/send', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ event: 'test', tailorId: tailor.id })
+            })
+            const data = await res.json()
+            if (data.success) {
+                setNotificationResult({ message: `✅ Test sent via ${data.channel}`, success: true })
+            } else {
+                setNotificationResult({ message: data.error || 'Failed to send', success: false })
+            }
+        } catch {
+            setNotificationResult({ message: 'Network error', success: false })
+        }
+        setNotifying(false)
+        setTimeout(() => setNotificationResult(null), 4000)
+    }
 
     useEffect(() => {
         if (tailorId) {
@@ -133,13 +219,21 @@ export default function TailorDetailPage() {
                             )}
                         </div>
                     </div>
-                    <div className="flex gap-2">
+                    <div className="flex gap-2 flex-wrap">
                         <button
-                            onClick={() => router.push('/tailors')}
+                            onClick={openEditModal}
                             className="px-4 py-2 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors flex items-center gap-2"
                         >
                             <Edit2 className="w-4 h-4" />
                             Edit
+                        </button>
+                        <button
+                            onClick={sendTestNotification}
+                            disabled={notifying}
+                            className="px-4 py-2 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors flex items-center gap-2 disabled:opacity-50"
+                        >
+                            {notifying ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                            Test Notify
                         </button>
                         <button
                             className="px-4 py-2 text-white rounded-lg transition-colors flex items-center gap-2"
@@ -153,6 +247,17 @@ export default function TailorDetailPage() {
                     </div>
                 </div>
             </div>
+
+            {/* Notification Toast */}
+            {notificationResult && (
+                <div className={`p-3 rounded-lg text-sm font-medium flex items-center gap-2 animate-fade-in ${notificationResult.success
+                    ? 'bg-green-50 text-green-700 border border-green-200'
+                    : 'bg-red-50 text-red-700 border border-red-200'
+                    }`}>
+                    <Bell className="w-4 h-4" />
+                    {notificationResult.message}
+                </div>
+            )}
 
             {/* KPI Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -331,6 +436,141 @@ export default function TailorDetailPage() {
                     </div>
                 )}
             </div>
+
+            {/* Edit Modal */}
+            {showEditModal && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-2xl p-6 max-w-md w-full space-y-4 max-h-[90vh] overflow-y-auto">
+                        <div className="flex items-center justify-between">
+                            <h2 className="text-xl font-bold" style={{ color: themeConfig.colors.primary }}>Edit Tailor</h2>
+                            <button onClick={() => setShowEditModal(false)} className="p-1 hover:bg-gray-100 rounded-lg">
+                                <X className="w-5 h-5 text-gray-500" />
+                            </button>
+                        </div>
+
+                        <div className="space-y-3">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Full Name *</label>
+                                <input
+                                    type="text"
+                                    value={editForm.full_name}
+                                    onChange={e => setEditForm({ ...editForm, full_name: e.target.value })}
+                                    className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:outline-none"
+                                    style={{ '--tw-ring-color': themeConfig.colors.primary } as any}
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
+                                <input
+                                    type="text"
+                                    value={editForm.phone}
+                                    onChange={e => setEditForm({ ...editForm, phone: e.target.value })}
+                                    className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:outline-none"
+                                    placeholder="+974XXXXXXXX"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Telegram Chat ID</label>
+                                <input
+                                    type="text"
+                                    value={editForm.telegram_chat_id}
+                                    onChange={e => setEditForm({ ...editForm, telegram_chat_id: e.target.value })}
+                                    className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:outline-none"
+                                    placeholder="e.g. 123456789"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                                <input
+                                    type="email"
+                                    value={editForm.email}
+                                    onChange={e => setEditForm({ ...editForm, email: e.target.value })}
+                                    className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:outline-none"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Location</label>
+                                <input
+                                    type="text"
+                                    value={editForm.location}
+                                    onChange={e => setEditForm({ ...editForm, location: e.target.value })}
+                                    className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:outline-none"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Specialty</label>
+                                <input
+                                    type="text"
+                                    value={editForm.specialty}
+                                    onChange={e => setEditForm({ ...editForm, specialty: e.target.value })}
+                                    className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:outline-none"
+                                    placeholder="e.g., Sewing, Cutting, QC"
+                                />
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Max Capacity</label>
+                                    <input
+                                        type="number"
+                                        min="1"
+                                        value={editForm.max_capacity}
+                                        onChange={e => setEditForm({ ...editForm, max_capacity: e.target.value })}
+                                        className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:outline-none"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Commission (%)</label>
+                                    <input
+                                        type="number"
+                                        step="0.5"
+                                        value={editForm.commission_rate}
+                                        onChange={e => setEditForm({ ...editForm, commission_rate: e.target.value })}
+                                        className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:outline-none"
+                                    />
+                                </div>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                                <select
+                                    value={editForm.status}
+                                    onChange={e => setEditForm({ ...editForm, status: e.target.value as 'active' | 'inactive' })}
+                                    className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:outline-none bg-white"
+                                >
+                                    <option value="active">Active</option>
+                                    <option value="inactive">Inactive</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div className="flex gap-3 pt-2">
+                            <button
+                                onClick={() => setShowEditModal(false)}
+                                className="flex-1 px-4 py-2 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleSaveEdit}
+                                disabled={saving}
+                                className="flex-1 px-4 py-2 text-white rounded-lg transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+                                style={{ backgroundColor: themeConfig.colors.primary }}
+                                onMouseEnter={e => e.currentTarget.style.backgroundColor = themeConfig.colors.primaryDark}
+                                onMouseLeave={e => e.currentTarget.style.backgroundColor = themeConfig.colors.primary}
+                            >
+                                {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                                {saving ? 'Saving...' : 'Save Changes'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     )
 }

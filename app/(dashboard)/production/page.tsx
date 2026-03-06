@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { useAuthUser } from '@/lib/auth'
 import { useThemeSystem } from '@/lib/themes/context'
-import { Search, Plus, AlertTriangle, Clock, Settings, Package } from 'lucide-react'
+import { Search, Plus, AlertTriangle, Clock, Settings, Package, Bell } from 'lucide-react'
 import type { ProductionSettings } from '@/lib/types/production'
 
 export default function ProductionPage() {
@@ -72,11 +72,14 @@ export default function ProductionPage() {
 
     const getStageStats = () => {
         const stats = {
-            pending: 0,
-            cutting: 0,
-            sewing: 0,
-            qc: 0,
-            ready: 0,
+            assigned: 0,
+            in_progress: 0,
+            completed: 0,
+            qc_passed: 0,
+            qc_failed: 0,
+            rework: 0,
+            out_for_delivery: 0,
+            delivered: 0,
             all: assignments.length
         }
 
@@ -169,9 +172,25 @@ export default function ProductionPage() {
     }
 
     const getNextStage = (currentStage: string) => {
-        const stageOrder = ['pending', 'cutting', 'sewing', 'qc', 'ready']
+        // Happy path flow
+        const stageOrder = ['assigned', 'in_progress', 'completed', 'qc_passed', 'out_for_delivery', 'delivered']
         const currentIndex = stageOrder.indexOf(currentStage)
+
+        // If current stage is not in happy path (e.g. rework), map it back to happy path
+        if (currentIndex === -1) {
+            if (currentStage === 'qc_failed' || currentStage === 'rework') return 'completed'
+            return 'assigned'
+        }
+
         return stageOrder[Math.min(currentIndex + 1, stageOrder.length - 1)]
+    }
+
+    // Notification toast state
+    const [notifToast, setNotifToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null)
+
+    const showNotifToast = (message: string, type: 'success' | 'error') => {
+        setNotifToast({ message, type })
+        setTimeout(() => setNotifToast(null), 4000)
     }
 
     const handleMoveStage = async (assignmentId: string, currentStage: string) => {
@@ -184,7 +203,11 @@ export default function ProductionPage() {
         })
 
         if (response.ok) {
+            const result = await response.json()
             await loadAssignments()
+            if (result.notification_sent) {
+                showNotifToast(`🔔 Admin notified: stage → ${nextStage}`, 'success')
+            }
         } else {
             const errorData = await response.json()
             alert(`Failed to move stage: ${errorData.error || 'Unknown error'}`)
@@ -199,7 +222,11 @@ export default function ProductionPage() {
         })
 
         if (response.ok) {
+            const result = await response.json()
             await loadAssignments()
+            if (result.notification_sent) {
+                showNotifToast('🔔 Tailor notified: payment recorded', 'success')
+            }
         } else {
             alert('Failed to mark as paid')
         }
@@ -216,22 +243,34 @@ export default function ProductionPage() {
 
     const tabs = settings ? [
         { id: 'all', label: 'All Active' },
-        { id: 'pending', label: settings.stage_labels.pending },
-        { id: 'cutting', label: settings.stage_labels.cutting },
-        { id: 'sewing', label: settings.stage_labels.sewing },
-        { id: 'qc', label: settings.stage_labels.qc },
+        { id: 'assigned', label: settings.stage_labels.assigned },
+        { id: 'in_progress', label: settings.stage_labels.in_progress },
+        { id: 'completed', label: settings.stage_labels.completed },
+        { id: 'qc_passed', label: settings.stage_labels.qc_passed },
+        { id: 'qc_failed', label: settings.stage_labels.qc_failed },
+        { id: 'rework', label: settings.stage_labels.rework },
+        { id: 'out_for_delivery', label: settings.stage_labels.out_for_delivery },
     ] : [
         { id: 'all', label: 'All Active' },
-        { id: 'pending', label: 'Pending' },
-        { id: 'cutting', label: 'Cutting' },
-        { id: 'sewing', label: 'Sewing' },
-        { id: 'qc', label: 'QC Check' },
+        { id: 'assigned', label: 'Assigned' },
+        { id: 'in_progress', label: 'In Progress' },
+        { id: 'completed', label: 'Completed' },
+        { id: 'qc_passed', label: 'QC Passed' },
+        { id: 'qc_failed', label: 'QC Failed' },
     ]
 
     const stats = getStageStats()
 
     return (
         <div className="space-y-6 animate-fade-in max-w-7xl mx-auto px-4 md:px-8 pb-20 md:pb-8">
+            {/* Notification Toast */}
+            {notifToast && (
+                <div className={`fixed top-4 right-4 z-50 px-4 py-3 rounded-lg shadow-lg flex items-center gap-2 text-sm font-medium animate-fade-in ${notifToast.type === 'success' ? 'bg-green-600 text-white' : 'bg-red-600 text-white'
+                    }`}>
+                    <Bell className="w-4 h-4" />
+                    {notifToast.message}
+                </div>
+            )}
             {/* Page Header */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
@@ -319,9 +358,9 @@ export default function ProductionPage() {
                             </div>
                         </button>
 
-                        {/* Stage Cards - 5 column grid */}
-                        <div className="grid grid-cols-5 gap-2">
-                            {(['pending', 'cutting', 'sewing', 'qc', 'ready'] as const).map(stage => {
+                        {/* Stage Cards - 8 column grid */}
+                        <div className="grid grid-cols-4 sm:grid-cols-8 gap-2">
+                            {(['assigned', 'in_progress', 'completed', 'qc_passed', 'qc_failed', 'rework', 'out_for_delivery', 'delivered'] as const).map(stage => {
                                 const stageLabel = settings.stage_labels[stage]
                                 const count = stats[stage]
                                 const color = settings.stage_colors[stage]
@@ -407,7 +446,7 @@ export default function ProductionPage() {
                         </div>
 
                         {/* Per-Stage Cards */}
-                        {(['pending', 'cutting', 'sewing', 'qc', 'ready'] as const).map(stage => {
+                        {(['assigned', 'in_progress', 'completed', 'qc_passed', 'qc_failed', 'rework', 'out_for_delivery', 'delivered'] as const).map(stage => {
                             const stageLabel = settings.stage_labels[stage]
                             const count = stats[stage]
                             const color = settings.stage_colors[stage]

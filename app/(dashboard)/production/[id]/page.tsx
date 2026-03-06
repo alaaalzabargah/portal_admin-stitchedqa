@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { ArrowLeft, Package, User, Calendar, DollarSign, Clock, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react'
+import { ArrowLeft, Package, User, Calendar, DollarSign, Clock, CheckCircle2, AlertCircle, Loader2, Bell } from 'lucide-react'
 
 export default function ProductionDetailPage() {
     const router = useRouter()
@@ -77,10 +77,28 @@ export default function ProductionDetailPage() {
         return { days: daysElapsed, total: totalDays, percent, status: 'active' }
     }
 
+    // Notification toast
+    const [notifToast, setNotifToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null)
+    const showNotifToast = (message: string, type: 'success' | 'error') => {
+        setNotifToast({ message, type })
+        setTimeout(() => setNotifToast(null), 4000)
+    }
+
     const handleMoveStage = async () => {
-        const stageOrder = ['pending', 'cutting', 'sewing', 'qc', 'ready', 'delivered']
+        // Happy path flow
+        const stageOrder = ['assigned', 'in_progress', 'completed', 'qc_passed', 'out_for_delivery', 'delivered']
         const currentIndex = stageOrder.indexOf(assignment.stage)
-        const nextStage = stageOrder[Math.min(currentIndex + 1, stageOrder.length - 1)]
+
+        let nextStage = stageOrder[Math.min(currentIndex + 1, stageOrder.length - 1)]
+
+        // Handle exception flows
+        if (currentIndex === -1) {
+            if (assignment.stage === 'qc_failed' || assignment.stage === 'rework') {
+                nextStage = 'completed' // Ready for QC again
+            } else {
+                nextStage = 'assigned'
+            }
+        }
 
         const response = await fetch(`/api/production/assignments/${params.id}`, {
             method: 'PATCH',
@@ -89,7 +107,27 @@ export default function ProductionDetailPage() {
         })
 
         if (response.ok) {
+            const result = await response.json()
             await loadAssignment()
+            if (result.notification_sent) {
+                showNotifToast(`🔔 Admin notified: stage → ${nextStage}`, 'success')
+            }
+        }
+    }
+
+    const handleFailQC = async () => {
+        const response = await fetch(`/api/production/assignments/${params.id}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ stage: 'qc_failed' })
+        })
+
+        if (response.ok) {
+            const result = await response.json()
+            await loadAssignment()
+            if (result.notification_sent) {
+                showNotifToast('🔔 Tailor notified: QC Failed', 'error')
+            }
         }
     }
 
@@ -101,7 +139,11 @@ export default function ProductionDetailPage() {
         })
 
         if (response.ok) {
+            const result = await response.json()
             await loadAssignment()
+            if (result.notification_sent) {
+                showNotifToast('🔔 Tailor notified: payment recorded', 'success')
+            }
         }
     }
 
@@ -133,6 +175,14 @@ export default function ProductionDetailPage() {
 
     return (
         <div className="min-h-screen bg-gray-50">
+            {/* Notification Toast */}
+            {notifToast && (
+                <div className={`fixed top-4 right-4 z-50 px-4 py-3 rounded-lg shadow-lg flex items-center gap-2 text-sm font-medium animate-fade-in ${notifToast.type === 'success' ? 'bg-green-600 text-white' : 'bg-red-600 text-white'
+                    }`}>
+                    <Bell className="w-4 h-4" />
+                    {notifToast.message}
+                </div>
+            )}
             {/* Header */}
             <div className="bg-white border-b border-gray-200 px-6 py-4">
                 <div className="max-w-7xl mx-auto">
@@ -294,6 +344,15 @@ export default function ProductionDetailPage() {
                                         <span className="text-orange-400">→</span>
                                     </button>
                                 )}
+                                {assignment.stage === 'completed' && (
+                                    <button
+                                        onClick={handleFailQC}
+                                        className="w-full flex items-center justify-between px-4 py-3 bg-red-500/10 hover:bg-red-500/20 text-red-500 rounded-lg transition-colors"
+                                    >
+                                        <span className="text-sm">Fail QC (Rework)</span>
+                                        <AlertCircle className="w-4 h-4" />
+                                    </button>
+                                )}
                                 {assignment.stage === 'ready' && !assignment.is_paid && (
                                     <button
                                         onClick={handleMarkPaid}
@@ -323,34 +382,64 @@ export default function ProductionDetailPage() {
                                 </span>
                             </div>
                             <div className="space-y-4">
-                                {['pending', 'cutting', 'sewing', 'qc', 'ready'].map((stage, idx) => {
-                                    const stageOrder = ['pending', 'cutting', 'sewing', 'qc', 'ready']
-                                    const currentIdx = stageOrder.indexOf(assignment.stage)
-                                    const isCompleted = idx < currentIdx
-                                    const isCurrent = idx === currentIdx
-                                    const isPending = idx > currentIdx
+                                {(() => {
+                                    const standardStages = ['assigned', 'in_progress', 'completed', 'qc_passed', 'out_for_delivery', 'delivered'] as const
+                                    let displayStages = [...standardStages] as string[]
 
-                                    return (
-                                        <div key={stage} className="flex items-start gap-3">
-                                            <div className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 ${isCompleted ? 'bg-green-500' : isCurrent ? 'bg-yellow-500' : 'bg-gray-200'
-                                                }`}>
-                                                {isCompleted && <CheckCircle2 className="w-4 h-4 text-white" />}
-                                                {isCurrent && <Clock className="w-4 h-4 text-white" />}
+                                    // Replace QC Passed with exception state if active
+                                    if (assignment.stage === 'qc_failed') {
+                                        const idx = displayStages.indexOf('qc_passed')
+                                        if (idx !== -1) displayStages[idx] = 'qc_failed'
+                                    } else if (assignment.stage === 'rework') {
+                                        const idx = displayStages.indexOf('qc_passed')
+                                        if (idx !== -1) displayStages[idx] = 'rework'
+                                    }
+
+                                    return displayStages.map((stage, idx) => {
+                                        // Calculate status based on current stage in standard flow vs exception
+                                        let isCompleted = false
+                                        let isCurrent = stage === assignment.stage
+
+                                        // Find where we are in the "happy path" or current customized path
+                                        // If we are in 'rework', we are at that index. 
+                                        // Steps before are completed.
+                                        const currentStageIdx = displayStages.indexOf(assignment.stage)
+
+                                        if (currentStageIdx !== -1) {
+                                            isCompleted = idx < currentStageIdx
+                                        } else {
+                                            // Fallback if something weird happens, logic to standard path
+                                            // E.g. if we are in 'rework' but showing standard path? (handled above)
+                                            // If we are 'qc_failed' but showing standard? (handled above)
+                                            const standardIdx = standardStages.indexOf(assignment.stage as any)
+                                            if (standardIdx !== -1) {
+                                                isCompleted = idx < standardIdx
+                                                isCurrent = idx === standardIdx
+                                            }
+                                        }
+
+                                        return (
+                                            <div key={stage} className="flex items-start gap-3">
+                                                <div className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 ${isCompleted ? 'bg-green-500' : isCurrent ? 'bg-orange-500' : 'bg-gray-200'
+                                                    }`}>
+                                                    {isCompleted && <CheckCircle2 className="w-4 h-4 text-white" />}
+                                                    {isCurrent && <Clock className="w-4 h-4 text-white" />}
+                                                </div>
+                                                <div className="flex-1">
+                                                    <p className={`font-medium ${isCurrent ? 'text-gray-900' : 'text-gray-500'}`}>
+                                                        {stage.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
+                                                    </p>
+                                                    {isCurrent && assignment.tailors && (
+                                                        <p className="text-sm text-gray-500">Assigned to {assignment.tailors.full_name}</p>
+                                                    )}
+                                                    {isCompleted && (
+                                                        <p className="text-sm text-gray-500">Completed</p>
+                                                    )}
+                                                </div>
                                             </div>
-                                            <div className="flex-1">
-                                                <p className={`font-medium ${isCurrent ? 'text-gray-900' : 'text-gray-500'}`}>
-                                                    {stage.charAt(0).toUpperCase() + stage.slice(1)}
-                                                </p>
-                                                {isCurrent && assignment.tailors && (
-                                                    <p className="text-sm text-gray-500">Assigned to {assignment.tailors.full_name}</p>
-                                                )}
-                                                {isCompleted && (
-                                                    <p className="text-sm text-gray-500">Completed</p>
-                                                )}
-                                            </div>
-                                        </div>
-                                    )
-                                })}
+                                        )
+                                    })
+                                })()}
                             </div>
                         </div>
                     </div>

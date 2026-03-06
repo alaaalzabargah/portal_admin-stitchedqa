@@ -20,6 +20,7 @@ export default function TailorsPage() {
     // Form state
     const [fullName, setFullName] = useState('')
     const [phone, setPhone] = useState('')
+    const [telegramChatId, setTelegramChatId] = useState('')
     const [email, setEmail] = useState('')
     const [location, setLocation] = useState('')
     const [specialty, setSpecialty] = useState('')
@@ -74,6 +75,7 @@ export default function TailorsPage() {
     const openEditModal = (tailor: Tailor) => {
         setFullName(tailor.full_name)
         setPhone(tailor.phone || '')
+        setTelegramChatId((tailor as any).telegram_chat_id || '')
         setEmail(tailor.email || '')
         setLocation(tailor.location || '')
         setSpecialty(tailor.specialty || '')
@@ -87,6 +89,7 @@ export default function TailorsPage() {
     const resetForm = () => {
         setFullName('')
         setPhone('')
+        setTelegramChatId('')
         setEmail('')
         setLocation('')
         setSpecialty('')
@@ -104,6 +107,7 @@ export default function TailorsPage() {
         const tailorData = {
             full_name: fullName.trim(),
             phone: phone.trim() || null,
+            telegram_chat_id: telegramChatId.trim() || null,
             email: email.trim() || null,
             location: location.trim() || null,
             specialty: specialty.trim() || null,
@@ -400,14 +404,27 @@ export default function TailorsPage() {
 
                             <div>
                                 <label className="block text-sm font-medium text-secondary mb-1">
-                                    Phone / Telegram Chat ID
+                                    Phone
                                 </label>
                                 <input
                                     type="text"
                                     value={phone}
                                     onChange={e => setPhone(e.target.value)}
                                     className="w-full px-3 py-2 border border-sand-200 rounded-lg focus:ring-2 focus:ring-accent focus:border-accent"
-                                    placeholder="123456789 (Telegram Chat ID)"
+                                    placeholder="+974XXXXXXXX"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-secondary mb-1">
+                                    Telegram Chat ID
+                                </label>
+                                <input
+                                    type="text"
+                                    value={telegramChatId}
+                                    onChange={e => setTelegramChatId(e.target.value)}
+                                    className="w-full px-3 py-2 border border-sand-200 rounded-lg focus:ring-2 focus:ring-accent focus:border-accent"
+                                    placeholder="e.g. 123456789"
                                 />
                             </div>
 

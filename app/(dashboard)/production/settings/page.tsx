@@ -146,7 +146,7 @@ export default function ProductionSettingsPage() {
                     <p className="text-sm text-gray-500 mb-4">Customize display labels, expected durations, and badge colors for each production stage.</p>
 
                     <div className="space-y-4">
-                        {(['pending', 'cutting', 'sewing', 'qc', 'ready'] as const).map(stage => (
+                        {(['assigned', 'in_progress', 'completed', 'qc_passed', 'qc_failed', 'rework', 'out_for_delivery', 'delivered'] as const).map(stage => (
                             <div key={stage} className="grid grid-cols-3 gap-4 p-4 bg-gray-50 rounded-lg">
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1">Display Label</label>
@@ -237,6 +237,28 @@ export default function ProductionSettingsPage() {
                     </div>
                     <p className="text-sm text-gray-500 mb-4">Enable or disable notification channels for production alerts.</p>
 
+                    {/* Active Channel Selector */}
+                    <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                        <label className="block text-sm font-semibold text-blue-900 mb-3">Active Messaging Channel</label>
+                        <p className="text-xs text-blue-700 mb-3">This determines which channel is used for tailor notifications. Set via MESSAGING_CHANNEL in .env.local</p>
+                        <div className="flex gap-4">
+                            <div className={`flex items-center gap-2 px-4 py-2 rounded-lg border ${(process.env.NEXT_PUBLIC_MESSAGING_CHANNEL || 'telegram') === 'telegram'
+                                ? 'bg-blue-500 text-white border-blue-500'
+                                : 'bg-white text-gray-700 border-gray-300'
+                                }`}>
+                                <span className="text-lg">📱</span>
+                                <span className="text-sm font-medium">Telegram</span>
+                            </div>
+                            <div className={`flex items-center gap-2 px-4 py-2 rounded-lg border ${process.env.NEXT_PUBLIC_MESSAGING_CHANNEL === 'whatsapp'
+                                ? 'bg-green-500 text-white border-green-500'
+                                : 'bg-white text-gray-700 border-gray-300'
+                                }`}>
+                                <span className="text-lg">💬</span>
+                                <span className="text-sm font-medium">WhatsApp</span>
+                            </div>
+                        </div>
+                    </div>
+
                     <div className="space-y-3">
                         <label className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50">
                             <input
@@ -265,6 +287,38 @@ export default function ProductionSettingsPage() {
                             />
                             <span className="flex-1 font-medium text-gray-900">Email Notifications</span>
                         </label>
+                    </div>
+
+                    {/* Test Notification Button */}
+                    <div className="mt-4 flex items-center gap-3">
+                        <button
+                            onClick={async () => {
+                                const btn = document.getElementById('test-notif-btn') as HTMLButtonElement
+                                if (btn) btn.disabled = true
+                                try {
+                                    const res = await fetch('/api/notifications/send', {
+                                        method: 'POST',
+                                        headers: { 'Content-Type': 'application/json' },
+                                        body: JSON.stringify({ event: 'test' })
+                                    })
+                                    const data = await res.json()
+                                    if (data.success) {
+                                        alert(`✅ Test notification sent via ${data.channel}!`)
+                                    } else {
+                                        alert(`❌ Failed: ${data.error || 'Unknown error'}`)
+                                    }
+                                } catch (err) {
+                                    alert('❌ Failed to send test notification')
+                                } finally {
+                                    if (btn) btn.disabled = false
+                                }
+                            }}
+                            id="test-notif-btn"
+                            className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors text-sm font-medium disabled:opacity-50"
+                        >
+                            🔔 Send Test to Admin
+                        </button>
+                        <span className="text-xs text-gray-500">Sends a test message to the admin via the active channel</span>
                     </div>
 
                     <div className="mt-4">

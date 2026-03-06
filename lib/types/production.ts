@@ -1,26 +1,33 @@
 export interface ProductionSettings {
     id: string
     stage_labels: {
-        pending: string
-        cutting: string
-        sewing: string
-        qc: string
-        ready: string
+        assigned: string
+        in_progress: string
+        completed: string
+        qc_passed: string
+        qc_failed: string
+        rework: string
+        out_for_delivery: string
         delivered: string
     }
     stage_durations: {
-        pending: number
-        cutting: number
-        sewing: number
-        qc: number
-        ready: number
+        assigned: number
+        in_progress: number
+        completed: number
+        qc_passed: number
+        qc_failed: number
+        rework: number
+        out_for_delivery: number
+        delivered: number
     }
     stage_colors: {
-        pending: string
-        cutting: string
-        sewing: string
-        qc: string
-        ready: string
+        assigned: string
+        in_progress: string
+        completed: string
+        qc_passed: string
+        qc_failed: string
+        rework: string
+        out_for_delivery: string
         delivered: string
     }
     alert_thresholds: {
@@ -46,6 +53,7 @@ export interface Tailor {
     id: string
     full_name: string
     phone: string | null
+    telegram_chat_id: string | null
     specialty: string | null
     commission_rate: number
     status: string
