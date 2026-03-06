@@ -55,7 +55,7 @@ export async function POST(req: NextRequest) {
                     },
                 ],
                 applied_discount: {
-                    description: 'Pay 50% Deposit Now (Rest Upon Delivery)',
+                    description: 'Pay 50% Deposit Now (Rest Upon Delivery)', // Dynamic deposit description text
                     value: '50.0',
                     value_type: 'percentage',
                 },
