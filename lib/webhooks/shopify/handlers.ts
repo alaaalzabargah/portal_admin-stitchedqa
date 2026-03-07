@@ -327,6 +327,16 @@ export async function handleOrderCreate(
             orderNumber: order.order_number
         });
 
+        // For deposit orders, fix item prices from deposit amount back to real price
+        // Shopify's item.price = deposit amount (e.g. 825), real price = 825 / 0.5 = 1650
+        if (isDeposit && depositInfo.depositPercentage > 0 && depositInfo.depositPercentage < 100) {
+            for (const item of lineItems) {
+                const realPrice = Math.round(item.unitPriceMinor / (depositInfo.depositPercentage / 100));
+                item.unitPriceMinor = realPrice;
+                item.lineTotalMinor = realPrice * item.quantity;
+            }
+        }
+
         // Replace order items
         await replaceOrderItems(orderId, lineItems, logger);
 
