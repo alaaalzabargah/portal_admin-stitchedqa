@@ -455,7 +455,7 @@ export async function updateCustomerStats(
         // 1. Get ALL orders for this customer (for order_count)
         const { data: allOrders } = await supabase
             .from('orders')
-            .select('source, total_amount_minor, financial_status')
+            .select('source, total_amount_minor, paid_amount_minor, financial_status')
             .eq('customer_id', customerId);
 
         let dbShopifySpend = 0;
@@ -469,9 +469,15 @@ export async function updateCustomerStats(
                 // Track deposit orders
                 if (order.financial_status === 'partially_paid') {
                     hasDeposit = true;
+                    // For deposit orders, count the amount actually paid towards spend
+                    if (order.source === 'shopify') {
+                        dbShopifySpend += (order.paid_amount_minor || 0);
+                    } else {
+                        dbLocalSpend += (order.paid_amount_minor || 0);
+                    }
                 }
-                // Only count spend from PAID orders
-                if (order.financial_status === 'paid') {
+                // Only count spend from fully PAID orders
+                else if (order.financial_status === 'paid') {
                     if (order.source === 'shopify') {
                         dbShopifySpend += (order.total_amount_minor || 0);
                     } else {

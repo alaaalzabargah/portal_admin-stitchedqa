@@ -38,65 +38,17 @@ export async function markDepositAsPaid(orderId: string, customerId: string) {
             return { success: false, error: 'Failed to update order status' }
         }
 
-        // 3. Recalculate the Customer's Total Spend from ALL paid orders
-        // Instead of adding just the remaining delta (which was only the shipping amount),
-        // we recalculate the total from scratch by summing all paid orders.
+        // 3. Recalculate the Customer's Total Spend using the single source of truth
         if (customerId) {
-            const { data: allPaidOrders } = await supabase
-                .from('orders')
-                .select('total_amount_minor')
-                .eq('customer_id', customerId)
-                .eq('financial_status', 'paid')
-
-            let totalFromOrders = 0
-            if (allPaidOrders) {
-                for (const o of allPaidOrders) {
-                    totalFromOrders += (o.total_amount_minor || 0)
-                }
-            }
-
-            // Get the Shopify-reported spend (may be higher due to historical orders not in our DB)
-            const { data: customer } = await supabase
-                .from('customers')
-                .select('shopify_total_spend_minor')
-                .eq('id', customerId)
-                .single()
-
-            const shopifySpend = customer?.shopify_total_spend_minor || 0
-            const finalSpend = Math.max(totalFromOrders, shopifySpend)
-
-            // Determine tier based on spend
-            const { data: tiers } = await supabase
-                .from('loyalty_tiers')
-                .select('name, min_spend_minor')
-                .order('min_spend_minor', { ascending: false })
-
-            let newTier = 'Guest'
-            if (tiers && tiers.length > 0) {
-                for (const tier of tiers) {
-                    if (finalSpend >= tier.min_spend_minor) {
-                        newTier = tier.name
-                        break
-                    }
-                }
-                // If below all tiers, use the lowest
-                if (newTier === 'Guest') {
-                    newTier = tiers[tiers.length - 1].name
-                }
-            }
-
-            // Update customer with recalculated spend and tier
-            const { error: updateCustomerError } = await supabase
-                .from('customers')
-                .update({
-                    total_spend_minor: finalSpend,
-                    status_tier: newTier,
-                })
-                .eq('id', customerId)
-
-            if (updateCustomerError) {
-                console.error('Error updating customer spend:', updateCustomerError)
-            }
+            const { updateCustomerStats } = await import('@/lib/webhooks/shopify/data-layer');
+            // Passing a dummy logger since it's currently used for webhooks, but we don't need one here
+            const dummyLogger = {
+                info: console.log,
+                warn: console.warn,
+                error: console.error,
+                validationFailed: console.error
+            };
+            await updateCustomerStats(customerId, dummyLogger as any);
         }
 
         // Revalidate the customer details page so the new status shows up immediately
