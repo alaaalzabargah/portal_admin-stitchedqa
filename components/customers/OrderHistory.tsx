@@ -99,7 +99,8 @@ export function OrderHistory({ customerId }: { customerId: string }) {
         return <div className="text-center py-12 text-muted-foreground">Loading orders...</div>
     }
 
-    const getStatusColor = (status: string) => {
+    const getStatusColor = (status: string, financialStatus?: string | null) => {
+        if (financialStatus === 'partially_paid') return 'bg-purple-100 text-purple-700'
         switch (status?.toLowerCase()) {
             case 'paid':
                 return 'bg-emerald-100 text-emerald-700'
@@ -111,6 +112,11 @@ export function OrderHistory({ customerId }: { customerId: string }) {
             default:
                 return 'bg-sand-100 text-sand-700'
         }
+    }
+
+    const getStatusLabel = (status: string, financialStatus?: string | null) => {
+        if (financialStatus === 'partially_paid') return 'Deposit'
+        return status
     }
 
     if (!orders || orders.length === 0) {
@@ -158,9 +164,9 @@ export function OrderHistory({ customerId }: { customerId: string }) {
                                     {/* Status Badge - Under Icon */}
                                     <span className={cn(
                                         "px-2.5 py-1 rounded-full text-[10px] uppercase font-bold tracking-wide whitespace-nowrap",
-                                        getStatusColor(order.status)
+                                        getStatusColor(order.status, order.financial_status)
                                     )}>
-                                        {order.status}
+                                        {getStatusLabel(order.status, order.financial_status)}
                                     </span>
                                 </div>
 
