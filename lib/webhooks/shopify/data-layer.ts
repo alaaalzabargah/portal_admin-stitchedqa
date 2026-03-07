@@ -661,15 +661,24 @@ export async function replaceOrderItems(
     const supabase = getServiceClient();
 
     try {
-        // Delete existing items
+        // Delete existing items for this order first
         await supabase
             .from('order_items')
             .delete()
             .eq('order_id', orderId);
 
-        // Insert new items
+        // Insert new items (deduplicate by shopify_line_item_id to prevent race conditions)
         if (items.length > 0) {
-            const itemsToInsert = items.map(item => ({
+            // Deduplicate items by shopify_line_item_id
+            const seenIds = new Set<string>();
+            const uniqueItems = items.filter(item => {
+                if (!item.shopifyLineItemId) return true; // keep items without Shopify ID
+                if (seenIds.has(item.shopifyLineItemId)) return false;
+                seenIds.add(item.shopifyLineItemId);
+                return true;
+            });
+
+            const itemsToInsert = uniqueItems.map(item => ({
                 order_id: orderId,
                 shopify_line_item_id: item.shopifyLineItemId,
                 product_name: item.title,
@@ -684,11 +693,22 @@ export async function replaceOrderItems(
 
             const { error } = await supabase
                 .from('order_items')
-                .insert(itemsToInsert);
+                .upsert(itemsToInsert, {
+                    onConflict: 'order_id,shopify_line_item_id',
+                    ignoreDuplicates: true
+                });
 
             if (error) {
-                logger.warn('Failed to insert order items', { error: error.message });
-                return false;
+                // If upsert fails (e.g. no unique constraint), fall back to regular insert
+                logger.warn('Upsert failed, trying insert', { error: error.message });
+                const { error: insertError } = await supabase
+                    .from('order_items')
+                    .insert(itemsToInsert);
+
+                if (insertError) {
+                    logger.warn('Failed to insert order items', { error: insertError.message });
+                    return false;
+                }
             }
         }
 

@@ -209,21 +209,26 @@ export function OrderHistory({ customerId }: { customerId: string }) {
                                         )}
                                     </div>
 
-                                    {/* Price */}
+                                    {/* Price — show paid amount for deposits, full total for paid orders */}
                                     <div
                                         className="font-bold font-mono text-base sm:text-lg"
                                         style={{ color: themeConfig.colors.accent }}
                                     >
-                                        {formatCurrency(order.total_amount_minor, order.currency)}
+                                        {formatCurrency(
+                                            order.financial_status === 'partially_paid'
+                                                ? (order.paid_amount_minor || 0)
+                                                : order.total_amount_minor,
+                                            order.currency
+                                        )}
                                     </div>
 
                                     {/* Deposit Details or Shipping */}
                                     {order.financial_status === 'partially_paid' ? (
                                         <div className="text-xs sm:text-sm space-y-0.5">
-                                            <span className="text-purple-600 font-medium">
-                                                Deposit paid: {formatCurrency(order.paid_amount_minor || 0, order.currency)}
+                                            <span className="text-muted-foreground">
+                                                Full price: {formatCurrency(order.total_amount_minor, order.currency)}
                                             </span>
-                                            <span className="text-muted-foreground block">
+                                            <span className="text-purple-600 font-medium block">
                                                 Remaining: {formatCurrency((order.total_amount_minor || 0) - (order.paid_amount_minor || 0), order.currency)}
                                             </span>
                                         </div>
@@ -370,7 +375,9 @@ export function OrderHistory({ customerId }: { customerId: string }) {
                                         className="font-bold text-base sm:text-lg font-mono"
                                         style={{ color: themeConfig.colors.primary }}
                                     >
-                                        Total: {formatCurrency(order.total_amount_minor, order.currency)}
+                                        {order.financial_status === 'partially_paid'
+                                            ? <>Paid: {formatCurrency(order.paid_amount_minor || 0, order.currency)}</>
+                                            : <>Total: {formatCurrency(order.total_amount_minor, order.currency)}</>}
                                     </div>
                                 </div>
                             </div>
