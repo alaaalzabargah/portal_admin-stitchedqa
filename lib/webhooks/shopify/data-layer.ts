@@ -452,43 +452,31 @@ export async function updateCustomerStats(
     const supabase = getServiceClient();
 
     try {
-        // Calculate totals from "paid" orders only (excluding Shopify source to avoid double counting if we trust the tag?)
-        // Actually, if we have orders, we sum them.
-        // If we have shopify spend tag, we use MAX(Tag, Sum(ShopifyOrders)).
-
-        // 1. Get stats from DB orders
-        const { data: stats, error } = await supabase
-            .from('orders')
-            .select('source, params:total_amount_minor.sum(), count:id.count()')
-            .eq('customer_id', customerId)
-            .eq('financial_status', 'paid');
-        // We can't group by source easily with .single() logic.
-        // Let's just get all paid orders total. 
-        // Wait, we need to know how much is Shopify vs Local to apply the "Max" logic properly.
-
-        // Let's do two queries or one with group by?
-        // Supabase JS .select() with modifiers is limited for complex aggregation.
-        // Let's just fetch:
-        // A. Sum of all paid orders (Total DB Spend)
-        // B. Sum of Shopify paid orders (DB Shopify Spend)
-
+        // 1. Get ALL orders for this customer (for order_count)
         const { data: allOrders } = await supabase
             .from('orders')
-            .select('source, total_amount_minor')
-            .eq('customer_id', customerId)
-            .eq('financial_status', 'paid');
+            .select('source, total_amount_minor, financial_status')
+            .eq('customer_id', customerId);
 
         let dbShopifySpend = 0;
         let dbLocalSpend = 0;
-        let orderCount = 0;
+        let totalOrderCount = 0;
+        let hasDeposit = false;
 
         if (allOrders) {
-            orderCount = allOrders.length;
+            totalOrderCount = allOrders.length; // Count ALL orders
             for (const order of allOrders) {
-                if (order.source === 'shopify') {
-                    dbShopifySpend += (order.total_amount_minor || 0);
-                } else {
-                    dbLocalSpend += (order.total_amount_minor || 0);
+                // Track deposit orders
+                if (order.financial_status === 'partially_paid') {
+                    hasDeposit = true;
+                }
+                // Only count spend from PAID orders
+                if (order.financial_status === 'paid') {
+                    if (order.source === 'shopify') {
+                        dbShopifySpend += (order.total_amount_minor || 0);
+                    } else {
+                        dbLocalSpend += (order.total_amount_minor || 0);
+                    }
                 }
             }
         }
@@ -503,8 +491,6 @@ export async function updateCustomerStats(
         const storedShopifySpend = customer?.shopify_total_spend_minor || 0;
 
         // 3. Calculate Final Total
-        // We trust the value from the webhook (stored in column) if it's higher than what we have in DB for Shopify orders.
-        // This handles missing historical orders.
         const finalShopifySpend = Math.max(storedShopifySpend, dbShopifySpend);
         const totalSpendMinor = finalShopifySpend + dbLocalSpend;
 
@@ -514,7 +500,7 @@ export async function updateCustomerStats(
             .from('customers')
             .update({
                 total_spend_minor: totalSpendMinor,
-                order_count: orderCount,
+                order_count: totalOrderCount,
                 status_tier: newTier,
             })
             .eq('id', customerId);
