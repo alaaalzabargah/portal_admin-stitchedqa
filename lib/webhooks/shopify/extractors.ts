@@ -419,6 +419,38 @@ export function extractRefundAmount(
     return total;
 }
 
+/**
+ * Extract total deposit (partial payment) amount from line items properties
+ * The app uses property: { name: 'partialpay_amount', value: '825.00' }
+ */
+export function extractDepositAmount(lineItems: ShopifyLineItem[] | undefined): number {
+    if (!lineItems || lineItems.length === 0) return 0;
+
+    let totalDeposit = 0;
+    let isDepositOrder = false;
+
+    for (const item of lineItems) {
+        if (!item.properties) continue;
+
+        let propsArray: Array<{ name: string; value: string }> = [];
+        if (Array.isArray(item.properties)) {
+            propsArray = item.properties.map(p => ({
+                name: String(p.name),
+                value: String(p.value)
+            }));
+        }
+
+        for (const prop of propsArray) {
+            if (prop.name === 'partialpay_amount') {
+                isDepositOrder = true;
+                totalDeposit += priceToMinor(prop.value);
+            }
+        }
+    }
+
+    return isDepositOrder ? totalDeposit : 0;
+}
+
 // ============ ADDRESS HELPERS ============
 
 /**

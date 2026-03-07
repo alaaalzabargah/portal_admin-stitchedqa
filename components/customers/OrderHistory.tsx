@@ -2,9 +2,11 @@
 
 import React, { useState, useEffect } from 'react'
 import { formatCurrency, cn } from '@/lib/utils'
-import { ShoppingBag, ChevronDown, Package } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useThemeSystem } from '@/lib/themes/context'
+import { markDepositAsPaid } from '@/app/actions/orders'
+import { useRouter } from 'next/navigation'
+import { CheckCircle2, Loader2, ShoppingBag, ChevronDown, Package } from 'lucide-react'
 
 interface OrderItem {
     id: string
@@ -34,8 +36,11 @@ export function OrderHistory({ customerId }: { customerId: string }) {
     const [orders, setOrders] = useState<Order[]>([])
     const [loading, setLoading] = useState(true)
     const [expandedOrder, setExpandedOrder] = useState<string | null>(null)
+    const [markingPaid, setMarkingPaid] = useState<string | null>(null)
+    const [toastMessage, setToastMessage] = useState<{ text: string, error?: boolean } | null>(null)
     const supabase = createClient()
     const { themeConfig } = useThemeSystem()
+    const router = useRouter()
 
     useEffect(() => {
         const fetchOrders = async () => {
@@ -68,6 +73,26 @@ export function OrderHistory({ customerId }: { customerId: string }) {
 
     const toggleOrder = (orderId: string) => {
         setExpandedOrder(expandedOrder === orderId ? null : orderId)
+    }
+
+    const handleMarkPaid = async (e: React.MouseEvent, orderId: string) => {
+        // Prevent accordion toggle
+        e.stopPropagation()
+        setMarkingPaid(orderId)
+
+        const result = await markDepositAsPaid(orderId, customerId)
+
+        if (result.success) {
+            setToastMessage({ text: 'Order marked as fully paid successfully!' })
+            router.refresh()
+            // We can also locally update the state so it feels instant
+            setOrders(prev => prev.map(o => o.id === orderId ? { ...o, financial_status: 'paid' } : o))
+        } else {
+            setToastMessage({ text: result.error || 'Failed to update order', error: true })
+        }
+
+        setMarkingPaid(null)
+        setTimeout(() => setToastMessage(null), 3000)
     }
 
     if (loading) {
@@ -141,9 +166,34 @@ export function OrderHistory({ customerId }: { customerId: string }) {
 
                                 {/* Right Column: Order Info - Vertical Stack */}
                                 <div className="flex-1 min-w-0 space-y-1">
-                                    {/* Order Number */}
-                                    <div className="font-bold text-primary text-base sm:text-lg font-mono">
-                                        #{order.shopify_order_number || order.id.slice(0, 8)}
+                                    {/* Order Number & Deposit Action */}
+                                    <div className="flex justify-between items-center pr-2">
+                                        <div className="font-bold text-primary text-base sm:text-lg font-mono">
+                                            #{order.shopify_order_number || order.id.slice(0, 8)}
+                                        </div>
+
+                                        {/* Financial Status Action Button */}
+                                        {order.financial_status === 'partially_paid' && (
+                                            <button
+                                                onClick={(e) => handleMarkPaid(e, order.id)}
+                                                disabled={markingPaid === order.id}
+                                                className="relative z-10 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all
+                                                         bg-amber-100/80 text-amber-700 hover:bg-emerald-100 hover:text-emerald-700 border border-amber-200/50 hover:border-emerald-300"
+                                            >
+                                                {markingPaid === order.id ? (
+                                                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                                ) : (
+                                                    <CheckCircle2 className="w-3.5 h-3.5" />
+                                                )}
+                                                {markingPaid === order.id ? 'Updating...' : 'Mark Fully Paid'}
+                                            </button>
+                                        )}
+
+                                        {order.financial_status === 'paid' && (
+                                            <span className="flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-100/50 text-emerald-700 border border-emerald-200/30">
+                                                <CheckCircle2 className="w-3 h-3" /> Fully Paid
+                                            </span>
+                                        )}
                                     </div>
 
                                     {/* Price */}

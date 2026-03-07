@@ -601,6 +601,11 @@ export async function upsertOrder(
             raw_payload: data.rawPayload,
         };
 
+        console.log('--- UPSERT_ORDER DEBUG ---');
+        console.log('financialStatus input:', data.financialStatus);
+        console.log('paidAmountMinor input:', data.paidAmountMinor);
+        console.log('orderRecord to insert/update:', JSON.stringify(orderRecord, null, 2));
+
         let result;
         if (existing) {
             // Update existing
@@ -719,6 +724,9 @@ export async function markOrderPaid(
     const supabase = getServiceClient();
 
     try {
+        console.log('--- MARK_ORDER_PAID DEBUG ---');
+        console.log(`Called markOrderPaid for shopifyOrderId: ${shopifyOrderId} with paidAmountMinor: ${paidAmountMinor}`);
+
         const { error } = await supabase
             .from('orders')
             .update({
