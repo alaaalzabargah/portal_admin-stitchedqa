@@ -27,6 +27,7 @@ interface Order {
     financial_status?: string | null
     fulfillment_status?: string | null
     total_amount_minor: number
+    paid_amount_minor?: number | null
     total_shipping_minor?: number
     currency: string
     order_items: OrderItem[]
@@ -55,6 +56,7 @@ export function OrderHistory({ customerId }: { customerId: string }) {
                     financial_status,
                     fulfillment_status,
                     total_amount_minor,
+                    paid_amount_minor,
                     total_shipping_minor,
                     currency,
                     order_items (*)
@@ -210,12 +212,21 @@ export function OrderHistory({ customerId }: { customerId: string }) {
                                         {formatCurrency(order.total_amount_minor, order.currency)}
                                     </div>
 
-                                    {/* Shipping */}
-                                    {order.total_shipping_minor && order.total_shipping_minor > 0 && (
+                                    {/* Deposit Details or Shipping */}
+                                    {order.financial_status === 'partially_paid' ? (
+                                        <div className="text-xs sm:text-sm space-y-0.5">
+                                            <span className="text-purple-600 font-medium">
+                                                Deposit paid: {formatCurrency(order.paid_amount_minor || 0, order.currency)}
+                                            </span>
+                                            <span className="text-muted-foreground block">
+                                                Remaining: {formatCurrency((order.total_amount_minor || 0) - (order.paid_amount_minor || 0), order.currency)}
+                                            </span>
+                                        </div>
+                                    ) : order.total_shipping_minor && order.total_shipping_minor > 0 ? (
                                         <div className="text-xs sm:text-sm text-muted-foreground">
                                             incl. {formatCurrency(order.total_shipping_minor, order.currency)} ship
                                         </div>
-                                    )}
+                                    ) : null}
 
                                     {/* Item Count */}
                                     {itemCount > 0 && (
