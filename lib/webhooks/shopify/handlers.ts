@@ -272,23 +272,34 @@ export async function handleOrderCreate(
         let actualPaidAmountMinor = 0;
         let actualFinancialStatus = order.financial_status;
         let actualTotalAmountMinor = priceToMinor(order.total_price); // default to Shopify total
+        let actualSubtotalMinor = priceToMinor(order.subtotal_price);
 
         // Calculate shipping
         const shippingMinor = extractShippingTotal(order as any);
 
         if (isDeposit) {
-            actualPaidAmountMinor = depositInfo.depositAmountMinor;
+            // For mixed orders: Shopify total_price includes full items + deposit amounts + shipping
+            // paid_amount = what Shopify actually charged = total_price
+            actualPaidAmountMinor = priceToMinor(order.total_price);
             actualFinancialStatus = 'partially_paid';
-            // Shopify total_price = deposit + shipping (e.g. 875 = 825 + 50)
-            // Real total = full item price + shipping (e.g. 1700 = 1650 + 50)
-            actualTotalAmountMinor = depositInfo.realItemTotalMinor + shippingMinor;
+
+            // deposit delta = real full price of deposit items - deposit amount paid
+            // e.g. 1650 - 825 = 825 (the remaining balance)
+            const depositDelta = depositInfo.realItemTotalMinor - depositInfo.depositAmountMinor;
+
+            // Real total = Shopify total + deposit delta
+            // e.g. 3875 + 825 = 4700
+            actualTotalAmountMinor = priceToMinor(order.total_price) + depositDelta;
+            actualSubtotalMinor = priceToMinor(order.subtotal_price) + depositDelta;
 
             logger.info('Deposit order detected', {
                 depositAmount: depositInfo.depositAmountMinor,
                 depositPercentage: depositInfo.depositPercentage,
                 realItemPrice: depositInfo.realItemTotalMinor,
+                depositDelta,
                 realTotal: actualTotalAmountMinor,
                 shopifyTotal: priceToMinor(order.total_price),
+                paidAmount: actualPaidAmountMinor,
             });
         } else if (order.financial_status === 'paid') {
             actualPaidAmountMinor = priceToMinor(order.total_price);
@@ -302,7 +313,7 @@ export async function handleOrderCreate(
             customerId,
             email: customerInfo.email,
             shippingAddress: formatAddressForStorage(order.shipping_address),
-            subtotalMinor: isDeposit ? depositInfo.realItemTotalMinor : priceToMinor(order.subtotal_price),
+            subtotalMinor: actualSubtotalMinor,
             totalTaxMinor: priceToMinor(order.total_tax),
             totalShippingMinor: shippingMinor,
             totalAmountMinor: actualTotalAmountMinor,
@@ -327,13 +338,26 @@ export async function handleOrderCreate(
             orderNumber: order.order_number
         });
 
-        // For deposit orders, fix item prices from deposit amount back to real price
-        // Shopify's item.price = deposit amount (e.g. 825), real price = 825 / 0.5 = 1650
+        // For deposit orders, fix ONLY deposit item prices back to real price
+        // Check each item's properties to determine if it's a deposit item
         if (isDeposit && depositInfo.depositPercentage > 0 && depositInfo.depositPercentage < 100) {
             for (const item of lineItems) {
-                const realPrice = Math.round(item.unitPriceMinor / (depositInfo.depositPercentage / 100));
-                item.unitPriceMinor = realPrice;
-                item.lineTotalMinor = realPrice * item.quantity;
+                const props = item.properties;
+                if (!props) continue;
+
+                // Only fix items that have partialpay_type: percentage (actual deposit items)
+                // Items with partialpay_type: full or no partialpay_type keep their Shopify price
+                const payType = props['partialpay_type'];
+                const payAmount = props['partialpay_amount'];
+
+                if (payType === 'percentage' && payAmount) {
+                    const depositAmount = priceToMinor(payAmount);
+                    if (depositAmount > 0) {
+                        const realPrice = Math.round(depositAmount / (depositInfo.depositPercentage / 100));
+                        item.unitPriceMinor = realPrice;
+                        item.lineTotalMinor = realPrice * item.quantity;
+                    }
+                }
             }
         }
 
