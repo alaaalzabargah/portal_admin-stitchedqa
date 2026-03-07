@@ -420,14 +420,31 @@ export function extractRefundAmount(
 }
 
 /**
- * Extract total deposit (partial payment) amount from line items properties
- * The app uses property: { name: 'partialpay_amount', value: '825.00' }
+ * Extract deposit info from line item properties (PartialPay app).
+ * Returns deposit amount, percentage, and real full item price.
+ * 
+ * From webhook properties:
+ *   partialpay_amount: "825.00"      → deposit paid per item
+ *   _partialpay_percentage: "50"     → deposit is 50% of real price
+ * 
+ * Real item price = deposit / (percentage / 100)
+ *   e.g. 825 / 0.5 = 1650 QAR
  */
-export function extractDepositAmount(lineItems: ShopifyLineItem[] | undefined): number {
-    if (!lineItems || lineItems.length === 0) return 0;
+export interface DepositInfo {
+    isDeposit: boolean;
+    depositAmountMinor: number;     // What customer paid (deposit only)
+    depositPercentage: number;       // e.g. 50
+    realItemTotalMinor: number;      // Full original item price (e.g. 1650 QAR)
+}
+
+export function extractDepositInfo(lineItems: ShopifyLineItem[] | undefined): DepositInfo {
+    const noDeposit: DepositInfo = { isDeposit: false, depositAmountMinor: 0, depositPercentage: 0, realItemTotalMinor: 0 };
+    if (!lineItems || lineItems.length === 0) return noDeposit;
 
     let totalDeposit = 0;
+    let totalRealPrice = 0;
     let isDepositOrder = false;
+    let percentage = 0;
 
     for (const item of lineItems) {
         if (!item.properties) continue;
@@ -440,15 +457,45 @@ export function extractDepositAmount(lineItems: ShopifyLineItem[] | undefined): 
             }));
         }
 
+        let itemDeposit = 0;
+        let itemPercentage = 0;
+
         for (const prop of propsArray) {
             if (prop.name === 'partialpay_amount') {
                 isDepositOrder = true;
-                totalDeposit += priceToMinor(prop.value);
+                itemDeposit = priceToMinor(prop.value);
+            }
+            if (prop.name === '_partialpay_percentage') {
+                itemPercentage = parseFloat(prop.value) || 0;
+            }
+        }
+
+        if (isDepositOrder && itemDeposit > 0) {
+            totalDeposit += itemDeposit;
+            percentage = itemPercentage || 50; // default to 50% if missing
+
+            // Calculate real full price: deposit / (percentage / 100)
+            if (percentage > 0 && percentage < 100) {
+                totalRealPrice += Math.round(itemDeposit / (percentage / 100));
+            } else {
+                totalRealPrice += itemDeposit; // fallback
             }
         }
     }
 
-    return isDepositOrder ? totalDeposit : 0;
+    if (!isDepositOrder) return noDeposit;
+
+    return {
+        isDeposit: true,
+        depositAmountMinor: totalDeposit,
+        depositPercentage: percentage,
+        realItemTotalMinor: totalRealPrice,
+    };
+}
+
+// Keep backward-compatible helper
+export function extractDepositAmount(lineItems: ShopifyLineItem[] | undefined): number {
+    return extractDepositInfo(lineItems).depositAmountMinor;
 }
 
 // ============ ADDRESS HELPERS ============

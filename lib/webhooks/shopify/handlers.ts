@@ -21,6 +21,7 @@ import {
     formatAddressForStorage,
     extractCustomerMeasurements,
     extractDepositAmount,
+    extractDepositInfo,
 } from './extractors';
 import {
     findOrCreateCustomer,
@@ -264,24 +265,34 @@ export async function handleOrderCreate(
         const lineItems = extractLineItems(order.line_items as any);
 
         // Check if this is a deposit order based on custom line item properties
-        const depositAmountMinor = extractDepositAmount(order.line_items as any);
-        const isDeposit = depositAmountMinor > 0;
+        const depositInfo = extractDepositInfo(order.line_items as any);
+        const isDeposit = depositInfo.isDeposit;
 
-        // Determine the correct paid amount and financial status
+        // Determine the correct paid amount, financial status, and REAL total
         let actualPaidAmountMinor = 0;
         let actualFinancialStatus = order.financial_status;
-
-        if (isDeposit) {
-            actualPaidAmountMinor = depositAmountMinor;
-            // Never overwrite a deposit with 'paid' unless we know it's a full payment
-            // Since this handler just parses the raw payload, we force partially_paid
-            actualFinancialStatus = 'partially_paid';
-        } else if (order.financial_status === 'paid') {
-            actualPaidAmountMinor = priceToMinor(order.total_price);
-        }
+        let actualTotalAmountMinor = priceToMinor(order.total_price); // default to Shopify total
 
         // Calculate shipping
         const shippingMinor = extractShippingTotal(order as any);
+
+        if (isDeposit) {
+            actualPaidAmountMinor = depositInfo.depositAmountMinor;
+            actualFinancialStatus = 'partially_paid';
+            // Shopify total_price = deposit + shipping (e.g. 875 = 825 + 50)
+            // Real total = full item price + shipping (e.g. 1700 = 1650 + 50)
+            actualTotalAmountMinor = depositInfo.realItemTotalMinor + shippingMinor;
+
+            logger.info('Deposit order detected', {
+                depositAmount: depositInfo.depositAmountMinor,
+                depositPercentage: depositInfo.depositPercentage,
+                realItemPrice: depositInfo.realItemTotalMinor,
+                realTotal: actualTotalAmountMinor,
+                shopifyTotal: priceToMinor(order.total_price),
+            });
+        } else if (order.financial_status === 'paid') {
+            actualPaidAmountMinor = priceToMinor(order.total_price);
+        }
 
         // Upsert order
         const orderId = await upsertOrder({
@@ -291,10 +302,10 @@ export async function handleOrderCreate(
             customerId,
             email: customerInfo.email,
             shippingAddress: formatAddressForStorage(order.shipping_address),
-            subtotalMinor: priceToMinor(order.subtotal_price),
+            subtotalMinor: isDeposit ? depositInfo.realItemTotalMinor : priceToMinor(order.subtotal_price),
             totalTaxMinor: priceToMinor(order.total_tax),
             totalShippingMinor: shippingMinor,
-            totalAmountMinor: priceToMinor(order.total_price),
+            totalAmountMinor: actualTotalAmountMinor,
             paidAmountMinor: actualPaidAmountMinor,
             currency: order.currency || 'QAR',
             financialStatus: actualFinancialStatus,
@@ -370,10 +381,10 @@ export async function handleOrderPaid(
         const shopifyOrderId = String(order.id);
 
         // Check for deposit
-        const depositAmountMinor = extractDepositAmount(order.line_items as any);
-        const isDeposit = depositAmountMinor > 0;
+        const depositInfo = extractDepositInfo(order.line_items as any);
+        const isDeposit = depositInfo.isDeposit;
 
-        const paidAmount = isDeposit ? depositAmountMinor : priceToMinor(order.total_price);
+        const paidAmount = isDeposit ? depositInfo.depositAmountMinor : priceToMinor(order.total_price);
         const financialStatus = isDeposit ? 'partially_paid' : 'paid';
 
         logger.info('Processing order paid', {
