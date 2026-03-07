@@ -36,6 +36,16 @@ export default async function CustomersPage({
 
     const { data: customers, error } = await dbQuery
 
+    // Fetch customer IDs that have active deposit (partially_paid) orders
+    const { data: depositOrders } = await supabase
+        .from('orders')
+        .select('customer_id')
+        .eq('financial_status', 'partially_paid')
+
+    const depositCustomerIds = new Set(
+        (depositOrders || []).map(o => o.customer_id).filter(Boolean)
+    )
+
     if (error) {
         console.error('Error fetching customers:', error)
         return <div className="p-8 text-red-500">Failed to load customers.</div>
@@ -45,7 +55,7 @@ export default async function CustomersPage({
         <div className="space-y-8 animate-fade-in max-w-7xl mx-auto">
 
             {/* Client Wrapper */}
-            <CustomerPageClient customers={customers || []} tiers={tiers || []} dict={dict} />
+            <CustomerPageClient customers={customers || []} tiers={tiers || []} dict={dict} depositCustomerIds={Array.from(depositCustomerIds)} />
         </div>
     )
 }

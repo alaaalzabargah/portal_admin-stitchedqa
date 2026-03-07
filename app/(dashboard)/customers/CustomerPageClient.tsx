@@ -30,9 +30,10 @@ interface CustomerPageClientProps {
     customers: Customer[]
     tiers: LoyaltyTier[]
     dict: any
+    depositCustomerIds?: string[]
 }
 
-export function CustomerPageClient({ customers, tiers, dict }: CustomerPageClientProps) {
+export function CustomerPageClient({ customers, tiers, dict, depositCustomerIds = [] }: CustomerPageClientProps) {
     const dialog = useDialog()
     const [isSelectionMode, setIsSelectionMode] = useState(false)
     const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
@@ -332,6 +333,7 @@ export function CustomerPageClient({ customers, tiers, dict }: CustomerPageClien
                             isSelectionMode={isSelectionMode}
                             selectedIds={selectedIds}
                             onToggleSelect={toggleSelect}
+                            depositCustomerIds={depositCustomerIds}
                         />
                     ) : (
                         <>

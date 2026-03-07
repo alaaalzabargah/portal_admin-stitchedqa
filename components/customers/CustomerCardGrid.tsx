@@ -13,6 +13,7 @@ interface CustomerCardGridProps {
     isSelectionMode?: boolean
     selectedIds?: Set<string>
     onToggleSelect?: (id: string) => void
+    depositCustomerIds?: string[]
 }
 
 export function CustomerCardGrid({
@@ -20,7 +21,8 @@ export function CustomerCardGrid({
     tiers,
     isSelectionMode,
     selectedIds,
-    onToggleSelect
+    onToggleSelect,
+    depositCustomerIds = []
 }: CustomerCardGridProps) {
     const [copiedField, setCopiedField] = useState<string | null>(null)
 
@@ -66,6 +68,7 @@ export function CustomerCardGrid({
                 const isSelected = selectedIds?.has(customer.id)
                 // Use total_spend_minor (same as list view)
                 const totalSpend = customer.total_spend_minor ?? 0
+                const hasDeposit = depositCustomerIds.includes(customer.id)
 
                 return (
                     <div
@@ -131,12 +134,19 @@ export function CustomerCardGrid({
                                         {customer.full_name || 'Unnamed'}
                                     </h3>
                                     {tier && (
-                                        <span
-                                            className="inline-block mt-1 text-[9px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider"
-                                            style={{ backgroundColor: tierColor, color: tierTextColor }}
-                                        >
-                                            {tier.name}
-                                        </span>
+                                        <div className="flex items-center gap-1.5 mt-1">
+                                            <span
+                                                className="inline-block text-[9px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider"
+                                                style={{ backgroundColor: tierColor, color: tierTextColor }}
+                                            >
+                                                {tier.name}
+                                            </span>
+                                            {hasDeposit && (
+                                                <span className="inline-block text-[9px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider bg-purple-100 text-purple-700">
+                                                    Deposit
+                                                </span>
+                                            )}
+                                        </div>
                                     )}
                                 </div>
                             </div>
