@@ -23,19 +23,12 @@ export async function markDepositAsPaid(orderId: string, customerId: string) {
             return { success: false, error: 'Order is already marked as fully paid' }
         }
 
-        // Calculate the remaining amount that the customer just paid
-        const remainingAmountMinor = (order.total_amount_minor || 0) - (order.paid_amount_minor || 0)
-
-        if (remainingAmountMinor <= 0) {
-            console.warn('Remaining amount is 0, but order is not marked paid.')
-            // We'll still mark it paid, just won't add to spend
-        }
-
-        // 2. Update the Order
+        // 2. Update the Order — mark as fully paid with the full order amount
         const { error: updateOrderError } = await supabase
             .from('orders')
             .update({
                 financial_status: 'paid',
+                status: 'paid',
                 paid_amount_minor: order.total_amount_minor // Now fully paid
             })
             .eq('id', orderId)
@@ -45,38 +38,64 @@ export async function markDepositAsPaid(orderId: string, customerId: string) {
             return { success: false, error: 'Failed to update order status' }
         }
 
-        // 3. Update the Customer's Total Spend
-        // Note: The database has a trigger `trigger_recalculate_tiers` on loyalty_tiers
-        // but we need to run an RPC or just let an external cron do it, OR the logic is simple enough here:
-        // Actually, the trigger might recalculate *ALL* tiers when loyalty_tiers is modified.
-        // It does NOT auto-recalculate when total_spend_minor changes unless we call it.
-        // But updating `total_spend_minor` is the required first step.
-        if (remainingAmountMinor > 0 && customerId) {
-            // Fetch current customer spend
-            const { data: customer, error: customerError } = await supabase
+        // 3. Recalculate the Customer's Total Spend from ALL paid orders
+        // Instead of adding just the remaining delta (which was only the shipping amount),
+        // we recalculate the total from scratch by summing all paid orders.
+        if (customerId) {
+            const { data: allPaidOrders } = await supabase
+                .from('orders')
+                .select('total_amount_minor')
+                .eq('customer_id', customerId)
+                .eq('financial_status', 'paid')
+
+            let totalFromOrders = 0
+            if (allPaidOrders) {
+                for (const o of allPaidOrders) {
+                    totalFromOrders += (o.total_amount_minor || 0)
+                }
+            }
+
+            // Get the Shopify-reported spend (may be higher due to historical orders not in our DB)
+            const { data: customer } = await supabase
                 .from('customers')
-                .select('total_spend_minor')
+                .select('shopify_total_spend_minor')
                 .eq('id', customerId)
                 .single()
 
-            if (!customerError && customer) {
-                const newSpend = (customer.total_spend_minor || 0) + remainingAmountMinor
+            const shopifySpend = customer?.shopify_total_spend_minor || 0
+            const finalSpend = Math.max(totalFromOrders, shopifySpend)
 
-                // Update spend
-                const { error: updateCustomerError } = await supabase
-                    .from('customers')
-                    .update({ total_spend_minor: newSpend })
-                    .eq('id', customerId)
+            // Determine tier based on spend
+            const { data: tiers } = await supabase
+                .from('loyalty_tiers')
+                .select('name, min_spend_minor')
+                .order('min_spend_minor', { ascending: false })
 
-                if (updateCustomerError) {
-                    console.error('Error updating customer spend:', updateCustomerError)
-                } else {
-                    // Call the RPC to recalculate tier for JUST this customer if possible, 
-                    // or call the global recalculator. 
-                    // Looking at `007_rpc_recalc.sql` and `005_auto...` there is `recalculate_all_customer_tiers`.
-                    // We can just rely on the frontend fetching the new tier dynamically (which it already does!)
-                    // `currentTier = tiers.find(t => lifetimeValue >= t.min_spend_minor)`
+            let newTier = 'Guest'
+            if (tiers && tiers.length > 0) {
+                for (const tier of tiers) {
+                    if (finalSpend >= tier.min_spend_minor) {
+                        newTier = tier.name
+                        break
+                    }
                 }
+                // If below all tiers, use the lowest
+                if (newTier === 'Guest') {
+                    newTier = tiers[tiers.length - 1].name
+                }
+            }
+
+            // Update customer with recalculated spend and tier
+            const { error: updateCustomerError } = await supabase
+                .from('customers')
+                .update({
+                    total_spend_minor: finalSpend,
+                    status_tier: newTier,
+                })
+                .eq('id', customerId)
+
+            if (updateCustomerError) {
+                console.error('Error updating customer spend:', updateCustomerError)
             }
         }
 
@@ -91,3 +110,4 @@ export async function markDepositAsPaid(orderId: string, customerId: string) {
         return { success: false, error: 'Internal server error' }
     }
 }
+

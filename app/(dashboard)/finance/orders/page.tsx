@@ -28,6 +28,7 @@ interface Order {
     shopify_order_number: string
     created_at: string
     status: string
+    financial_status?: string | null
     source: string
     total_amount_minor: number
     total_shipping_minor: number
@@ -61,6 +62,7 @@ export default function OrderHistoryPage() {
                     shopify_order_number,
                     created_at,
                     status,
+                    financial_status,
                     source,
                     total_amount_minor,
                     total_shipping_minor,
@@ -110,7 +112,8 @@ export default function OrderHistoryPage() {
     const filteredOrders = orders
         .filter(order => {
             // Status filter
-            if (statusFilter !== 'all' && order.status !== statusFilter) return false
+            if (statusFilter === 'deposit' && order.financial_status !== 'partially_paid') return false
+            if (statusFilter !== 'all' && statusFilter !== 'deposit' && order.status !== statusFilter) return false
 
             // Search filter
             if (searchQuery) {
@@ -135,7 +138,8 @@ export default function OrderHistoryPage() {
             }
         })
 
-    const getStatusColor = (status: string) => {
+    const getStatusColor = (status: string, financialStatus?: string | null) => {
+        if (financialStatus === 'partially_paid') return 'bg-purple-100 text-purple-700'
         switch (status) {
             case 'paid':
             case 'completed':
@@ -148,6 +152,11 @@ export default function OrderHistoryPage() {
             default:
                 return 'bg-gray-100 text-gray-700'
         }
+    }
+
+    const getStatusLabel = (status: string, financialStatus?: string | null) => {
+        if (financialStatus === 'partially_paid') return 'Deposit'
+        return status
     }
 
     return (
@@ -184,6 +193,7 @@ export default function OrderHistoryPage() {
                         >
                             <option value="all">All Status</option>
                             <option value="paid">Paid</option>
+                            <option value="deposit">Deposit</option>
                             <option value="completed">Completed</option>
                             <option value="pending">Pending</option>
                             <option value="cancelled">Cancelled</option>
@@ -260,8 +270,8 @@ export default function OrderHistoryPage() {
                                             <h3 className="font-semibold text-lg">
                                                 #{order.shopify_order_number || order.id.slice(0, 8)}
                                             </h3>
-                                            <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(order.status)}`}>
-                                                {order.status}
+                                            <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(order.status, order.financial_status)}`}>
+                                                {getStatusLabel(order.status, order.financial_status)}
                                             </span>
                                             {order.source && (
                                                 <span className="px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700">
