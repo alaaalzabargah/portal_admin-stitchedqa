@@ -273,7 +273,9 @@ export async function handleOrderCreate(
 
         if (isDeposit) {
             actualPaidAmountMinor = depositAmountMinor;
-            actualFinancialStatus = 'partially_paid'; // Force partially_paid for deposit orders
+            // Never overwrite a deposit with 'paid' unless we know it's a full payment
+            // Since this handler just parses the raw payload, we force partially_paid
+            actualFinancialStatus = 'partially_paid';
         } else if (order.financial_status === 'paid') {
             actualPaidAmountMinor = priceToMinor(order.total_price);
         }
@@ -382,12 +384,17 @@ export async function handleOrderPaid(
         });
 
         // First, ensure the order exists (upsert)
+        // Note: handleOrderCreate will automatically force 'partially_paid' if it's a deposit
         await handleOrderCreate(payload, payloadHash, logger);
 
-        // Mark as paid ONLY if it's a full payment, otherwise handleOrderCreate handles the deposit logic perfectly.
+        // Mark as paid ONLY if it's a full payment
+        // We do not want to run markOrderPaid for deposits because it unconditionally updates financial_status to 'paid'
         let success = true;
         if (!isDeposit) {
             success = await markOrderPaid(shopifyOrderId, paidAmount, logger);
+        } else {
+            // For deposits, the database was already updated securely by handleOrderCreate above
+            logger.info('Skipping markOrderPaid for deposit order (handled by handleOrderCreate)');
         }
 
         if (!success) {
@@ -402,7 +409,7 @@ export async function handleOrderPaid(
             payloadHash,
             {
                 paidAmount,
-                financialStatus,
+                financialStatus: isDeposit ? 'partially_paid' : 'paid',
             },
             undefined,
             logger
