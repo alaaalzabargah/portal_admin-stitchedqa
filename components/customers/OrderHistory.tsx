@@ -86,9 +86,14 @@ export function OrderHistory({ customerId }: { customerId: string }) {
 
         if (result.success) {
             setToastMessage({ text: 'Order marked as fully paid successfully!' })
+            // Instantly update local state so badge changes from Deposit → Paid
+            setOrders(prev => prev.map(o => o.id === orderId ? {
+                ...o,
+                financial_status: 'paid',
+                status: 'paid',
+                paid_amount_minor: o.total_amount_minor
+            } : o))
             router.refresh()
-            // We can also locally update the state so it feels instant
-            setOrders(prev => prev.map(o => o.id === orderId ? { ...o, financial_status: 'paid' } : o))
         } else {
             setToastMessage({ text: result.error || 'Failed to update order', error: true })
         }
