@@ -20,6 +20,7 @@ import {
     priceToMinor,
     formatAddressForStorage,
     extractCustomerMeasurements,
+    extractDepositAmount,
 } from './extractors';
 import {
     findOrCreateCustomer,
@@ -262,6 +263,21 @@ export async function handleOrderCreate(
         // Extract line items
         const lineItems = extractLineItems(order.line_items as any);
 
+        // Check if this is a deposit order based on custom line item properties
+        const depositAmountMinor = extractDepositAmount(order.line_items as any);
+        const isDeposit = depositAmountMinor > 0;
+
+        // Determine the correct paid amount and financial status
+        let actualPaidAmountMinor = 0;
+        let actualFinancialStatus = order.financial_status;
+
+        if (isDeposit) {
+            actualPaidAmountMinor = depositAmountMinor;
+            actualFinancialStatus = 'partially_paid'; // Force partially_paid for deposit orders
+        } else if (order.financial_status === 'paid') {
+            actualPaidAmountMinor = priceToMinor(order.total_price);
+        }
+
         // Calculate shipping
         const shippingMinor = extractShippingTotal(order as any);
 
@@ -277,9 +293,9 @@ export async function handleOrderCreate(
             totalTaxMinor: priceToMinor(order.total_tax),
             totalShippingMinor: shippingMinor,
             totalAmountMinor: priceToMinor(order.total_price),
-            paidAmountMinor: order.financial_status === 'paid' ? priceToMinor(order.total_price) : 0,
+            paidAmountMinor: actualPaidAmountMinor,
             currency: order.currency || 'QAR',
-            financialStatus: order.financial_status,
+            financialStatus: actualFinancialStatus,
             fulfillmentStatus: order.fulfillment_status,
             notes: order.note,
             createdAt: order.created_at,
@@ -309,7 +325,7 @@ export async function handleOrderCreate(
             payloadHash,
             {
                 orderNumber: order.order_number,
-                financialStatus: order.financial_status,
+                financialStatus: actualFinancialStatus,
                 totalPrice: order.total_price,
             },
             order.created_at,
@@ -350,19 +366,29 @@ export async function handleOrderPaid(
 
         const order = result.data;
         const shopifyOrderId = String(order.id);
-        const paidAmount = priceToMinor(order.total_price);
+
+        // Check for deposit
+        const depositAmountMinor = extractDepositAmount(order.line_items as any);
+        const isDeposit = depositAmountMinor > 0;
+
+        const paidAmount = isDeposit ? depositAmountMinor : priceToMinor(order.total_price);
+        const financialStatus = isDeposit ? 'partially_paid' : 'paid';
 
         logger.info('Processing order paid', {
             shopifyOrderId,
             orderNumber: order.order_number,
             paidAmount,
+            isDeposit
         });
 
         // First, ensure the order exists (upsert)
         await handleOrderCreate(payload, payloadHash, logger);
 
-        // Mark as paid
-        const success = await markOrderPaid(shopifyOrderId, paidAmount, logger);
+        // Mark as paid ONLY if it's a full payment, otherwise handleOrderCreate handles the deposit logic perfectly.
+        let success = true;
+        if (!isDeposit) {
+            success = await markOrderPaid(shopifyOrderId, paidAmount, logger);
+        }
 
         if (!success) {
             return { success: false, error: 'Failed to mark order paid' };
@@ -376,7 +402,7 @@ export async function handleOrderPaid(
             payloadHash,
             {
                 paidAmount,
-                financialStatus: 'paid',
+                financialStatus,
             },
             undefined,
             logger
