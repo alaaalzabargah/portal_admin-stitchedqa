@@ -459,18 +459,24 @@ export function extractDepositInfo(lineItems: ShopifyLineItem[] | undefined): De
 
         let itemDeposit = 0;
         let itemPercentage = 0;
+        let itemPayType = '';
 
         for (const prop of propsArray) {
             if (prop.name === 'partialpay_amount') {
-                isDepositOrder = true;
                 itemDeposit = priceToMinor(prop.value);
             }
             if (prop.name === '_partialpay_percentage') {
                 itemPercentage = parseFloat(prop.value) || 0;
             }
+            if (prop.name === 'partialpay_type') {
+                itemPayType = prop.value;
+            }
         }
 
-        if (isDepositOrder && itemDeposit > 0) {
+        // Only consider this a deposit if the item actually has a deposit amount > 0
+        // partialpay_amount: 0.00 with partialpay_type: full means FULLY PAID, not deposit
+        if (itemDeposit > 0 && itemPayType !== 'full') {
+            isDepositOrder = true;
             totalDeposit += itemDeposit;
             percentage = itemPercentage || 50; // default to 50% if missing
 

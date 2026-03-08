@@ -667,11 +667,9 @@ export async function replaceOrderItems(
     const supabase = getServiceClient();
 
     try {
-        // Delete existing items for this order first
-        await supabase
-            .from('order_items')
-            .delete()
-            .eq('order_id', orderId);
+        // NOTE: We do NOT delete existing items first — that causes race conditions
+        // when orders/create and orders/paid webhooks fire simultaneously.
+        // Instead, we upsert with shopify_line_item_id as the conflict key.
 
         // Insert new items (deduplicate by shopify_line_item_id to prevent race conditions)
         if (items.length > 0) {
@@ -701,7 +699,7 @@ export async function replaceOrderItems(
                 .from('order_items')
                 .upsert(itemsToInsert, {
                     onConflict: 'order_id,shopify_line_item_id',
-                    ignoreDuplicates: true
+                    ignoreDuplicates: false
                 });
 
             if (error) {
