@@ -657,7 +657,7 @@ export async function upsertOrder(
 }
 
 /**
- * Replace order items (delete existing + insert new)
+ * Upsert order items (uses unique constraint on order_id + shopify_line_item_id)
  */
 export async function replaceOrderItems(
     orderId: string,
@@ -703,16 +703,8 @@ export async function replaceOrderItems(
                 });
 
             if (error) {
-                // If upsert fails (e.g. no unique constraint), fall back to regular insert
-                logger.warn('Upsert failed, trying insert', { error: error.message });
-                const { error: insertError } = await supabase
-                    .from('order_items')
-                    .insert(itemsToInsert);
-
-                if (insertError) {
-                    logger.warn('Failed to insert order items', { error: insertError.message });
-                    return false;
-                }
+                logger.error('Failed to upsert order items', error.message);
+                return false;
             }
         }
 
