@@ -190,15 +190,16 @@ export function OrderHistory({ customerId }: { customerId: string }) {
                                             <button
                                                 onClick={(e) => handleMarkPaid(e, order.id)}
                                                 disabled={markingPaid === order.id}
-                                                className="relative z-10 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all
+                                                className="relative z-10 flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full text-[10px] sm:text-xs font-bold transition-all whitespace-nowrap
                                                          bg-amber-100/80 text-amber-700 hover:bg-emerald-100 hover:text-emerald-700 border border-amber-200/50 hover:border-emerald-300"
                                             >
                                                 {markingPaid === order.id ? (
-                                                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                                    <Loader2 className="w-3 h-3 sm:w-3.5 sm:h-3.5 animate-spin" />
                                                 ) : (
-                                                    <CheckCircle2 className="w-3.5 h-3.5" />
+                                                    <CheckCircle2 className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                                                 )}
-                                                {markingPaid === order.id ? 'Updating...' : 'Mark Fully Paid'}
+                                                <span className="hidden sm:inline">{markingPaid === order.id ? 'Updating...' : 'Mark Fully Paid'}</span>
+                                                <span className="sm:hidden">{markingPaid === order.id ? '...' : 'Pay'}</span>
                                             </button>
                                         )}
 
