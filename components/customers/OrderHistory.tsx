@@ -150,9 +150,12 @@ export function OrderHistory({ customerId }: { customerId: string }) {
                         )}
                     >
                         {/* Order Header - Clickable */}
-                        <button
+                        <div
+                            role="button"
+                            tabIndex={0}
                             onClick={() => toggleOrder(order.id)}
-                            className="w-full p-4 sm:p-5 text-left hover:bg-white/30 transition-colors"
+                            onKeyDown={(e) => e.key === 'Enter' && toggleOrder(order.id)}
+                            className="w-full p-4 sm:p-5 text-left hover:bg-white/30 transition-colors cursor-pointer"
                         >
                             <div className="flex items-start gap-3 sm:gap-4">
                                 {/* Left Column: Icon + Status */}
@@ -263,7 +266,7 @@ export function OrderHistory({ customerId }: { customerId: string }) {
                                     isExpanded && "rotate-180"
                                 )} />
                             </div>
-                        </button>
+                        </div>
 
                         {/* Expanded Order Items */}
                         {isExpanded && (
