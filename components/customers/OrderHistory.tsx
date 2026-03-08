@@ -6,7 +6,7 @@ import { createClient } from '@/lib/supabase/client'
 import { useThemeSystem } from '@/lib/themes/context'
 import { markDepositAsPaid } from '@/app/actions/orders'
 import { useRouter } from 'next/navigation'
-import { CheckCircle2, Loader2, ShoppingBag, ChevronDown, Package } from 'lucide-react'
+import { CheckCircle2, Loader2, ShoppingBag, ChevronDown, Package, Wallet, BadgeCheck } from 'lucide-react'
 
 interface OrderItem {
     id: string
@@ -179,32 +179,33 @@ export function OrderHistory({ customerId }: { customerId: string }) {
 
                                 {/* Right Column: Order Info - Vertical Stack */}
                                 <div className="flex-1 min-w-0 space-y-1">
-                                    {/* Order Number & Deposit Action */}
-                                    <div className="flex justify-between items-center pr-2">
+                                    {/* Order Number & Status */}
+                                    <div className="flex justify-between items-center gap-2">
                                         <div className="font-bold text-primary text-base sm:text-lg font-mono">
                                             #{order.shopify_order_number || order.id.slice(0, 8)}
                                         </div>
 
-                                        {/* Financial Status Action Button */}
+                                        {/* Financial Status Action Button — Wallet icon for deposits */}
                                         {order.financial_status === 'partially_paid' && (
                                             <button
                                                 onClick={(e) => handleMarkPaid(e, order.id)}
                                                 disabled={markingPaid === order.id}
-                                                className="relative z-10 flex items-center gap-1.5 px-1.5 md:px-3 py-1.5 rounded-full text-xs font-bold transition-all whitespace-nowrap
-                                                         bg-amber-100/80 text-amber-700 hover:bg-emerald-100 hover:text-emerald-700 border border-amber-200/50 hover:border-emerald-300"
+                                                className="relative z-10 flex items-center gap-1.5 px-2 md:px-3 py-1.5 rounded-full text-xs font-bold transition-all whitespace-nowrap
+                                                         bg-amber-50 text-amber-700 hover:bg-emerald-50 hover:text-emerald-700 border border-amber-300 hover:border-emerald-300"
                                             >
                                                 {markingPaid === order.id ? (
                                                     <Loader2 className="w-4 h-4 animate-spin" />
                                                 ) : (
-                                                    <CheckCircle2 className="w-4 h-4" />
+                                                    <Wallet className="w-4 h-4" />
                                                 )}
                                                 <span className="hidden md:inline">{markingPaid === order.id ? 'Updating...' : 'Mark Fully Paid'}</span>
                                             </button>
                                         )}
 
+                                        {/* Paid Badge — BadgeCheck icon for fully paid */}
                                         {order.financial_status === 'paid' && (
-                                            <span className="flex items-center gap-1 px-1.5 md:px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-100/50 text-emerald-700 border border-emerald-200/30">
-                                                <CheckCircle2 className="w-3.5 h-3.5" />
+                                            <span className="flex items-center gap-1 px-2 md:px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-300">
+                                                <BadgeCheck className="w-4 h-4" />
                                                 <span className="hidden md:inline">Fully Paid</span>
                                             </span>
                                         )}
