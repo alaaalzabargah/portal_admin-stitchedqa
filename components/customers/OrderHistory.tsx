@@ -182,36 +182,11 @@ export function OrderHistory({ customerId }: { customerId: string }) {
 
                                 {/* Right Column: Order Info - Vertical Stack */}
                                 <div className="flex-1 min-w-0 space-y-1">
-                                    {/* Order Number & Status */}
+                                    {/* Order Number — clean row, no buttons here */}
                                     <div className="flex justify-between items-center gap-2">
                                         <div className="font-bold text-primary text-base sm:text-lg font-mono">
                                             #{order.shopify_order_number || order.id.slice(0, 8)}
                                         </div>
-
-                                        {/* Financial Status Action Button — Wallet icon for deposits */}
-                                        {order.financial_status === 'partially_paid' && (
-                                            <button
-                                                onClick={(e) => handleMarkPaid(e, order.id)}
-                                                disabled={markingPaid === order.id}
-                                                className="relative z-10 flex items-center gap-1.5 px-2 md:px-3 py-1.5 rounded-full text-xs font-bold transition-all whitespace-nowrap
-                                                         bg-amber-50 text-amber-700 hover:bg-emerald-50 hover:text-emerald-700 border border-amber-300 hover:border-emerald-300"
-                                            >
-                                                {markingPaid === order.id ? (
-                                                    <Loader2 className="w-4 h-4 animate-spin" />
-                                                ) : (
-                                                    <Wallet className="w-4 h-4" />
-                                                )}
-                                                <span className="hidden md:inline">{markingPaid === order.id ? 'Updating...' : 'Mark Fully Paid'}</span>
-                                            </button>
-                                        )}
-
-                                        {/* Paid Badge — BadgeCheck icon for fully paid */}
-                                        {order.financial_status === 'paid' && (
-                                            <span className="flex items-center gap-1 px-2 md:px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-300">
-                                                <BadgeCheck className="w-4 h-4" />
-                                                <span className="hidden md:inline">Fully Paid</span>
-                                            </span>
-                                        )}
                                     </div>
 
                                     {/* Price — show paid amount for deposits, full total for paid orders */}
@@ -242,6 +217,30 @@ export function OrderHistory({ customerId }: { customerId: string }) {
                                             incl. {formatCurrency(order.total_shipping_minor, order.currency)} ship
                                         </div>
                                     ) : null}
+
+                                    {/* Payment Status Action — full-width tappable bar */}
+                                    {order.financial_status === 'partially_paid' && (
+                                        <button
+                                            onClick={(e) => handleMarkPaid(e, order.id)}
+                                            disabled={markingPaid === order.id}
+                                            className="relative z-10 w-full flex items-center justify-center gap-2 px-3 py-2 mt-1 rounded-xl text-xs font-bold transition-all
+                                                     bg-amber-50 text-amber-700 hover:bg-emerald-50 hover:text-emerald-700 border border-amber-300 hover:border-emerald-300 active:scale-95"
+                                        >
+                                            {markingPaid === order.id ? (
+                                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                            ) : (
+                                                <Wallet className="w-3.5 h-3.5" />
+                                            )}
+                                            {markingPaid === order.id ? 'Updating...' : 'Mark Fully Paid'}
+                                        </button>
+                                    )}
+
+                                    {order.financial_status === 'paid' && (
+                                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 mt-1 rounded-xl text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                            <BadgeCheck className="w-3.5 h-3.5" />
+                                            Fully Paid
+                                        </span>
+                                    )}
 
                                     {/* Item Count */}
                                     {itemCount > 0 && (
