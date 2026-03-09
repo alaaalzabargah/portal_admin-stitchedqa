@@ -21,7 +21,7 @@ async function getStats(): Promise<KPIStats> {
     // Get order stats
     const { data: orders, count: totalOrders } = await supabase
         .from('orders')
-        .select('total_amount_minor, created_at, id, shopify_order_number, status, financial_status', { count: 'exact' })
+        .select('total_amount_minor, paid_amount_minor, created_at, id, shopify_order_number, status, financial_status', { count: 'exact' })
         .order('created_at', { ascending: false })
         .limit(5)
 
@@ -173,18 +173,34 @@ export default async function DashboardPage() {
                                             </div>
                                         </div>
                                         <div className="text-right">
-                                            <p className="text-sm font-mono font-semibold text-primary">
-                                                {formatCurrency(order.total_amount_minor)}
-                                            </p>
-                                            <span className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded-full ${order.financial_status === 'partially_paid' ? 'bg-purple-100 text-purple-700' :
-                                                order.status === 'paid' ? 'bg-emerald-100 text-emerald-700' :
-                                                    order.status === 'pending' ? 'bg-amber-100 text-amber-700' :
-                                                        'bg-sand-100 text-sand-700'
-                                                }`}>
-                                                {order.financial_status === 'partially_paid' ? (locale === 'ar' ? 'عربون' : 'Deposit') :
-                                                    locale === 'ar' && order.status === 'paid' ? 'مدفوع' :
-                                                        locale === 'ar' && order.status === 'pending' ? 'معلق' : order.status}
-                                            </span>
+                                            {order.financial_status === 'partially_paid' ? (
+                                                <>
+                                                    {/* Paid deposit amount */}
+                                                    <p className="text-sm font-mono font-semibold text-primary">
+                                                        {formatCurrency(order.paid_amount_minor ?? 0)}
+                                                    </p>
+                                                    {/* Remaining balance */}
+                                                    <p className="text-[11px] font-mono text-purple-600">
+                                                        {locale === 'ar' ? 'المتبقي: ' : 'Rem: '}{formatCurrency((order.total_amount_minor ?? 0) - (order.paid_amount_minor ?? 0))}
+                                                    </p>
+                                                    <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded-full bg-purple-100 text-purple-700">
+                                                        {locale === 'ar' ? 'عربون' : 'Deposit'}
+                                                    </span>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <p className="text-sm font-mono font-semibold text-primary">
+                                                        {formatCurrency(order.total_amount_minor)}
+                                                    </p>
+                                                    <span className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded-full ${order.status === 'paid' ? 'bg-emerald-100 text-emerald-700' :
+                                                            order.status === 'pending' ? 'bg-amber-100 text-amber-700' :
+                                                                'bg-sand-100 text-sand-700'
+                                                        }`}>
+                                                        {locale === 'ar' && order.status === 'paid' ? 'مدفوع' :
+                                                            locale === 'ar' && order.status === 'pending' ? 'معلق' : order.status}
+                                                    </span>
+                                                </>
+                                            )}
                                         </div>
                                     </div>
                                 ))
