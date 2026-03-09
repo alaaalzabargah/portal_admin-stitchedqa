@@ -29,6 +29,50 @@ function getServiceClient() {
 
 // ============ CUSTOMER OPERATIONS ============
 
+// ============ SHOPIFY ADMIN API HELPERS ============
+
+/**
+ * Fetch a customer's real name from Shopify Admin API.
+ * Used when the webhook payload has empty first_name/last_name (logged-in account customers).
+ */
+async function fetchShopifyCustomerName(shopifyCustomerId: string): Promise<string | null> {
+    const storeDomain = process.env.SHOPIFY_STORE_DOMAIN; // e.g. your-store.myshopify.com
+    const accessToken = process.env.SHOPIFY_ACCESS_TOKEN;
+
+    if (!storeDomain || !accessToken) {
+        console.warn('[Shopify API] Missing SHOPIFY_STORE_DOMAIN or SHOPIFY_ACCESS_TOKEN — cannot fetch customer name');
+        return null;
+    }
+
+    try {
+        const url = `https://${storeDomain}/admin/api/2026-01/customers/${shopifyCustomerId}.json`;
+        const res = await fetch(url, {
+            headers: {
+                'X-Shopify-Access-Token': accessToken,
+                'Content-Type': 'application/json',
+            },
+        });
+
+        if (!res.ok) {
+            console.warn(`[Shopify API] Failed to fetch customer ${shopifyCustomerId}: ${res.status}`);
+            return null;
+        }
+
+        const data = await res.json();
+        const c = data?.customer;
+        if (!c) return null;
+
+        // Build name from first_name + last_name
+        const name = [c.first_name, c.last_name].filter(Boolean).join(' ').trim();
+        return name || null;
+    } catch (err) {
+        console.error('[Shopify API] Error fetching customer name:', err);
+        return null;
+    }
+}
+
+
+
 /**
  * Find or create customer by external_id (Shopify customer ID)
  * Returns the internal UUID
@@ -134,9 +178,28 @@ export async function findOrCreateCustomer(
                 }
             }
 
-            // Update name from order if provided
+            // Update name from order if provided.
+            // If missing (logged-in account customer), try Shopify Admin API.
             if (customerInfo.fullName) {
                 updates.full_name = customerInfo.fullName;
+            } else if (shopifyCustomerId) {
+                // Check current DB name — only fetch if it's the generic fallback
+                const { data: currentCust } = await supabase
+                    .from('customers')
+                    .select('full_name')
+                    .eq('id', existingId)
+                    .single();
+
+                if (!currentCust?.full_name || currentCust.full_name === 'Shopify Customer') {
+                    logger.info('[UPDATE] Name is generic fallback — fetching from Shopify Admin API', {
+                        shopifyCustomerId
+                    });
+                    const apiName = await fetchShopifyCustomerName(shopifyCustomerId);
+                    if (apiName) {
+                        updates.full_name = apiName;
+                        logger.info('[UPDATE] Got real name from Shopify API', { name: apiName });
+                    }
+                }
             }
 
             // Update email if provided (both email and phone matched)
@@ -237,11 +300,24 @@ export async function findOrCreateCustomer(
             }
         }
 
+        // If name is missing from the webhook payload (common for logged-in Shopify account customers),
+        // call the Shopify Admin API to get the real name before we create the record.
+        let resolvedName = customerInfo.fullName;
+        if (!resolvedName && useExternalId) {
+            logger.info('[CREATE] Name missing from webhook payload — fetching from Shopify Admin API', {
+                shopifyCustomerId: useExternalId
+            });
+            resolvedName = await fetchShopifyCustomerName(useExternalId);
+            if (resolvedName) {
+                logger.info('[CREATE] Got real name from Shopify API', { name: resolvedName });
+            }
+        }
+
         const { data: newCustomer, error } = await supabase
             .from('customers')
             .insert({
                 external_id: useExternalId,
-                full_name: customerInfo.fullName || 'Shopify Customer',
+                full_name: resolvedName || 'Shopify Customer',
                 phone: phone,
                 email: customerInfo.email,
                 measurement_type: customerInfo.measurements?.measurement_type || null,
