@@ -56,7 +56,12 @@ export default async function CustomerDetailsPage({ params }: PageProps) {
     const tiers = tiersReq.data || []
 
     // Calculate Lifetime Value
-    const lifetimeValue = orders.reduce((sum, order) => sum + (order.total_amount_minor || 0), 0)
+    const lifetimeValue = orders.reduce((sum, order) => {
+        if (order.financial_status === 'partially_paid') {
+            return sum + (order.paid_amount_minor || 0)
+        }
+        return sum + (order.total_amount_minor || 0)
+    }, 0)
 
     // Determine Loyalty Tier (Dynamic)
     const currentTier = tiers

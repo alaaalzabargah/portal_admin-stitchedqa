@@ -31,6 +31,7 @@ interface Order {
     financial_status?: string | null
     source: string
     total_amount_minor: number
+    paid_amount_minor?: number | null
     total_shipping_minor: number
     total_tax_minor: number
     customer: OrderCustomer | null
@@ -65,6 +66,7 @@ export default function OrderHistoryPage() {
                     financial_status,
                     source,
                     total_amount_minor,
+                    paid_amount_minor,
                     total_shipping_minor,
                     total_tax_minor,
                     customer:customer_id (
@@ -322,13 +324,29 @@ export default function OrderHistoryPage() {
 
                                     {/* Amount */}
                                     <div className="text-right">
-                                        <div className="text-2xl font-bold font-mono text-primary">
-                                            {formatCurrency(totalAmount)}
-                                        </div>
-                                        {order.total_shipping_minor > 0 && (
-                                            <div className="text-xs text-muted-foreground">
-                                                (incl. {formatCurrency(order.total_shipping_minor)} shipping)
-                                            </div>
+                                        {order.financial_status === 'partially_paid' ? (
+                                            <>
+                                                <div className="text-2xl font-bold font-mono text-primary">
+                                                    {formatCurrency(order.paid_amount_minor ?? 0)}
+                                                </div>
+                                                <div className="text-sm font-medium text-purple-600 mt-1">
+                                                    Rem: {formatCurrency((order.total_amount_minor ?? 0) - (order.paid_amount_minor ?? 0))}
+                                                </div>
+                                                <div className="text-xs text-muted-foreground mt-0.5">
+                                                    Total: {formatCurrency(order.total_amount_minor)}
+                                                </div>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <div className="text-2xl font-bold font-mono text-primary">
+                                                    {formatCurrency(order.total_amount_minor)}
+                                                </div>
+                                                {order.total_shipping_minor > 0 && (
+                                                    <div className="text-xs text-muted-foreground mt-1">
+                                                        (incl. {formatCurrency(order.total_shipping_minor)} shipping)
+                                                    </div>
+                                                )}
+                                            </>
                                         )}
                                     </div>
                                 </div>
