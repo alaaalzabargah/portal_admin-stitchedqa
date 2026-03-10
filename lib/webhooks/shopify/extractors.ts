@@ -84,6 +84,8 @@ export function extractCustomerInfo(
         email = payload.email;
     } else if (customer?.email) {
         email = customer.email;
+    } else if ((payload as any).contact_email) {
+        email = (payload as any).contact_email;
     }
 
     // Full name
@@ -94,10 +96,13 @@ export function extractCustomerInfo(
     // Helper to form name from various fields
     const getName = (obj: any) => {
         if (!obj) return null;
-        // Direct name field
+        // Direct name field (ignore if just space)
         if (obj.name && obj.name.trim() && obj.name.trim() !== ' ') return obj.name.trim();
-        // Combine first + last
-        if (obj.first_name || obj.last_name) {
+        // Combine first + last (handle empty strings like "")
+        if (
+            (typeof obj.first_name === 'string' && obj.first_name.trim().length > 0) ||
+            (typeof obj.last_name === 'string' && obj.last_name.trim().length > 0)
+        ) {
             return [obj.first_name, obj.last_name].filter(Boolean).join(' ').trim() || null;
         }
         return null;
@@ -106,8 +111,16 @@ export function extractCustomerInfo(
     // Priority: shipping > billing > customer > default_address
     fullName = getName(shippingAddress) ||
         getName(billingAddress) ||
-        getName(customer) ||  // This will now properly use customer.first_name + last_name
+        getName(customer) ||
         getName(defaultAddress);
+
+    // If name is still missing, check if it's a logged-in user with missing data
+    if (!fullName) {
+        console.warn('[Name Extraction] Fallback needed for missing name', {
+            hasCustomer: !!customer,
+            customerLocale: (payload as any).customer_locale
+        });
+    }
 
     // Phone
     let phone: string | null = null;
