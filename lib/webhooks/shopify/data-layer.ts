@@ -104,55 +104,89 @@ export async function findOrCreateCustomer(
         // Different email + same phone = CREATE NEW customer
         // Both must match to update
 
-        if (customerInfo.email && customerInfo.phone) {
-            // Only search real phones (not placeholders)
-            const isRealPhone = customerInfo.phone &&
-                !customerInfo.phone.startsWith('+shop') &&
-                !customerInfo.phone.startsWith('guest:') &&
-                !customerInfo.phone.startsWith('unknown:');
+        const hasRealPhone = Boolean(
+            customerInfo.phone &&
+            !customerInfo.phone.startsWith('+shop') &&
+            !customerInfo.phone.startsWith('guest:') &&
+            !customerInfo.phone.startsWith('unknown:')
+        );
 
-            if (isRealPhone) {
-                logger.info('[MATCH] Searching by email AND phone combination', {
+        if (customerInfo.email && hasRealPhone) {
+            logger.info('[MATCH] Searching by email AND phone combination', {
+                phone: maskPhone(customerInfo.phone),
+                email: maskEmail(customerInfo.email)
+            });
+
+            // Search by BOTH email AND phone (both must match)
+            const { data, error: queryError } = await supabase
+                .from('customers')
+                .select('id, external_id, phone, email')
+                .eq('email', customerInfo.email)
+                .eq('phone', customerInfo.phone)
+                .single();
+
+            if (queryError && queryError.code !== 'PGRST116') {
+                logger.warn('[MATCH] Query failed', { error: queryError.message });
+            }
+
+            if (data) {
+                existingId = data.id;
+                existingExternalId = data.external_id;
+
+                logger.info('[MATCH] ✅ Found existing customer - will UPDATE', {
+                    customerId: existingId,
                     phone: maskPhone(customerInfo.phone),
                     email: maskEmail(customerInfo.email)
                 });
-
-                // Search by BOTH email AND phone (both must match)
-                const { data, error: queryError } = await supabase
-                    .from('customers')
-                    .select('id, external_id, phone, email')
-                    .eq('email', customerInfo.email)
-                    .eq('phone', customerInfo.phone)
-                    .single();
-
-                if (queryError && queryError.code !== 'PGRST116') {
-                    logger.warn('[MATCH] Query failed', { error: queryError.message });
-                }
-
-                if (data) {
-                    existingId = data.id;
-                    existingExternalId = data.external_id;
-
-                    logger.info('[MATCH] ✅ Found existing customer - will UPDATE', {
-                        customerId: existingId,
-                        phone: maskPhone(customerInfo.phone),
-                        email: maskEmail(customerInfo.email)
-                    });
-                } else {
-                    logger.info('[MATCH] ❌ No match - will CREATE NEW customer', {
-                        phone: maskPhone(customerInfo.phone),
-                        email: maskEmail(customerInfo.email),
-                        reason: 'Email+phone combination not found'
-                    });
-                }
             } else {
-                logger.warn('[MATCH] Placeholder phone - skipping match');
+                logger.info('[MATCH] ❌ No match - will CREATE NEW customer', {
+                    phone: maskPhone(customerInfo.phone),
+                    email: maskEmail(customerInfo.email),
+                    reason: 'Email+phone combination not found'
+                });
             }
-        } else {
-            logger.warn('[MATCH] Missing email or phone', {
-                hasEmail: !!customerInfo.email,
-                hasPhone: !!customerInfo.phone
+        } else if (hasRealPhone) {
+            // Only phone is available in the payload (common for guest checkouts or logged-in user partial updates)
+            logger.info('[MATCH] Searching by phone only (no email in payload)', {
+                phone: maskPhone(customerInfo.phone)
             });
+
+            const { data, error: queryError } = await supabase
+                .from('customers')
+                .select('id, external_id, phone, email')
+                .eq('phone', customerInfo.phone)
+                .single();
+
+            if (data) {
+                existingId = data.id;
+                existingExternalId = data.external_id;
+                logger.info('[MATCH] ✅ Found existing customer by phone - will UPDATE', { customerId: existingId });
+            } else {
+                logger.info('[MATCH] ❌ No match by phone - will CREATE NEW customer');
+            }
+
+        } else if (customerInfo.email) {
+            // Only email is available
+            logger.info('[MATCH] Searching by email only (no valid phone in payload)', {
+                email: maskEmail(customerInfo.email)
+            });
+
+            const { data, error: queryError } = await supabase
+                .from('customers')
+                .select('id, external_id, phone, email')
+                .eq('email', customerInfo.email)
+                .single();
+
+            if (data) {
+                existingId = data.id;
+                existingExternalId = data.external_id;
+                logger.info('[MATCH] ✅ Found existing customer by email - will UPDATE', { customerId: existingId });
+            } else {
+                logger.info('[MATCH] ❌ No match by email - will CREATE NEW customer');
+            }
+
+        } else {
+            logger.warn('[MATCH] Missing both valid email and phone - skipping match');
         }
 
         // If found by phone, update customer data
