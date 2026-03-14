@@ -380,10 +380,38 @@ export async function findOrCreateCustomer(
                 logger.info('[CREATE] Duplicate constraint hit - finding existing customer by phone');
                 const { data: byPhone } = await supabase
                     .from('customers')
-                    .select('id')
+                    .select('id, full_name')
                     .eq('phone', phone)
                     .single();
-                return byPhone?.id || null;
+
+                if (byPhone) {
+                    // CRITICAL FIX: Apply name + external_id updates to the existing record
+                    // This handles the race condition where checkouts/update creates a nameless
+                    // customer, then orders/paid arrives with the real name but hits the duplicate constraint.
+                    const rescueUpdates: any = {};
+                    if (resolvedName && resolvedName !== 'Shopify Customer' &&
+                        (!byPhone.full_name || byPhone.full_name === 'Shopify Customer')) {
+                        rescueUpdates.full_name = resolvedName;
+                    }
+                    if (customerInfo.fullName && customerInfo.fullName !== 'Shopify Customer' &&
+                        (!byPhone.full_name || byPhone.full_name === 'Shopify Customer')) {
+                        rescueUpdates.full_name = customerInfo.fullName;
+                    }
+                    if (useExternalId) {
+                        rescueUpdates.external_id = useExternalId;
+                    }
+
+                    if (Object.keys(rescueUpdates).length > 0) {
+                        logger.info('[CREATE] Applying rescue updates to existing customer', {
+                            customerId: byPhone.id,
+                            updates: Object.keys(rescueUpdates)
+                        });
+                        await supabase.from('customers').update(rescueUpdates).eq('id', byPhone.id);
+                    }
+
+                    return byPhone.id;
+                }
+                return null;
             }
 
             logger.warn('Failed to create customer', { error: error.message });
