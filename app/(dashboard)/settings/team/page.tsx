@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import {
     Plus, Mail, Edit2, Save, X, Loader2, CheckCircle, AlertCircle, Power,
-    ChevronDown, Clock, Shield, Eye, Edit, Users, Crown,
+    ChevronDown, Clock, Shield, Eye, ShieldCheck, Users, Crown,
     UserCog, Activity, Sparkles, Trash2
 } from 'lucide-react'
 import { PortalUser, UserRole, USER_ROLE_LEVELS, USER_ROLE_DESCRIPTIONS } from '@/lib/settings'
@@ -13,7 +13,6 @@ import { InviteUserModal } from '@/components/settings/InviteUserModal'
 import { AuditLogEntry, getActionLabel } from '@/lib/audit'
 import { GlassButton } from '@/components/ui/GlassButton'
 import { useDialog } from '@/lib/dialog' // Added this import
-import { PageHeader } from '@/components/ui/PageHeader'
 import { useLanguage } from '@/lib/i18n/context'
 
 const ROLE_CONFIG: Record<UserRole, {
@@ -40,8 +39,8 @@ const ROLE_CONFIG: Record<UserRole, {
         bgColor: 'bg-blue-100',
         gradient: 'from-blue-500 to-sky-600'
     },
-    editor: {
-        icon: Edit,
+    moderator: {
+        icon: ShieldCheck,
         color: 'text-amber-600',
         bgColor: 'bg-amber-100',
         gradient: 'from-amber-500 to-orange-600'
@@ -54,7 +53,7 @@ const ROLE_CONFIG: Record<UserRole, {
     }
 }
 
-const ROLES_ORDER: UserRole[] = ['owner', 'admin', 'manager', 'editor', 'viewer']
+const ROLES_ORDER: UserRole[] = ['owner', 'admin', 'manager', 'moderator', 'viewer']
 
 export default function TeamSettingsPage() {
     const [users, setUsers] = useState<PortalUser[]>([])
@@ -302,25 +301,6 @@ export default function TeamSettingsPage() {
 
     return (
         <div className="space-y-6 sm:space-y-8 animate-fade-in max-w-4xl mx-auto px-4 sm:px-0">
-            {/* Page Header */}
-            <div className="flex items-center justify-between">
-                <PageHeader
-                    label={t('common.settings').toUpperCase()}
-                    title={t('settings.team.title')}
-                    subtitle={t('settings.team.subtitle')}
-                    className="mb-0 pb-0 border-0"
-                />
-                {canManageUsers && (
-                    <GlassButton
-                        variant="accent"
-                        size="sm"
-                        onClick={() => setInviteModalOpen(true)}
-                        leftIcon={<Plus className="w-4 h-4" />}
-                    >
-                        {t('settings.team.invite_member')}
-                    </GlassButton>
-                )}
-            </div>
 
             {/* Message Toast */}
             {message && (
@@ -346,6 +326,16 @@ export default function TeamSettingsPage() {
                     <h2 className="text-base sm:text-lg font-semibold text-primary">
                         {users.length} {users.length === 1 ? 'Member' : 'Members'}
                     </h2>
+                    {canManageUsers && (
+                        <GlassButton
+                            variant="accent"
+                            size="sm"
+                            onClick={() => setInviteModalOpen(true)}
+                            leftIcon={<Plus className="w-4 h-4" />}
+                        >
+                            {t('settings.team.invite_member')}
+                        </GlassButton>
+                    )}
                 </div>
 
                 {users.length === 0 ? (

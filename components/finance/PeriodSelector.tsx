@@ -31,8 +31,10 @@ export function PeriodSelector({ periodType, year, month, quarter, onPeriodChang
                 return `${months[(month || 1) - 1]} ${year}`
             case 'quarter':
                 return `Q${quarter} ${year}`
-            case 'year':
+        case 'year':
                 return `${year}`
+            case 'all_time':
+                return t('finance.all_time') || 'All Time'
         }
     }
 
@@ -41,7 +43,7 @@ export function PeriodSelector({ periodType, year, month, quarter, onPeriodChang
             <div className="flex items-center gap-2 bg-background p-2 rounded-xl border border-sand-200 flex-wrap">
                 {/* Period Type Tabs */}
                 <div className="flex bg-sand-100 rounded-lg p-1">
-                    {(['month', 'quarter', 'year'] as PeriodType[]).map((type) => (
+                    {(['month', 'quarter', 'year', 'all_time'] as PeriodType[]).map((type) => (
                         <button
                             key={type}
                             onClick={() => onPeriodChange({ periodType: type, year, month, quarter })}
@@ -52,12 +54,24 @@ export function PeriodSelector({ periodType, year, month, quarter, onPeriodChang
                         >
                             {type === 'month' ? t('finance.monthly') || 'Monthly' :
                                 type === 'quarter' ? t('finance.quarterly') || 'Quarterly' :
-                                    t('finance.yearly') || 'Yearly'}
+                                    type === 'all_time' ? t('finance.all_time') || 'All Time' :
+                                        t('finance.yearly') || 'Yearly'}
                         </button>
                     ))}
                 </div>
 
                 {/* Year Selector */}
+                {periodType !== 'all_time' && (
+                    <select
+                        value={year}
+                        onChange={(e) => onPeriodChange({ periodType, year: parseInt(e.target.value), month, quarter })}
+                        className="bg-sand-50 border-none text-sm rounded-lg py-1.5 px-2 focus:ring-0"
+                    >
+                        {years.map((y) => (
+                            <option key={y} value={y}>{y}</option>
+                        ))}
+                    </select>
+                )}
                 <select
                     value={year}
                     onChange={(e) => onPeriodChange({ periodType, year: parseInt(e.target.value), month, quarter })}

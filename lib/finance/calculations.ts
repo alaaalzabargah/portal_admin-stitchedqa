@@ -77,6 +77,8 @@ export function buildComparison(current: FinancialMetrics, previous: FinancialMe
             expenses: calculatePercentChange(current.expenses, previous.expenses),
             netProfit: calculatePercentChange(current.netProfit, previous.netProfit),
             orderCount: calculatePercentChange(current.orderCount, previous.orderCount),
+            depositOrderCount: calculatePercentChange(current.depositOrderCount, previous.depositOrderCount),
+            depositRevenue: calculatePercentChange(current.depositRevenue, previous.depositRevenue),
             aov: calculatePercentChange(current.aov, previous.aov)
         }
     }
@@ -86,7 +88,7 @@ export function buildComparison(current: FinancialMetrics, previous: FinancialMe
  * Aggregate financial metrics from raw data
  */
 export function aggregateMetrics(
-    orders: { total_amount_minor: number; total_shipping_minor?: number }[],
+    orders: { total_amount_minor: number; total_shipping_minor?: number; financial_status?: string | null; paid_amount_minor?: number | null }[],
     expenses: { amount_minor: number }[],
     orderItems: { quantity: number; unit_cost_minor: number | null }[] = []
 ): FinancialMetrics {
@@ -112,6 +114,12 @@ export function aggregateMetrics(
     const grossProfit = calculateGrossProfit(revenue, cogs)
     const netProfit = calculateNetProfit(revenue, cogs, totalExpenses)
     const orderCount = orders.length
+    
+    // Deposit metrics
+    const depositOrdersList = orders.filter(o => o.financial_status === 'partially_paid')
+    const depositOrderCount = depositOrdersList.length
+    const depositRevenue = depositOrdersList.reduce((sum, o) => sum + (o.paid_amount_minor || 0), 0)
+
     const aov = calculateAOV(revenue, orderCount)
 
     return {
@@ -121,6 +129,8 @@ export function aggregateMetrics(
         expenses: totalExpenses,
         netProfit,
         orderCount,
+        depositOrderCount,
+        depositRevenue,
         aov
     }
 }

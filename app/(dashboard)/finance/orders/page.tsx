@@ -83,6 +83,8 @@ export default function OrderHistoryPage() {
                         unit_price_minor
                     )
                 `)
+                .eq('is_test', false)
+                .or('status.in.(paid,completed,shipped),financial_status.eq.partially_paid')
                 .order('created_at', { ascending: false })
                 .limit(200)
 

@@ -45,13 +45,13 @@ export interface GeneralSettings {
 }
 
 // User role type - ordered by permission level (highest to lowest)
-export type UserRole = 'owner' | 'admin' | 'manager' | 'editor' | 'viewer'
+export type UserRole = 'owner' | 'admin' | 'manager' | 'moderator' | 'viewer'
 
 export const USER_ROLE_LEVELS: Record<UserRole, number> = {
     owner: 5,
     admin: 4,
     manager: 3,
-    editor: 2,
+    moderator: 2,
     viewer: 1
 }
 
@@ -59,7 +59,7 @@ export const USER_ROLE_DESCRIPTIONS: Record<UserRole, string> = {
     owner: 'Full access including team management and all settings',
     admin: 'Manage users (except owners) and all features',
     manager: 'Manage customers, orders, and view finance',
-    editor: 'Create and edit customers and orders',
+    moderator: 'Review and publish customer reviews',
     viewer: 'Read-only access to view data'
 }
 

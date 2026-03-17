@@ -62,6 +62,8 @@ export async function middleware(request: NextRequest) {
         path.startsWith('/auth/callback') ||
         path.startsWith('/api/webhooks') ||
         path.startsWith('/api/create-deposit-order') || // Allow storefront checkout creation
+        path.startsWith('/review') || // Public customer review pages
+        path.startsWith('/api/reviews') || // Public review API
         path.startsWith('/_next') ||
         path.startsWith('/static');
 
@@ -73,7 +75,34 @@ export async function middleware(request: NextRequest) {
         return NextResponse.redirect(new URL('/', request.url));
     }
 
-    // 2. Root Redirect
+    // 2. Role-based route protection for moderators
+    if (user && !isPublicRoute) {
+        // Fetch portal_users role for route-level access control
+        // Only check for dashboard routes (not API routes which have their own guards)
+        const isDashboardRoute = !path.startsWith('/api/') && !path.startsWith('/auth/')
+        if (isDashboardRoute) {
+            try {
+                const { data: portalUser } = await supabase
+                    .from('portal_users')
+                    .select('role')
+                    .eq('id', user.id)
+                    .single();
+
+                if (portalUser?.role === 'moderator') {
+                    const allowedPaths = ['/marketing/reviews', '/marketing/moderation'];
+                    const isAllowed = allowedPaths.some(p => path.startsWith(p));
+                    if (!isAllowed) {
+                        // Redirect moderators to their default page
+                        return NextResponse.redirect(new URL('/marketing/reviews', request.url));
+                    }
+                }
+            } catch {
+                // If profile lookup fails, let the page handle it
+            }
+        }
+    }
+
+    // 3. Root Redirect
     if (path === '/' && user) {
         return NextResponse.redirect(new URL('/dashboard', request.url));
     }

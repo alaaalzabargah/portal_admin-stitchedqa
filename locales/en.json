@@ -122,7 +122,8 @@
     "share": "Share",
     "no_data": "No data for this period",
     "pl_overview": "P&L Overview",
-    "revenue_trend": "Revenue Trend"
+    "revenue_trend": "Revenue Trend",
+    "all_time": "All Time"
   },
   "marketing": {
     "title": "Marketing",

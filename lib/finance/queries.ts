@@ -23,10 +23,11 @@ export async function fetchFinancialMetrics(
     // Fetch completed orders (including shipping)
     const { data: orders, error: ordersError } = await supabase
         .from('orders')
-        .select('id, total_amount_minor, total_shipping_minor')
+        .select('id, total_amount_minor, total_shipping_minor, financial_status, paid_amount_minor')
         .gte('created_at', range.start)
         .lte('created_at', range.end)
-        .in('status', REVENUE_STATUSES)
+        .or('status.in.(paid,completed,shipped),financial_status.eq.partially_paid')
+        .eq('is_test', false)
 
     if (ordersError) {
         console.error('[Finance] Error fetching orders:', ordersError.message)
@@ -77,7 +78,8 @@ export async function fetchRevenueBySource(
         .select('source, total_amount_minor, total_shipping_minor')
         .gte('created_at', range.start)
         .lte('created_at', range.end)
-        .in('status', REVENUE_STATUSES)
+        .or('status.in.(paid,completed,shipped),financial_status.eq.partially_paid')
+        .eq('is_test', false)
 
     if (error) {
         console.error('[Finance] Error fetching revenue by source:', error.message)
@@ -176,7 +178,8 @@ export async function fetchTimeSeries(
             .select('id, total_amount_minor, total_shipping_minor, created_at')
             .gte('created_at', minDateISO)
             .lte('created_at', maxDateISO)
-            .in('status', REVENUE_STATUSES)
+            .or('status.in.(paid,completed,shipped),financial_status.eq.partially_paid')
+            .eq('is_test', false)
             .then(r => {
                 if (r.error) {
                     console.error('[Finance] Orders query error:', r.error.message)
@@ -305,6 +308,7 @@ export async function fetchDetailedOrders(
         `)
         .gte('created_at', range.start)
         .lte('created_at', range.end)
+        .eq('is_test', false)
         .order('created_at', { ascending: false })
 
     if (error) {
@@ -336,7 +340,8 @@ export async function fetchTopProducts(
         .select('id')
         .gte('created_at', range.start)
         .lte('created_at', range.end)
-        .in('status', ['paid', 'shipped', 'completed'])
+        .or('status.in.(paid,completed,shipped),financial_status.eq.partially_paid')
+        .eq('is_test', false)
 
     if (orderError) {
         console.error('[Finance] Error fetching orders for top products:', orderError)
