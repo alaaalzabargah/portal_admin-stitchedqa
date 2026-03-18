@@ -77,8 +77,8 @@ export default function ReviewLinkGenerator() {
     }, [])
 
     const handleCopy = useCallback(async (product: Product, type: CopyType) => {
-        const origin = typeof window !== 'undefined' ? window.location.origin : 'https://m-kai.com'
-        const reviewLink = `${origin}/review/${product.handle}`
+        const reviewsBase = process.env.NEXT_PUBLIC_REVIEWS_URL || (typeof window !== 'undefined' ? window.location.origin + '/review' : 'https://reviews.stitchedqa.com')
+        const reviewLink = `${reviewsBase}/${product.handle}`
         let textToCopy = ''
 
         switch (type) {
@@ -389,10 +389,11 @@ function CustomerSelectModal({
             })
             const json = await res.json()
             const origin = typeof window !== 'undefined' ? window.location.origin : ''
+            const reviewsBase = process.env.NEXT_PUBLIC_REVIEWS_URL || 'https://reviews.stitchedqa.com'
             // Fallback to full URL if short link creation failed
             const reviewLink = json.code
                 ? `${origin}/r/${json.code}`
-                : `${origin}/review/${product.handle}`
+                : `${reviewsBase}/${product.handle}`
 
             const firstName = selectedCustomer.full_name?.split(' ')[0] || selectedCustomer.full_name
 

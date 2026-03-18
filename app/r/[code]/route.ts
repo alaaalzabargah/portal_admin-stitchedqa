@@ -36,8 +36,9 @@ export async function GET(
             return NextResponse.redirect(new URL('/', request.url));
         }
 
-        // Build the full review URL
-        const reviewUrl = new URL(`/review/${data.product_handle}`, request.url);
+        // Build the full review URL on the reviews subdomain
+        const reviewsBase = process.env.NEXT_PUBLIC_REVIEWS_URL || 'https://reviews.stitchedqa.com';
+        const reviewUrl = new URL(`${reviewsBase}/${data.product_handle}`);
 
         if (data.customer_name) {
             reviewUrl.searchParams.set('n', btoa(encodeURIComponent(data.customer_name)));
