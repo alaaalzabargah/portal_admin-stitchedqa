@@ -58,6 +58,8 @@ export default function FinancePage() {
             date = new Date(year, month - 1, 1)
         } else if (periodType === 'quarter') {
             date = new Date(year, (quarter - 1) * 3, 1)
+        } else if (periodType === 'all_time') {
+            date = new Date() // Doesn't matter, period logic overrides
         } else {
             date = new Date(year, 0, 1)
         }
@@ -76,6 +78,8 @@ export default function FinancePage() {
                 date = new Date(year, month - 1, 1)
             } else if (periodType === 'quarter') {
                 date = new Date(year, (quarter - 1) * 3, 1)
+            } else if (periodType === 'all_time') {
+                date = new Date() // Doesn't matter, period logic overrides
             } else {
                 date = new Date(year, 0, 1)
             }
@@ -258,6 +262,16 @@ export default function FinancePage() {
                     href="/finance/orders"
                 />
 
+                <KPICard
+                    label="Deposit Orders"
+                    value={comparison?.current.depositOrderCount ?? null}
+                    changePercent={comparison?.changes.depositOrderCount}
+                    type="number"
+                    loading={loading}
+                    variant="orders"
+                    href="/finance/orders"
+                />
+
                 {/* Row 3: Efficiency */}
                 <KPICard
                     label={t('finance.aov')}
@@ -300,6 +314,17 @@ export default function FinancePage() {
                 <FinanceChart
                     title={t('finance.breakdown_by_source')}
                     data={revenueBySource.map(s => ({ name: t(`finance.${s.source}`) || s.source, value: s.amount }))}
+                    type="pie"
+                    loading={loading}
+                />
+
+                {/* Fully Paid vs Deposit - Pie Chart */}
+                <FinanceChart
+                    title="Fully Paid vs Deposit Orders"
+                    data={[
+                        { name: 'Fully Paid', value: Math.max(0, (comparison?.current.orderCount || 0) - (comparison?.current.depositOrderCount || 0)) },
+                        { name: 'Deposit', value: comparison?.current.depositOrderCount || 0 }
+                    ]}
                     type="pie"
                     loading={loading}
                 />

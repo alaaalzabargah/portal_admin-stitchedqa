@@ -41,6 +41,14 @@ export function getPeriodForDate(type: PeriodType, date: Date): Period {
                 end: endOfYear(date),
                 label: format(date, 'yyyy')
             }
+        case 'all_time':
+            return {
+                type,
+                // Arbitrary start date far in the past to capture all records
+                start: new Date(2000, 0, 1),
+                end: endOfDay(new Date()),
+                label: 'All Time'
+            }
     }
 }
 
@@ -55,6 +63,10 @@ export function getPreviousPeriod(current: Period): Period {
             return getPeriodForDate('quarter', subQuarters(current.start, 1))
         case 'year':
             return getPeriodForDate('year', subYears(current.start, 1))
+        case 'all_time':
+            // "Previous" all time doesn't make logical sense for comparison
+            // but we return the same period to safely avoid calculating changes (or zeroing them out)
+            return current
     }
 }
 
@@ -74,6 +86,8 @@ export function getPeriodFromParams(params: FinanceQueryParams): Period {
             return getPeriodForDate('quarter', quarterDate)
         case 'year':
             return getPeriodForDate('year', new Date(year, 0, 1))
+        case 'all_time':
+            return getPeriodForDate('all_time', new Date())
     }
 }
 
@@ -105,6 +119,19 @@ export function getSubPeriods(period: Period): Period[] {
             while (month <= period.end) {
                 periods.push(getPeriodForDate('month', month))
                 month = new Date(month.setMonth(month.getMonth() + 1))
+            }
+            break
+        case 'all_time':
+            // Return each year
+            let currentYearIt = new Date(period.start)
+            // But realistically, only start from the first actual year we have data,
+            // to avoid rendering 25 years of flatlines. Let's just do yearly grouped.
+            // We'll advance year by year until end limit.
+            // To be safe, let's start from 2024 since this app is recent, but standard logic:
+            let startY = 2024
+            let endY = period.end.getFullYear()
+            for (let y = startY; y <= endY; y++) {
+                periods.push(getPeriodForDate('year', new Date(y, 0, 1)))
             }
             break
     }

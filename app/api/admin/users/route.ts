@@ -35,9 +35,9 @@ export async function GET(request: NextRequest) {
             )
         }
 
-        if (profile.role !== 'owner' || !profile.is_active) {
+        if (!['owner', 'admin'].includes(profile.role) || !profile.is_active) {
             return NextResponse.json(
-                { error: 'Forbidden - Owner access required' },
+                { error: 'Forbidden - Owner or Admin access required' },
                 { status: 403 }
             )
         }

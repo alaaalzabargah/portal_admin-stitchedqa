@@ -676,6 +676,7 @@ export interface OrderData {
     notes?: string | null;
     createdAt?: string;
     rawPayload?: unknown;
+    isTest?: boolean;
 }
 
 /**
@@ -729,6 +730,7 @@ export async function upsertOrder(
             shipping_address: data.shippingAddress,
             notes: data.notes,
             raw_payload: data.rawPayload,
+            is_test: data.isTest || false,
         };
 
         console.log('--- UPSERT_ORDER DEBUG ---');

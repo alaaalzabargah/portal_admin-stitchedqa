@@ -324,6 +324,7 @@ export async function handleOrderCreate(
             notes: order.note,
             createdAt: order.created_at,
             rawPayload: payload,
+            isTest: order.test ?? false,
         }, logger);
 
         if (!orderId) {

@@ -258,7 +258,7 @@ export async function DELETE(
             )
         }
 
-        // Delete from portal_users (auth.users deletion requires admin client)
+        // Delete from portal_users
         const { error: deleteError } = await supabase
             .from('portal_users')
             .delete()
@@ -270,6 +270,21 @@ export async function DELETE(
                 { error: 'Failed to delete user' },
                 { status: 500 }
             )
+        }
+
+        // Also delete from auth.users via admin client to prevent orphaned auth records
+        try {
+            const { createClient: createAdminClient } = await import('@supabase/supabase-js')
+            if (process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY) {
+                const adminClient = createAdminClient(
+                    process.env.NEXT_PUBLIC_SUPABASE_URL,
+                    process.env.SUPABASE_SERVICE_ROLE_KEY,
+                    { auth: { autoRefreshToken: false, persistSession: false } }
+                )
+                await adminClient.auth.admin.deleteUser(id)
+            }
+        } catch (authDeleteErr) {
+            console.warn('[API] Failed to delete auth.users record (portal_users already deleted):', authDeleteErr)
         }
 
         // Log audit event (don't fail if audit log fails)

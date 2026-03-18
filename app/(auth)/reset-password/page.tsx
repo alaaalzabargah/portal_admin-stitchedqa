@@ -25,14 +25,13 @@ export default function ResetPasswordPage() {
         ? 'Create a password to complete your account setup.'
         : 'Enter your new password below.'
 
-    // Check if user has a valid session
+    // Verify valid authenticated user (getUser() validates with server, not just local token)
     useEffect(() => {
         const checkSession = async () => {
             const supabase = createClient()
-            const { data: { session } } = await supabase.auth.getSession()
+            const { data: { user }, error: userError } = await supabase.auth.getUser()
 
-            if (!session) {
-                // No session - token might be expired
+            if (userError || !user) {
                 setError('Your session has expired. Please request a new link.')
             }
         }

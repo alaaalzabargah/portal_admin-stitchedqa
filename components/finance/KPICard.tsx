@@ -146,7 +146,7 @@ export function KPICard({
                     {type === 'currency' && typeof value === 'number' ? (
                         <>
                             <span className="text-xs sm:text-sm md:text-base font-medium opacity-70">QAR</span>
-                            <span className="text-[17px] sm:text-2xl md:text-2xl">{value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                            <span className="text-[17px] sm:text-2xl md:text-2xl">{(value / 100).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                         </>
                     ) : (
                         <span className="text-lg sm:text-2xl md:text-2xl break-all">

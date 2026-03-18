@@ -22,24 +22,21 @@ export function DashboardContent({ children }: { children: React.ReactNode }) {
             requestAnimationFrame(() => setIsCollapsed(true))
         }
 
-        // Listen for storage changes (when sidebar toggles)
+        // storage fires for cross-tab changes
         const handleStorage = () => {
-            const current = localStorage.getItem(SIDEBAR_COLLAPSED_KEY)
-            setIsCollapsed(current === 'true')
+            setIsCollapsed(localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === 'true')
+        }
+        // sidebar-toggle fires for same-tab changes (dispatched by the Sidebar component)
+        const handleToggle = () => {
+            setIsCollapsed(localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === 'true')
         }
 
-        // Custom event listener for same-tab updates
         window.addEventListener('storage', handleStorage)
-
-        // Poll for changes (since storage event only fires cross-tab)
-        const interval = setInterval(() => {
-            const current = localStorage.getItem(SIDEBAR_COLLAPSED_KEY)
-            setIsCollapsed(current === 'true')
-        }, 100)
+        window.addEventListener('sidebar-toggle', handleToggle)
 
         return () => {
             window.removeEventListener('storage', handleStorage)
-            clearInterval(interval)
+            window.removeEventListener('sidebar-toggle', handleToggle)
         }
     }, [])
 

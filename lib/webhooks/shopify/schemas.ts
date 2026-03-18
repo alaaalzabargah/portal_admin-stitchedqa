@@ -174,6 +174,7 @@ export const ShopifyOrderSchema = z.object({
     closed_at: z.string().optional().nullable(),
 
     note: z.string().optional().nullable(),
+    test: z.boolean().optional().default(false),
 
     refunds: z.array(z.object({
         id: coerceStringId,

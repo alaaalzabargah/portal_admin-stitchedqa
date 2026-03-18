@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { X, Loader2, Mail, UserPlus, Shield, Eye, Edit, Users, Crown, Sparkles } from 'lucide-react'
+import { X, Loader2, Mail, UserPlus, Shield, Eye, ShieldCheck, Users, Crown, Sparkles, Lock, KeyRound } from 'lucide-react'
 import { UserRole, USER_ROLE_DESCRIPTIONS } from '@/lib/settings/types'
 import { GlassButton } from '@/components/ui/GlassButton'
 
@@ -10,6 +10,8 @@ interface InviteUserModalProps {
     onClose: () => void
     onSuccess: () => void
 }
+
+type AddMode = 'invite' | 'direct'
 
 const ROLE_CONFIG: Record<UserRole, {
     icon: React.ElementType
@@ -39,8 +41,8 @@ const ROLE_CONFIG: Record<UserRole, {
         borderColor: 'border-blue-300',
         iconBg: 'bg-gradient-to-br from-blue-500 to-sky-600'
     },
-    editor: {
-        icon: Edit,
+    moderator: {
+        icon: ShieldCheck,
         gradient: 'from-amber-500/20 to-orange-500/10',
         bgColor: 'bg-amber-50',
         borderColor: 'border-amber-300',
@@ -55,11 +57,14 @@ const ROLE_CONFIG: Record<UserRole, {
     }
 }
 
-const ROLE_ORDER: UserRole[] = ['viewer', 'editor', 'manager', 'admin', 'owner']
+const ROLE_ORDER: UserRole[] = ['viewer', 'moderator', 'manager', 'admin', 'owner']
 
 export function InviteUserModal({ isOpen, onClose, onSuccess }: InviteUserModalProps) {
+    const [mode, setMode] = useState<AddMode>('invite')
     const [email, setEmail] = useState('')
     const [displayName, setDisplayName] = useState('')
+    const [password, setPassword] = useState('')
+    const [showPassword, setShowPassword] = useState(false)
     const [role, setRole] = useState<UserRole>('viewer')
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
@@ -67,8 +72,11 @@ export function InviteUserModal({ isOpen, onClose, onSuccess }: InviteUserModalP
     // Reset form when modal opens
     useEffect(() => {
         if (isOpen) {
+            setMode('invite')
             setEmail('')
             setDisplayName('')
+            setPassword('')
+            setShowPassword(false)
             setRole('viewer')
             setError(null)
         }
@@ -80,33 +88,71 @@ export function InviteUserModal({ isOpen, onClose, onSuccess }: InviteUserModalP
         setError(null)
 
         try {
-            const response = await fetch('/api/admin/invite', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    email,
-                    display_name: displayName || undefined,
-                    role
+            if (mode === 'direct') {
+                // Validate password client-side
+                if (password.length < 8) {
+                    throw new Error('Password must be at least 8 characters')
+                }
+                if (!/[A-Z]/.test(password)) {
+                    throw new Error('Password must contain at least one uppercase letter')
+                }
+                if (!/[a-z]/.test(password)) {
+                    throw new Error('Password must contain at least one lowercase letter')
+                }
+                if (!/[0-9]/.test(password)) {
+                    throw new Error('Password must contain at least one number')
+                }
+
+                const response = await fetch('/api/admin/users/create', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        email,
+                        password,
+                        display_name: displayName || undefined,
+                        role
+                    })
                 })
-            })
 
-            const data = await response.json()
+                const data = await response.json()
 
-            if (!response.ok) {
-                throw new Error(data.error || 'Failed to send invite')
+                if (!response.ok) {
+                    throw new Error(data.error || 'Failed to create user')
+                }
+            } else {
+                const response = await fetch('/api/admin/invite', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        email,
+                        display_name: displayName || undefined,
+                        role
+                    })
+                })
+
+                const data = await response.json()
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'Failed to send invite')
+                }
             }
 
             onSuccess()
             onClose()
 
         } catch (err: any) {
-            setError(err.message || 'Failed to send invite')
+            setError(err.message || 'Operation failed')
         } finally {
             setLoading(false)
         }
     }
 
     if (!isOpen) return null
+
+    const isDirectMode = mode === 'direct'
+    const canSubmit = isDirectMode
+        ? email && password.length >= 8
+        : email
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -119,7 +165,7 @@ export function InviteUserModal({ isOpen, onClose, onSuccess }: InviteUserModalP
             {/* Modal */}
             <div className="relative w-full max-w-lg max-h-[90vh] overflow-y-auto animate-fade-in">
                 {/* Glass card effect */}
-                <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-b from-white/95 via-white/90 to-white/85 backdrop-blur-xl border border-white/50 shadow-[0_8px_32px_rgba(0,0,0,0.12),0_0_0_1px_rgba(255,255,255,0.5)_inset](0,0,0,0.4),0_0_0_1px_rgba(255,255,255,0.1)_inset]">
+                <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-b from-white/95 via-white/90 to-white/85 backdrop-blur-xl border border-white/50 shadow-[0_8px_32px_rgba(0,0,0,0.12),0_0_0_1px_rgba(255,255,255,0.5)_inset]">
 
                     {/* Decorative gradient orb */}
                     <div className="absolute -top-24 -right-24 w-48 h-48 bg-gradient-to-br from-accent/30 to-purple-500/20 rounded-full blur-3xl" />
@@ -135,8 +181,12 @@ export function InviteUserModal({ isOpen, onClose, onSuccess }: InviteUserModalP
                                 <Sparkles className="absolute -top-1 -right-1 w-3 h-3 sm:w-4 sm:h-4 text-amber-400" />
                             </div>
                             <div>
-                                <h2 className="text-lg sm:text-xl font-bold text-primary">Invite Team Member</h2>
-                                <p className="text-xs sm:text-sm text-muted-foreground hidden sm:block">Add a new member to your team</p>
+                                <h2 className="text-lg sm:text-xl font-bold text-primary">
+                                    {isDirectMode ? 'Add Team Member' : 'Invite Team Member'}
+                                </h2>
+                                <p className="text-xs sm:text-sm text-muted-foreground hidden sm:block">
+                                    {isDirectMode ? 'Create account with email & password' : 'Send an invitation email'}
+                                </p>
                             </div>
                         </div>
                         <button
@@ -145,6 +195,42 @@ export function InviteUserModal({ isOpen, onClose, onSuccess }: InviteUserModalP
                         >
                             <X className="w-5 h-5" />
                         </button>
+                    </div>
+
+                    {/* Mode Toggle */}
+                    <div className="relative px-4 sm:px-6 pt-4 sm:pt-5">
+                        <div className="flex items-center gap-1 p-1 bg-black/[0.04] rounded-xl w-full">
+                            <button
+                                type="button"
+                                onClick={() => { setMode('invite'); setError(null) }}
+                                className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-xs sm:text-sm font-medium transition-all duration-200 ${
+                                    !isDirectMode
+                                        ? 'bg-white text-primary shadow-sm'
+                                        : 'text-muted-foreground hover:text-primary'
+                                }`}
+                            >
+                                <Mail className="w-3.5 h-3.5" />
+                                Send Invite
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => { setMode('direct'); setError(null) }}
+                                className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-xs sm:text-sm font-medium transition-all duration-200 ${
+                                    isDirectMode
+                                        ? 'bg-white text-primary shadow-sm'
+                                        : 'text-muted-foreground hover:text-primary'
+                                }`}
+                            >
+                                <KeyRound className="w-3.5 h-3.5" />
+                                Add Directly
+                            </button>
+                        </div>
+                        <p className="text-[11px] text-muted-foreground mt-2 px-1">
+                            {isDirectMode
+                                ? 'User can log in immediately — no email verification needed.'
+                                : 'User receives an email with a link to set their password.'
+                            }
+                        </p>
                     </div>
 
                     {/* Form */}
@@ -167,6 +253,43 @@ export function InviteUserModal({ isOpen, onClose, onSuccess }: InviteUserModalP
                                 />
                             </div>
                         </div>
+
+                        {/* Password — only for direct mode */}
+                        {isDirectMode && (
+                            <div className="space-y-1.5 sm:space-y-2">
+                                <label htmlFor="password" className="block text-sm font-semibold text-secondary">
+                                    Password
+                                </label>
+                                <div className="relative group">
+                                    <Lock className="absolute start-3 sm:start-4 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-muted-foreground group-focus-within:text-accent transition-colors" />
+                                    <input
+                                        id="password"
+                                        type={showPassword ? 'text' : 'password'}
+                                        required
+                                        value={password}
+                                        onChange={(e) => setPassword(e.target.value)}
+                                        className="w-full ps-10 sm:ps-12 pe-12 py-3 sm:py-3.5 rounded-xl border-2 border-sand-200 bg-white/50 focus:border-accent focus:ring-4 focus:ring-accent/10 outline-none transition-all placeholder:text-muted-foreground/60 text-sm sm:text-base"
+                                        placeholder="Min 8 characters"
+                                        minLength={8}
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowPassword(!showPassword)}
+                                        className="absolute end-3 sm:end-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-primary transition-colors"
+                                    >
+                                        {showPassword ? <Eye className="w-4 h-4" /> : <Eye className="w-4 h-4 opacity-40" />}
+                                    </button>
+                                </div>
+                                {password && (
+                                    <div className="flex flex-wrap gap-x-3 gap-y-1 text-[10px] sm:text-[11px] px-1">
+                                        <span className={password.length >= 8 ? 'text-emerald-600' : 'text-muted-foreground'}>8+ chars</span>
+                                        <span className={/[A-Z]/.test(password) ? 'text-emerald-600' : 'text-muted-foreground'}>Uppercase</span>
+                                        <span className={/[a-z]/.test(password) ? 'text-emerald-600' : 'text-muted-foreground'}>Lowercase</span>
+                                        <span className={/[0-9]/.test(password) ? 'text-emerald-600' : 'text-muted-foreground'}>Number</span>
+                                    </div>
+                                )}
+                            </div>
+                        )}
 
                         {/* Display Name */}
                         <div className="space-y-1.5 sm:space-y-2">
@@ -260,12 +383,12 @@ export function InviteUserModal({ isOpen, onClose, onSuccess }: InviteUserModalP
                             variant="accent"
                             size="sm"
                             onClick={handleSubmit}
-                            disabled={loading || !email}
+                            disabled={loading || !canSubmit}
                             isLoading={loading}
-                            leftIcon={<Mail className="w-4 h-4" />}
+                            leftIcon={isDirectMode ? <UserPlus className="w-4 h-4" /> : <Mail className="w-4 h-4" />}
                             className="flex-1 order-1 sm:order-2"
                         >
-                            Send Invite
+                            {isDirectMode ? 'Create User' : 'Send Invite'}
                         </GlassButton>
                     </div>
                 </div>

@@ -37,10 +37,10 @@ export async function POST(request: NextRequest) {
             )
         }
 
-        // Only owners and managers can invite users
-        if (!['owner', 'manager'].includes(profile.role) || !profile.is_active) {
+        // Only owners and admins can invite users
+        if (!['owner', 'admin'].includes(profile.role) || !profile.is_active) {
             return NextResponse.json(
-                { error: 'Forbidden - Owner or Manager access required' },
+                { error: 'Forbidden - Owner or Admin access required' },
                 { status: 403 }
             )
         }
@@ -58,10 +58,10 @@ export async function POST(request: NextRequest) {
 
         const { email, role, display_name } = validation.data
 
-        // Managers cannot invite owners or other managers
-        if (profile.role === 'manager' && ['owner', 'manager'].includes(role)) {
+        // Admins cannot invite owners or other admins
+        if (profile.role === 'admin' && ['owner', 'admin'].includes(role)) {
             return NextResponse.json(
-                { error: 'Managers cannot invite owners or other managers' },
+                { error: 'Admins cannot invite owners or other admins' },
                 { status: 403 }
             )
         }
@@ -132,7 +132,16 @@ export async function POST(request: NextRequest) {
 
         if (portalUserError) {
             console.error('[API] Error creating portal user record:', portalUserError)
-            // Don't fail - user was invited successfully, they just won't have a portal record yet
+            // Roll back: delete the auth user to avoid orphaned account
+            try {
+                await adminClient.auth.admin.deleteUser(inviteData.user.id)
+            } catch (rollbackErr) {
+                console.error('[API] Failed to roll back auth user after portal_users insert failure:', rollbackErr)
+            }
+            return NextResponse.json(
+                { error: 'Failed to create user record. The invitation was cancelled.' },
+                { status: 500 }
+            )
         }
 
         // Log audit event (don't fail if audit log fails)

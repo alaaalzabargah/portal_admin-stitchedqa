@@ -48,7 +48,7 @@
   --glass-shadow-lg: 0 35px 60px -15px rgba(0, 0, 0, 0.2);
 
   /* Typography on Glass */
-  --glass-text-primary: #1a1a1a;
+  --glass-text-primary: #000;
   --glass-text-secondary: #4b5563;
   --glass-text-muted: #6b7280;
 

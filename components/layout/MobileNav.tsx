@@ -14,7 +14,9 @@ import {
     Menu,
     X,
     Loader2,
-    Package
+    Package,
+    Star,
+    ShieldCheck
 } from 'lucide-react'
 import { LanguageSwitcher } from '@/components/ui/LanguageSwitcher'
 import { useLanguage } from '@/lib/i18n/context'
@@ -33,17 +35,26 @@ export function MobileNav() {
     const { themeConfig, loading: themeLoading } = useThemeSystem()
     const supabase = createClient()
 
-    const mainNavItems = [
+    const isModerator = profile?.role === 'moderator'
+
+    const allNavItems = [
         { href: '/dashboard', label: t('common.dashboard'), icon: LayoutDashboard },
         { href: '/customers', label: t('common.customers'), icon: Users },
         { href: '/finance', label: t('common.finance'), icon: Wallet },
         { href: '/finance/orders', label: t('common.orders'), icon: Package },
         { href: '/marketing', label: t('common.marketing'), icon: Megaphone },
+        { href: '/marketing/reviews', label: 'Reviews', icon: Star },
+        { href: '/marketing/moderation', label: 'Moderation', icon: ShieldCheck },
     ]
 
-    const bottomNavItems = [
-        { href: '/settings', label: t('common.settings'), icon: Settings },
-    ]
+    const moderatorPaths = ['/marketing/reviews', '/marketing/moderation']
+    const mainNavItems = isModerator
+        ? allNavItems.filter(item => moderatorPaths.includes(item.href))
+        : allNavItems
+
+    const bottomNavItems = isModerator
+        ? []
+        : [{ href: '/settings', label: t('common.settings'), icon: Settings }]
 
     const handleLogout = async () => {
         await supabase.auth.signOut()
@@ -157,6 +168,12 @@ export function MobileNav() {
                                             isActive = pathname.startsWith('/finance/orders')
                                         } else if (item.href === '/finance') {
                                             isActive = pathname === '/finance'
+                                        } else if (item.href === '/marketing/moderation') {
+                                            isActive = pathname.startsWith('/marketing/moderation')
+                                        } else if (item.href === '/marketing/reviews') {
+                                            isActive = pathname.startsWith('/marketing/reviews')
+                                        } else if (item.href === '/marketing') {
+                                            isActive = pathname === '/marketing'
                                         } else {
                                             isActive = pathname.startsWith(item.href)
                                         }

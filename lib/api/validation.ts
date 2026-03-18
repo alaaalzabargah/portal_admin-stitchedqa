@@ -6,7 +6,7 @@
 import { z } from 'zod'
 
 // All available user roles
-const UserRoleEnum = z.enum(['owner', 'admin', 'manager', 'editor', 'viewer'])
+const UserRoleEnum = z.enum(['owner', 'admin', 'manager', 'moderator', 'viewer'])
 
 export const UpdateUserSchema = z.object({
     display_name: z.string().min(1).max(100).optional(),

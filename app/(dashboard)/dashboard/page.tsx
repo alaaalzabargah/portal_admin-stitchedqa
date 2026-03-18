@@ -22,6 +22,8 @@ async function getStats(): Promise<KPIStats> {
     const { data: orders, count: totalOrders } = await supabase
         .from('orders')
         .select('total_amount_minor, paid_amount_minor, created_at, id, shopify_order_number, status, financial_status', { count: 'exact' })
+        .eq('is_test', false)
+        .or('status.in.(paid,completed,shipped),financial_status.eq.partially_paid')
         .order('created_at', { ascending: false })
         .limit(5)
 
@@ -34,6 +36,8 @@ async function getStats(): Promise<KPIStats> {
     const { data: revenueData } = await supabase
         .from('orders')
         .select('total_amount_minor, total_shipping_minor')
+        .eq('is_test', false)
+        .or('status.in.(paid,completed,shipped),financial_status.eq.partially_paid')
 
     const totalRevenue = revenueData?.reduce((sum, o) =>
         sum + (o.total_amount_minor || 0) + (o.total_shipping_minor || 0), 0) || 0
@@ -70,22 +74,12 @@ export default async function DashboardPage() {
                 <div className="max-w-7xl mx-auto space-y-6">
 
                     {/* Header */}
-                    <div className="pb-4 border-b" style={{ borderColor: 'var(--theme-primary)15' }}>
-                        <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
-                            <div>
-                                <p className="text-[10px] sm:text-xs uppercase tracking-widest font-bold mb-2" style={{ color: 'var(--theme-primary)' }}>
-                                    {dict.common.dashboard.toUpperCase()}
-                                </p>
-                                <h1 className="text-2xl sm:text-4xl font-bold tracking-tight text-gray-900">
-                                    {dict.dashboard.welcome} {firstName}
-                                </h1>
-                                <p className="text-sm text-muted-foreground mt-1">
-                                    {new Date().toLocaleDateString(locale === 'ar' ? 'ar-EG' : 'en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
-                                </p>
-                            </div>
-                            <DashboardToolbar />
-                        </div>
-                    </div>
+                    <PageHeader
+                        label={dict.common.dashboard.toUpperCase()}
+                        title={`${dict.dashboard.welcome} ${firstName}`}
+                        subtitle={new Date().toLocaleDateString(locale === 'ar' ? 'ar-EG' : 'en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
+                        actions={<DashboardToolbar />}
+                    />
 
                     {/* KPI Grid - Revenue full width, Orders and Customers side by side */}
                     <div className="grid grid-cols-1 gap-5">

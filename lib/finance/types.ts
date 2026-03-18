@@ -3,7 +3,7 @@
  * All monetary values are in MINOR units (QAR * 100)
  */
 
-export type PeriodType = 'month' | 'quarter' | 'year'
+export type PeriodType = 'month' | 'quarter' | 'year' | 'all_time'
 
 export interface Period {
     type: PeriodType
@@ -19,6 +19,8 @@ export interface FinancialMetrics {
     expenses: number         // Total expenses
     netProfit: number        // Gross Profit - Expenses (or Revenue - Expenses if no COGS)
     orderCount: number
+    depositOrderCount: number // Number of partially paid orders
+    depositRevenue: number    // Revenue collected from deposits
     aov: number              // Average order value
 }
 
@@ -30,6 +32,8 @@ export interface FinancialComparison {
         expenses: number
         netProfit: number
         orderCount: number
+        depositOrderCount: number
+        depositRevenue: number
         aov: number
     }
 }
