@@ -92,8 +92,14 @@ export async function GET(request: NextRequest) {
             }
             : null
 
+        // Strip to first name only for customer privacy
+        const safeReviews = reviews.map(r => ({
+            ...r,
+            customer_name: r.customer_name?.split(' ')[0] ?? null,
+        }))
+
         return NextResponse.json(
-            { handle, stats, reviews },
+            { handle, stats, reviews: safeReviews },
             { headers: CORS_HEADERS }
         )
     } catch (err) {
