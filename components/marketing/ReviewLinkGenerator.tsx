@@ -86,10 +86,10 @@ export default function ReviewLinkGenerator() {
                 textToCopy = reviewLink
                 break
             case 'EN_MSG':
-                textToCopy = `\u200EStitched would love to hear from you \u2728\nWe hope your new *${product.title}* is making you feel extraordinary \uD83E\uDD0D\nWhenever you have a moment, we'd be honored if you shared your experience with us \u2661\n\n\uD83D\uDC49 ${reviewLink}`
+                textToCopy = `\u200EStitched would love to hear from you \u2728\n\n\u200EWe hope your new *${product.title}* is making you feel extraordinary \uD83E\uDD0D\n\n\u200EWhenever you have a moment, we'd be honored if you shared your experience with us \u2661\n\n\u200E\uD83D\uDC49 ${reviewLink}`
                 break
             case 'AR_MSG':
-                textToCopy = `\u200F\u0639\u0627\u0626\u0644\u0629 Stitched \u062A\u062A\u0648\u0642 \u0644\u0633\u0645\u0627\u0639 \u0631\u0623\u064A\u0643 \u2728\n\u200F\u0646\u062A\u0645\u0646\u0649 \u0623\u0646 \u062A\u0643\u0648\u0646 *${product.title}* \u0642\u062F \u0623\u0636\u0627\u0641\u062A \u0644\u0645\u0633\u0629 \u0645\u0646 \u0627\u0644\u0623\u0646\u0627\u0642\u0629 \u0648\u0627\u0644\u062A\u0645\u064A\u0632 \u0644\u0623\u064A\u0627\u0645\u0643 \uD83E\uDD0D\n\u200F\u0645\u062A\u0649 \u0645\u0627 \u0633\u0646\u062D\u062A \u0644\u0643\u0650 \u0627\u0644\u0641\u0631\u0635\u0629\u060C \u064A\u0633\u0639\u062F\u0646\u0627 \u0623\u0646 \u062A\u0634\u0627\u0631\u0643\u064A\u0646\u0627 \u062A\u062C\u0631\u0628\u062A\u0643 \u2661\n\n\uD83D\uDC49 ${reviewLink}`
+                textToCopy = `\u200F\u0639\u0627\u0626\u0644\u0629 Stitched \u062A\u062A\u0648\u0642 \u0644\u0633\u0645\u0627\u0639 \u0631\u0623\u064A\u0643 \u2728\n\n\u200F\u0646\u062A\u0645\u0646\u0649 \u0623\u0646 \u062A\u0643\u0648\u0646 *${product.title}* \u0642\u062F \u0623\u0636\u0627\u0641\u062A \u0644\u0645\u0633\u0629 \u0645\u0646 \u0627\u0644\u0623\u0646\u0627\u0642\u0629 \u0648\u0627\u0644\u062A\u0645\u064A\u0632 \u0644\u0623\u064A\u0627\u0645\u0643 \uD83E\uDD0D\n\n\u200F\u0645\u062A\u0649 \u0645\u0627 \u0633\u0646\u062D\u062A \u0644\u0643\u0650 \u0627\u0644\u0641\u0631\u0635\u0629\u060C \u064A\u0633\u0639\u062F\u0646\u0627 \u0623\u0646 \u062A\u0634\u0627\u0631\u0643\u064A\u0646\u0627 \u062A\u062C\u0631\u0628\u062A\u0643 \u2661\n\n\u200E\uD83D\uDC49 ${reviewLink}`
                 break
         }
 
@@ -378,20 +378,30 @@ function CustomerSelectModal({
 
         try {
             const reviewsBase = process.env.NEXT_PUBLIC_REVIEWS_URL || 'https://reviews.stitchedqa.com'
-            const reviewUrl = new URL(`${reviewsBase}/${product.handle}`)
-            if (selectedCustomer.full_name) {
-                reviewUrl.searchParams.set('n', btoa(encodeURIComponent(selectedCustomer.full_name)))
-            }
-            if (selectedCustomer.phone) {
-                reviewUrl.searchParams.set('p', btoa(encodeURIComponent(selectedCustomer.phone)))
-            }
-            const reviewLink = reviewUrl.toString()
+
+            // Create a short link to keep the WhatsApp message clean
+            let reviewLink = `${reviewsBase}/${product.handle}`
+            try {
+                const res = await fetch('/api/review-links', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        productHandle: product.handle,
+                        customerName: selectedCustomer.full_name,
+                        customerWhatsapp: selectedCustomer.phone,
+                    }),
+                })
+                const json = await res.json()
+                if (json.code) {
+                    reviewLink = `${reviewsBase}/r/${json.code}`
+                }
+            } catch {}
 
             let textToCopy = ''
             if (language === 'EN') {
-                textToCopy = `\u200EStitched would love to hear from you \u2728\n\u200EWe hope your new *${product.title}* is making you feel extraordinary \uD83E\uDD0D\n\u200EWhenever you have a moment, we'd be honored if you shared your experience with us \u2661\n\n\uD83D\uDC49 ${reviewLink}`
+                textToCopy = `\u200EStitched would love to hear from you \u2728\n\n\u200EWe hope your new *${product.title}* is making you feel extraordinary \uD83E\uDD0D\n\n\u200EWhenever you have a moment, we'd be honored if you shared your experience with us \u2661\n\n\u200E\uD83D\uDC49 ${reviewLink}`
             } else {
-                textToCopy = `\u200F\u0639\u0627\u0626\u0644\u0629 Stitched \u062A\u062A\u0648\u0642 \u0644\u0633\u0645\u0627\u0639 \u0631\u0623\u064A\u0643 \u2728\n\u200F\u0646\u062A\u0645\u0646\u0649 \u0623\u0646 \u062A\u0643\u0648\u0646 *${product.title}* \u0642\u062F \u0623\u0636\u0627\u0641\u062A \u0644\u0645\u0633\u0629 \u0645\u0646 \u0627\u0644\u0623\u0646\u0627\u0642\u0629 \u0648\u0627\u0644\u062A\u0645\u064A\u0632 \u0644\u0623\u064A\u0627\u0645\u0643 \uD83E\uDD0D\n\u200F\u0645\u062A\u0649 \u0645\u0627 \u0633\u0646\u062D\u062A \u0644\u0643\u0650 \u0627\u0644\u0641\u0631\u0635\u0629\u060C \u064A\u0633\u0639\u062F\u0646\u0627 \u0623\u0646 \u062A\u0634\u0627\u0631\u0643\u064A\u0646\u0627 \u062A\u062C\u0631\u0628\u062A\u0643 \u2661\n\n\uD83D\uDC49 ${reviewLink}`
+                textToCopy = `\u200F\u0639\u0627\u0626\u0644\u0629 Stitched \u062A\u062A\u0648\u0642 \u0644\u0633\u0645\u0627\u0639 \u0631\u0623\u064A\u0643 \u2728\n\n\u200F\u0646\u062A\u0645\u0646\u0649 \u0623\u0646 \u062A\u0643\u0648\u0646 *${product.title}* \u0642\u062F \u0623\u0636\u0627\u0641\u062A \u0644\u0645\u0633\u0629 \u0645\u0646 \u0627\u0644\u0623\u0646\u0627\u0642\u0629 \u0648\u0627\u0644\u062A\u0645\u064A\u0632 \u0644\u0623\u064A\u0627\u0645\u0643 \uD83E\uDD0D\n\n\u200F\u0645\u062A\u0649 \u0645\u0627 \u0633\u0646\u062D\u062A \u0644\u0643\u0650 \u0627\u0644\u0641\u0631\u0635\u0629\u060C \u064A\u0633\u0639\u062F\u0646\u0627 \u0623\u0646 \u062A\u0634\u0627\u0631\u0643\u064A\u0646\u0627 \u062A\u062C\u0631\u0628\u062A\u0643 \u2661\n\n\u200E\uD83D\uDC49 ${reviewLink}`
             }
 
             const phone = selectedCustomer.phone.replace(/[^0-9]/g, '')
