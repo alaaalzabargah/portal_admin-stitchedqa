@@ -541,7 +541,7 @@ export default function CustomerReviewPage({
                                 width={200}
                                 height={46}
                                 className="w-auto object-contain brightness-0 invert opacity-90"
-                                style={{ height: 'clamp(36px, 5dvh, 48px)' }}
+                                style={{ height: '40px' }}
                             />
                             <button
                                 type="button"
@@ -568,11 +568,11 @@ export default function CustomerReviewPage({
                                 WebkitBackdropFilter: 'blur(12px)',
                                 border: '1px solid rgba(255, 255, 255, 0.10)',
                                 boxShadow: '0 8px 32px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.05)',
-                                padding: 'clamp(16px, 2.5dvh, 24px)',
+                                padding: '20px',
                                 gap: '16px',
                             }}
                         >
-                            <div className="rounded-xl overflow-hidden flex-shrink-0 border border-white/10" style={{ width: 'clamp(72px, 12dvh, 96px)', height: 'clamp(72px, 12dvh, 96px)', background: '#F0F0F0' }}>
+                            <div className="rounded-xl overflow-hidden flex-shrink-0 border border-white/10" style={{ width: '84px', height: '84px', background: '#F0F0F0' }}>
                                 {product.image ? (
                                     <img
                                         src={product.image}
@@ -589,13 +589,13 @@ export default function CustomerReviewPage({
                                 )}
                             </div>
                             <div className="min-w-0 flex-1">
-                                <p className="uppercase font-semibold" style={{ color: '#C5A059', fontSize: '9px', letterSpacing: '0.25em', marginBottom: '6px' }}>
+                                <p className="font-semibold" style={{ color: '#C5A059', fontSize: isRtl ? '12px' : '9px', letterSpacing: isRtl ? '0' : '0.25em', textTransform: isRtl ? 'none' : 'uppercase', marginBottom: '6px' }}>
                                     {t.eyebrow}
                                 </p>
                                 <div style={{ height: '1px', width: '32px', background: 'rgba(197,160,89,0.2)', marginBottom: '8px' }} />
                                 <h1
                                     className="font-semibold leading-snug line-clamp-2"
-                                    style={{ color: '#FDFCF0', fontSize: 'clamp(17px, 2.5dvh, 20px)', letterSpacing: '-0.01em', textShadow: '0 1px 12px rgba(197,160,89,0.15)', fontFamily: fontSerif }}
+                                    style={{ color: '#FDFCF0', fontSize: '18px', letterSpacing: '-0.01em', textShadow: '0 1px 12px rgba(197,160,89,0.15)', fontFamily: fontSerif }}
                                 >
                                     {product.title}
                                 </h1>
@@ -611,7 +611,7 @@ export default function CustomerReviewPage({
                                 padding: '6px 0',
                             }}
                         >
-                            <p style={{ color: '#FDFCF0', fontSize: 'clamp(15px, 2dvh, 17px)', letterSpacing: '0.01em', fontFamily: fontSerif }}>
+                            <p style={{ color: '#FDFCF0', fontSize: '16px', letterSpacing: '0.01em', fontFamily: fontSerif }}>
                                 {t.question}
                             </p>
                             <p
@@ -669,10 +669,10 @@ export default function CustomerReviewPage({
                             style={{
                                 animation: 'reviewSlideIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.15s both',
                                 ...glassSectionStyle,
-                                padding: 'clamp(16px, 2.5dvh, 24px)',
+                                padding: '20px',
                             }}
                         >
-                            <label className="block uppercase font-semibold" style={{ marginBottom: '12px', fontSize: '11px', letterSpacing: '0.1em', color: '#A1A1A1', fontFamily: fontSans }}>
+                            <label className="block font-semibold" style={{ marginBottom: '12px', fontSize: '11px', letterSpacing: isRtl ? '0' : '0.1em', textTransform: isRtl ? 'none' : 'uppercase', color: '#A1A1A1', fontFamily: fontSans }}>
                                 {t.experienceLabel}{' '}
                                 <span style={{ textTransform: 'none', letterSpacing: 'normal', color: '#4A4A4A' }}>({t.optional})</span>
                             </label>
@@ -692,7 +692,7 @@ export default function CustomerReviewPage({
                                     focus:outline-none
                                     resize-none transition-all duration-300
                                 "
-                                style={{ ...glassInputStyle, padding: '16px 20px', minHeight: 'clamp(96px, 14dvh, 128px)' }}
+                                style={{ ...glassInputStyle, padding: '16px 20px', minHeight: '110px' }}
                             />
                             {reviewText.length > 0 && (
                                 <p style={{ fontSize: '10px', color: 'rgba(255,255,255,0.15)', textAlign: 'end', marginTop: '6px' }}>
@@ -707,10 +707,10 @@ export default function CustomerReviewPage({
                                 style={{
                                     animation: 'reviewSlideIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.2s both',
                                     ...glassSectionStyle,
-                                    padding: 'clamp(16px, 2.5dvh, 24px)',
+                                    padding: '20px',
                                 }}
                             >
-                                <label className="block uppercase font-semibold" style={{ marginBottom: '12px', fontSize: '11px', letterSpacing: '0.1em', color: '#A1A1A1', fontFamily: fontSans }}>
+                                <label className="block font-semibold" style={{ marginBottom: '12px', fontSize: '11px', letterSpacing: isRtl ? '0' : '0.1em', textTransform: isRtl ? 'none' : 'uppercase', color: '#A1A1A1', fontFamily: fontSans }}>
                                     {t.aboutLabel}{' '}
                                     <span style={{ textTransform: 'none', letterSpacing: 'normal', color: '#4A4A4A' }}>({t.optional})</span>
                                 </label>
@@ -745,7 +745,7 @@ export default function CustomerReviewPage({
                                             focus:outline-none
                                             transition-all duration-300
                                         "
-                                        style={{ ...glassInputStyle, padding: '16px 20px' }}
+                                        style={{ ...glassInputStyle, padding: '16px 20px', textAlign: isRtl && !whatsapp ? 'right' : 'left' }}
                                     />
                                 </div>
                             </div>
@@ -811,7 +811,7 @@ export default function CustomerReviewPage({
                                 border: rating
                                     ? '1px solid rgba(197, 160, 89, 0.5)'
                                     : '1px solid rgba(197, 160, 89, 0.12)',
-                                letterSpacing: '0.1em',
+                                letterSpacing: isRtl ? '0' : '0.1em',
                                 fontFamily: fontSans,
                                 transition: 'all 0.6s cubic-bezier(0.22, 1, 0.36, 1)',
                                 borderRadius: '16px',
@@ -837,7 +837,7 @@ export default function CustomerReviewPage({
                                 className="w-auto object-contain brightness-0 invert opacity-40"
                                 style={{ height: '18px' }}
                             />
-                            <p style={{ fontSize: '10px', letterSpacing: '0.2em', textTransform: 'uppercase', color: '#3A3A3A' }}>
+                            <p style={{ fontSize: '10px', letterSpacing: isRtl ? '0' : '0.2em', textTransform: isRtl ? 'none' : 'uppercase', color: '#3A3A3A' }}>
                                 {t.tagline}
                             </p>
                         </div>
