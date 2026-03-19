@@ -325,7 +325,9 @@ export default function ReviewLinkGenerator() {
     )
 }
 
-// --- Modals ---
+// ── Send to Customer Modal ───────────────────────────────────────────
+// Single-screen: search + inline [EN] [AR] per customer row.
+// Light theme to match admin portal. Keyboard-safe on mobile.
 
 function CustomerSelectModal({
     isOpen,
@@ -339,16 +341,15 @@ function CustomerSelectModal({
     const [query, setQuery] = useState('')
     const [customers, setCustomers] = useState<{ id: string; full_name: string; phone: string | null }[]>([])
     const [loading, setLoading] = useState(false)
-    const [selectedCustomer, setSelectedCustomer] = useState<any | null>(null)
-    const [copiedId, setCopiedId] = useState<string | null>(null)
-    const [sending, setSending] = useState<'EN' | 'AR' | null>(null)
+    const [sendingFor, setSendingFor] = useState<string | null>(null) // customer id
+    const [sentFor, setSentFor] = useState<string | null>(null)
 
     useEffect(() => {
         if (!isOpen) {
             setQuery('')
             setCustomers([])
-            setSelectedCustomer(null)
-            setSending(null)
+            setSendingFor(null)
+            setSentFor(null)
         }
     }, [isOpen])
 
@@ -357,9 +358,7 @@ function CustomerSelectModal({
         const timer = setTimeout(async () => {
             setLoading(true)
             const res = await searchCustomers(query)
-            if (res.success && res.data) {
-                setCustomers(res.data)
-            }
+            if (res.success && res.data) setCustomers(res.data)
             setLoading(false)
         }, 300)
         return () => clearTimeout(timer)
@@ -367,293 +366,173 @@ function CustomerSelectModal({
 
     if (!isOpen || !product) return null
 
-    const handleSend = async (language: 'EN' | 'AR') => {
-        if (!selectedCustomer || !selectedCustomer.phone || sending) return
+    const handleSend = async (customer: { id: string; full_name: string; phone: string | null }, language: 'EN' | 'AR') => {
+        if (!customer.phone || sendingFor) return
 
-        setSending(language)
-
-        // Open the window immediately (user gesture context) — browsers block
-        // window.open() called after await as a popup
+        setSendingFor(`${customer.id}-${language}`)
         const whatsappWindow = window.open('', '_blank')
 
         try {
             const reviewsBase = process.env.NEXT_PUBLIC_REVIEWS_URL || 'https://reviews.stitchedqa.com'
-
-            // Create a short link to keep the WhatsApp message clean
             let reviewLink = `${reviewsBase}/${product.handle}`
+
             try {
                 const res = await fetch('/api/review-links', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         productHandle: product.handle,
-                        customerName: selectedCustomer.full_name?.split(' ')[0],
-                        customerWhatsapp: selectedCustomer.phone,
+                        customerName: customer.full_name?.split(' ')[0],
+                        customerWhatsapp: customer.phone,
                     }),
                 })
                 const json = await res.json()
-                if (json.code) {
-                    reviewLink = `${reviewsBase}/r/${json.code}`
-                }
+                if (json.code) reviewLink = `${reviewsBase}/r/${json.code}`
             } catch {}
 
-            let textToCopy = ''
-            if (language === 'EN') {
-                textToCopy = `\u200EStitched would love to hear from you \u2728\n\n\u200EWe hope your new *${product.title}* is making you feel extraordinary \uD83E\uDD0D\n\n\u200EWhenever you have a moment, we'd be honored if you shared your experience with us \u2661\n\n\u200E\uD83D\uDC49 ${reviewLink}`
-            } else {
-                textToCopy = `\u200F\u0639\u0627\u0626\u0644\u0629 Stitched \u062A\u062A\u0648\u0642 \u0644\u0633\u0645\u0627\u0639 \u0631\u0623\u064A\u0643 \u2728\n\n\u200F\u0646\u062A\u0645\u0646\u0649 \u0623\u0646 \u062A\u0643\u0648\u0646 *${product.title}* \u0642\u062F \u0623\u0636\u0627\u0641\u062A \u0644\u0645\u0633\u0629 \u0645\u0646 \u0627\u0644\u0623\u0646\u0627\u0642\u0629 \u0648\u0627\u0644\u062A\u0645\u064A\u0632 \u0644\u0623\u064A\u0627\u0645\u0643 \uD83E\uDD0D\n\n\u200F\u0645\u062A\u0649 \u0645\u0627 \u0633\u0646\u062D\u062A \u0644\u0643\u0650 \u0627\u0644\u0641\u0631\u0635\u0629\u060C \u064A\u0633\u0639\u062F\u0646\u0627 \u0623\u0646 \u062A\u0634\u0627\u0631\u0643\u064A\u0646\u0627 \u062A\u062C\u0631\u0628\u062A\u0643 \u2661\n\n\u200E\uD83D\uDC49 ${reviewLink}`
-            }
+            const message = language === 'EN'
+                ? `\u200EStitched would love to hear from you \u2728\n\n\u200EWe hope your new *${product.title}* is making you feel extraordinary \uD83E\uDD0D\n\n\u200EWhenever you have a moment, we'd be honored if you shared your experience with us \u2661\n\n\u200E\uD83D\uDC49 ${reviewLink}`
+                : `\u200F\u0639\u0627\u0626\u0644\u0629 Stitched \u062A\u062A\u0648\u0642 \u0644\u0633\u0645\u0627\u0639 \u0631\u0623\u064A\u0643 \u2728\n\n\u200F\u0646\u062A\u0645\u0646\u0649 \u0623\u0646 \u062A\u0643\u0648\u0646 *${product.title}* \u0642\u062F \u0623\u0636\u0627\u0641\u062A \u0644\u0645\u0633\u0629 \u0645\u0646 \u0627\u0644\u0623\u0646\u0627\u0642\u0629 \u0648\u0627\u0644\u062A\u0645\u064A\u0632 \u0644\u0623\u064A\u0627\u0645\u0643 \uD83E\uDD0D\n\n\u200F\u0645\u062A\u0649 \u0645\u0627 \u0633\u0646\u062D\u062A \u0644\u0643\u0650 \u0627\u0644\u0641\u0631\u0635\u0629\u060C \u064A\u0633\u0639\u062F\u0646\u0627 \u0623\u0646 \u062A\u0634\u0627\u0631\u0643\u064A\u0646\u0627 \u062A\u062C\u0631\u0628\u062A\u0643 \u2661\n\n\u200E\uD83D\uDC49 ${reviewLink}`
 
-            const phone = selectedCustomer.phone.replace(/[^0-9]/g, '')
-            const waUrl = `https://api.whatsapp.com/send?phone=${phone}&text=${encodeURIComponent(textToCopy)}`
+            const phone = customer.phone.replace(/[^0-9]/g, '')
+            const waUrl = `https://api.whatsapp.com/send?phone=${phone}&text=${encodeURIComponent(message)}`
 
             if (whatsappWindow) {
                 whatsappWindow.location.href = waUrl
-                // Close the blank tab once WhatsApp app takes over
                 setTimeout(() => { try { whatsappWindow.close() } catch {} }, 1500)
             } else {
                 window.open(waUrl, '_blank')
             }
 
-            setCopiedId(language)
-            setTimeout(() => setCopiedId(null), 2000)
+            setSentFor(customer.id)
+            setTimeout(() => setSentFor(null), 3000)
         } catch {
             whatsappWindow?.close()
         } finally {
-            setSending(null)
+            setSendingFor(null)
         }
     }
 
     return (
         <div
             className="fixed inset-0 z-50 flex items-end sm:items-center justify-center"
-            style={{ background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}
+            style={{ background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)' }}
             onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
         >
             <div
-                className="w-full max-w-md overflow-hidden flex flex-col sm:rounded-2xl rounded-t-2xl"
-                style={{
-                    maxHeight: '85vh',
-                    background: '#0A0A0A',
-                    border: '1px solid rgba(201,169,110,0.12)',
-                    boxShadow: '0 24px 80px rgba(0,0,0,0.6), 0 0 1px rgba(201,169,110,0.2)',
-                }}
+                className="w-full sm:max-w-lg overflow-hidden flex flex-col sm:rounded-2xl rounded-t-2xl border bg-white shadow-2xl"
+                style={{ maxHeight: '80dvh', borderColor: 'rgba(0,0,0,0.08)' }}
             >
-                {/* ── Header ──────────────────────────────────── */}
-                <div
-                    className="flex items-center justify-between"
-                    style={{
-                        padding: '20px 24px 16px',
-                        borderBottom: '1px solid rgba(255,255,255,0.06)',
-                    }}
-                >
-                    <div className="min-w-0 flex-1">
-                        {selectedCustomer && (
-                            <button
-                                onClick={() => setSelectedCustomer(null)}
-                                className="flex items-center gap-1 text-xs mb-2 transition-colors focus:outline-none"
-                                style={{ color: 'rgba(201,169,110,0.7)' }}
-                                onMouseEnter={e => (e.currentTarget.style.color = '#C9A96E')}
-                                onMouseLeave={e => (e.currentTarget.style.color = 'rgba(201,169,110,0.7)')}
-                            >
-                                <ChevronLeft className="w-3 h-3" />
-                                Back to search
-                            </button>
-                        )}
-                        <h3 style={{ fontSize: '16px', fontWeight: 600, color: '#FAFAFA', letterSpacing: '0.01em' }}>
-                            {selectedCustomer ? 'Send via WhatsApp' : 'Send Review Link'}
-                        </h3>
-                        <p style={{ fontSize: '12px', color: 'rgba(250,250,250,0.4)', marginTop: '2px' }}>{product.title}</p>
+                {/* ── Fixed Header + Search ────────────────────── */}
+                <div className="flex-shrink-0 border-b" style={{ borderColor: 'rgba(0,0,0,0.06)' }}>
+                    {/* Title row */}
+                    <div className="flex items-center justify-between px-5 pt-4 pb-2">
+                        <div className="min-w-0">
+                            <h3 className="text-base font-semibold text-stone-900">Send Review Link</h3>
+                            <p className="text-xs text-stone-400 mt-0.5 truncate">{product.title}</p>
+                        </div>
+                        <button
+                            onClick={onClose}
+                            className="flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-lg text-stone-300 hover:text-stone-500 hover:bg-stone-100 transition-colors focus:outline-none"
+                        >
+                            <X className="w-4 h-4" />
+                        </button>
                     </div>
-                    <button
-                        onClick={onClose}
-                        className="flex-shrink-0 rounded-lg transition-colors focus:outline-none"
-                        style={{ padding: '8px', color: 'rgba(250,250,250,0.3)' }}
-                        onMouseEnter={e => (e.currentTarget.style.color = 'rgba(250,250,250,0.6)')}
-                        onMouseLeave={e => (e.currentTarget.style.color = 'rgba(250,250,250,0.3)')}
-                    >
-                        <X className="w-5 h-5" />
-                    </button>
+
+                    {/* Search — fixed, never scrolls away */}
+                    <div className="px-5 pb-3">
+                        <div className="relative">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-300" />
+                            <input
+                                type="text"
+                                placeholder="Search by name, phone, or order..."
+                                value={query}
+                                onChange={(e) => setQuery(e.target.value)}
+                                className="w-full text-sm pl-9 pr-4 py-2.5 rounded-xl bg-stone-50 border border-stone-200 text-stone-800 placeholder:text-stone-300 focus:outline-none focus:border-stone-400 focus:ring-1 focus:ring-stone-200 transition-all"
+                            />
+                        </div>
+                    </div>
                 </div>
 
-                {/* ── Body ────────────────────────────────────── */}
-                <div style={{ padding: '16px 24px 24px', flex: '1 1 auto', overflowY: 'auto' }}>
-                    {!selectedCustomer ? (
-                        <>
-                            {/* Search Input */}
-                            <div className="relative" style={{ marginBottom: '16px' }}>
-                                <Search
-                                    className="absolute top-1/2 -translate-y-1/2 w-4 h-4"
-                                    style={{ left: '14px', color: 'rgba(201,169,110,0.5)' }}
-                                />
-                                <input
-                                    type="text"
-                                    placeholder="Search by name, phone, or order..."
-                                    value={query}
-                                    onChange={(e) => setQuery(e.target.value)}
-                                    autoFocus
-                                    className="w-full text-sm focus:outline-none"
-                                    style={{
-                                        padding: '12px 16px 12px 40px',
-                                        borderRadius: '12px',
-                                        background: 'rgba(255,255,255,0.04)',
-                                        border: '1px solid rgba(255,255,255,0.08)',
-                                        color: '#FAFAFA',
-                                        transition: 'border-color 0.2s ease, box-shadow 0.2s ease',
-                                    }}
-                                    onFocus={e => {
-                                        e.currentTarget.style.borderColor = 'rgba(201,169,110,0.35)'
-                                        e.currentTarget.style.boxShadow = '0 0 0 1px rgba(201,169,110,0.1)'
-                                    }}
-                                    onBlur={e => {
-                                        e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'
-                                        e.currentTarget.style.boxShadow = 'none'
-                                    }}
-                                />
-                            </div>
-
-                            {/* Customer List */}
-                            {loading ? (
-                                <div className="flex justify-center" style={{ padding: '40px 0' }}>
-                                    <Loader2 className="w-5 h-5 animate-spin" style={{ color: 'rgba(201,169,110,0.5)' }} />
-                                </div>
-                            ) : customers.length === 0 ? (
-                                <div className="text-center" style={{ padding: '40px 0' }}>
-                                    <Search className="w-8 h-8 mx-auto" style={{ color: 'rgba(255,255,255,0.08)', marginBottom: '12px' }} />
-                                    <p style={{ fontSize: '13px', color: 'rgba(250,250,250,0.3)' }}>
-                                        {query ? 'No customers found' : 'Start typing to search'}
-                                    </p>
-                                </div>
-                            ) : (
-                                <div className="flex flex-col" style={{ gap: '4px' }}>
-                                    {customers.map(c => (
-                                        <button
-                                            key={c.id}
-                                            onClick={() => setSelectedCustomer(c)}
-                                            className="w-full flex items-center justify-between text-left transition-all focus:outline-none group"
-                                            style={{
-                                                padding: '12px 14px',
-                                                borderRadius: '12px',
-                                                border: '1px solid transparent',
-                                                background: 'transparent',
-                                            }}
-                                            onMouseEnter={e => {
-                                                e.currentTarget.style.background = 'rgba(255,255,255,0.04)'
-                                                e.currentTarget.style.borderColor = 'rgba(201,169,110,0.12)'
-                                            }}
-                                            onMouseLeave={e => {
-                                                e.currentTarget.style.background = 'transparent'
-                                                e.currentTarget.style.borderColor = 'transparent'
-                                            }}
-                                        >
-                                            <div className="flex items-center gap-3 min-w-0">
-                                                <div
-                                                    className="flex-shrink-0 flex items-center justify-center rounded-full"
-                                                    style={{
-                                                        width: '36px',
-                                                        height: '36px',
-                                                        background: 'rgba(201,169,110,0.08)',
-                                                        border: '1px solid rgba(201,169,110,0.12)',
-                                                        color: '#C9A96E',
-                                                        fontSize: '13px',
-                                                        fontWeight: 600,
-                                                    }}
-                                                >
-                                                    {c.full_name?.charAt(0)?.toUpperCase() || '?'}
-                                                </div>
-                                                <div className="min-w-0">
-                                                    <p className="truncate" style={{ fontSize: '14px', fontWeight: 500, color: 'rgba(250,250,250,0.87)' }}>
-                                                        {c.full_name}
-                                                    </p>
-                                                    <p className="truncate" style={{ fontSize: '12px', color: 'rgba(250,250,250,0.35)', marginTop: '1px' }}>
-                                                        {c.phone || 'No phone'}
-                                                    </p>
-                                                </div>
-                                            </div>
-                                            <Send className="w-4 h-4 flex-shrink-0 transition-all opacity-0 group-hover:opacity-100" style={{ color: 'rgba(201,169,110,0.5)' }} />
-                                        </button>
-                                    ))}
-                                </div>
-                            )}
-                        </>
+                {/* ── Scrollable Results ────────────────────────── */}
+                <div className="flex-1 overflow-y-auto overscroll-contain" style={{ minHeight: '200px' }}>
+                    {loading ? (
+                        <div className="flex justify-center py-12">
+                            <Loader2 className="w-5 h-5 animate-spin text-stone-300" />
+                        </div>
+                    ) : customers.length === 0 ? (
+                        <div className="flex flex-col items-center justify-center py-12 px-6">
+                            <Search className="w-8 h-8 text-stone-100 mb-3" />
+                            <p className="text-sm text-stone-300 text-center">
+                                {query ? 'No customers found' : 'Start typing to search'}
+                            </p>
+                        </div>
                     ) : (
-                        <div className="flex flex-col" style={{ gap: '20px' }}>
-                            {/* Selected Customer Card */}
-                            <div
-                                className="text-center"
-                                style={{
-                                    padding: '24px 16px',
-                                    borderRadius: '16px',
-                                    background: 'rgba(255,255,255,0.03)',
-                                    border: '1px solid rgba(201,169,110,0.1)',
-                                }}
-                            >
-                                <div
-                                    className="mx-auto flex items-center justify-center rounded-full"
-                                    style={{
-                                        width: '48px',
-                                        height: '48px',
-                                        background: 'rgba(201,169,110,0.1)',
-                                        border: '1px solid rgba(201,169,110,0.18)',
-                                        color: '#C9A96E',
-                                        fontSize: '18px',
-                                        fontWeight: 600,
-                                        marginBottom: '12px',
-                                    }}
-                                >
-                                    {selectedCustomer.full_name?.charAt(0)?.toUpperCase() || '?'}
-                                </div>
-                                <p style={{ fontSize: '17px', fontWeight: 600, color: 'rgba(250,250,250,0.9)', marginBottom: '4px' }}>
-                                    {selectedCustomer.full_name}
-                                </p>
-                                <p style={{ fontSize: '13px', color: 'rgba(250,250,250,0.35)' }}>
-                                    {selectedCustomer.phone || 'No phone number'}
-                                </p>
-                            </div>
+                        <div className="divide-y" style={{ borderColor: 'rgba(0,0,0,0.04)' }}>
+                            {customers.map(c => {
+                                const hasPhone = !!c.phone
+                                const isSending = sendingFor?.startsWith(c.id)
+                                const wasSent = sentFor === c.id
 
-                            {/* Send Buttons */}
-                            <div className="flex flex-col" style={{ gap: '10px' }}>
-                                <button
-                                    disabled={!selectedCustomer.phone || sending !== null}
-                                    onClick={() => handleSend('EN')}
-                                    className="w-full flex items-center justify-center gap-2 font-medium text-sm transition-all focus:outline-none active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed"
-                                    style={{
-                                        padding: '14px 20px',
-                                        borderRadius: '12px',
-                                        background: 'linear-gradient(135deg, #C9A96E 0%, #D4B978 100%)',
-                                        color: '#0A0A0A',
-                                        boxShadow: '0 4px 24px rgba(201,169,110,0.2)',
-                                        letterSpacing: '0.02em',
-                                    }}
-                                >
-                                    {sending === 'EN' ? <Loader2 className="w-4 h-4 animate-spin" /> : copiedId === 'EN' ? <Check className="w-4 h-4" /> : <MessageSquare className="w-4 h-4" />}
-                                    {sending === 'EN' ? 'Creating link...' : copiedId === 'EN' ? 'Opened in WhatsApp!' : 'Send in English'}
-                                </button>
-                                <button
-                                    disabled={!selectedCustomer.phone || sending !== null}
-                                    onClick={() => handleSend('AR')}
-                                    className="w-full flex items-center justify-center gap-2 font-medium text-sm transition-all focus:outline-none active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed"
-                                    style={{
-                                        padding: '14px 20px',
-                                        borderRadius: '12px',
-                                        background: 'rgba(255,255,255,0.04)',
-                                        border: '1px solid rgba(201,169,110,0.18)',
-                                        color: '#C9A96E',
-                                        letterSpacing: '0.02em',
-                                    }}
-                                    onMouseEnter={e => { if (!e.currentTarget.disabled) e.currentTarget.style.background = 'rgba(201,169,110,0.08)' }}
-                                    onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.04)' }}
-                                >
-                                    {sending === 'AR' ? <Loader2 className="w-4 h-4 animate-spin" /> : copiedId === 'AR' ? <Check className="w-4 h-4" /> : <Globe className="w-4 h-4" />}
-                                    {sending === 'AR' ? 'Creating link...' : copiedId === 'AR' ? 'Opened in WhatsApp!' : 'Send in Arabic'}
-                                </button>
-                            </div>
+                                return (
+                                    <div
+                                        key={c.id}
+                                        className={`flex items-center gap-3 px-5 py-3 transition-colors ${
+                                            hasPhone ? 'hover:bg-stone-50' : 'opacity-40'
+                                        }`}
+                                    >
+                                        {/* Avatar */}
+                                        <div className="w-9 h-9 rounded-full bg-stone-100 border border-stone-200 flex items-center justify-center text-xs font-semibold text-stone-500 flex-shrink-0">
+                                            {c.full_name?.charAt(0)?.toUpperCase() || '?'}
+                                        </div>
 
-                            {!selectedCustomer.phone && (
-                                <p style={{ fontSize: '12px', color: 'rgba(239,68,68,0.8)', textAlign: 'center' }}>
-                                    This customer does not have a phone number on record.
-                                </p>
-                            )}
+                                        {/* Name + Phone */}
+                                        <div className="min-w-0 flex-1">
+                                            <p className="text-sm font-medium text-stone-800 truncate">{c.full_name}</p>
+                                            <p className="text-xs text-stone-400 truncate mt-0.5">
+                                                {c.phone || 'No phone number'}
+                                            </p>
+                                        </div>
+
+                                        {/* Inline Send Buttons */}
+                                        {wasSent ? (
+                                            <span className="flex items-center gap-1 text-xs font-medium text-emerald-600 flex-shrink-0">
+                                                <Check className="w-3.5 h-3.5" />
+                                                Sent
+                                            </span>
+                                        ) : hasPhone ? (
+                                            <div className="flex items-center gap-1.5 flex-shrink-0">
+                                                <button
+                                                    onClick={() => handleSend(c, 'EN')}
+                                                    disabled={!!sendingFor}
+                                                    className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all active:scale-[0.96] focus:outline-none disabled:opacity-40 bg-stone-900 text-white hover:bg-stone-800"
+                                                >
+                                                    {isSending && sendingFor === `${c.id}-EN` ? (
+                                                        <Loader2 className="w-3 h-3 animate-spin" />
+                                                    ) : (
+                                                        <MessageSquare className="w-3 h-3" />
+                                                    )}
+                                                    EN
+                                                </button>
+                                                <button
+                                                    onClick={() => handleSend(c, 'AR')}
+                                                    disabled={!!sendingFor}
+                                                    className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all active:scale-[0.96] focus:outline-none disabled:opacity-40 border border-stone-200 text-stone-600 hover:bg-stone-50"
+                                                >
+                                                    {isSending && sendingFor === `${c.id}-AR` ? (
+                                                        <Loader2 className="w-3 h-3 animate-spin" />
+                                                    ) : (
+                                                        <Globe className="w-3 h-3" />
+                                                    )}
+                                                    AR
+                                                </button>
+                                            </div>
+                                        ) : (
+                                            <span className="text-[10px] text-stone-300 flex-shrink-0">No phone</span>
+                                        )}
+                                    </div>
+                                )
+                            })}
                         </div>
                     )}
                 </div>

@@ -32,8 +32,8 @@ export async function GET(
             .maybeSingle();
 
         if (error || !data) {
-            // Unknown code — redirect to homepage gracefully
-            return NextResponse.redirect(new URL('/', request.url));
+            const base = process.env.NEXT_PUBLIC_REVIEWS_URL || 'https://reviews.stitchedqa.com';
+            return NextResponse.redirect(new URL('/', base));
         }
 
         // Build the full review URL on the reviews subdomain
@@ -50,6 +50,7 @@ export async function GET(
         return NextResponse.redirect(reviewUrl, { status: 302 });
     } catch (err) {
         console.error('[GET /r/[code]] Unexpected error:', err);
-        return NextResponse.redirect(new URL('/', request.url));
+        const fallback = process.env.NEXT_PUBLIC_REVIEWS_URL || 'https://reviews.stitchedqa.com';
+        return NextResponse.redirect(new URL('/', fallback));
     }
 }
