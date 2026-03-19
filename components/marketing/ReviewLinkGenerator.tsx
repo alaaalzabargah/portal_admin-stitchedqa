@@ -384,6 +384,7 @@ function CustomerSelectModal({
                         productHandle: product.handle,
                         customerName: customer.full_name?.split(' ')[0],
                         customerWhatsapp: customer.phone,
+                        lang: language === 'AR' ? 'ar' : undefined,
                     }),
                 })
                 const json = await res.json()

@@ -186,9 +186,16 @@ export default function CustomerReviewPage({
 
     const textareaRef = useRef<HTMLTextAreaElement>(null)
 
-    // ── Load language preference ─────────────────────────────────────────
+    // ── Load language preference (URL ?lang= takes priority) ────────────
 
     useEffect(() => {
+        const params = new URLSearchParams(window.location.search)
+        const urlLang = params.get('lang') as Lang | null
+        if (urlLang === 'ar' || urlLang === 'en') {
+            setLang(urlLang)
+            localStorage.setItem('review-lang', urlLang)
+            return
+        }
         const saved = localStorage.getItem('review-lang') as Lang | null
         if (saved === 'ar' || saved === 'en') setLang(saved)
     }, [])

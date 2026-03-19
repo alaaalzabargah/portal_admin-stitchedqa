@@ -174,6 +174,7 @@ export function OrderHistory({ customerId, customerName, customerPhone }: OrderH
                             productHandle: resolved.handle,
                             customerName: customerName?.split(' ')[0],
                             customerWhatsapp: customerPhone,
+                            lang: language === 'AR' ? 'ar' : undefined,
                         }),
                     })
                     const json = await res.json()
