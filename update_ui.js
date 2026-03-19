@@ -215,7 +215,7 @@ const newRenderForm = `    // ── Render: Form (Cinematic Design) ───�
                                             <span>Sharing…</span>
                                         </>
                                     ) : (
-                                        <span>Share My Story</span>
+                                        <span>Share Your Thoughts</span>
                                     )}
                                 </button>
                             </div>

@@ -39,7 +39,7 @@ const copy = {
     en: {
         eyebrow: 'Your Stitched Story',
         question: 'Did this piece capture your heart?',
-        tapToRate: 'Tap to rate',
+        tapToRate: 'Let the stars decide',
         ratingRequired: 'A rating is needed to share your story',
         ratings: {
             1: 'Not This Time',
@@ -48,13 +48,13 @@ const copy = {
             4: 'I Adore It',
             5: 'Stole My Heart ♡',
         } as Record<number, string>,
-        experienceLabel: 'Your Experience',
+        experienceLabel: 'Your impressions',
         optional: 'optional',
         experiencePlaceholder: 'Tell us what you loved, or what we can perfect…',
         aboutLabel: 'A little about you',
         namePlaceholder: 'Your Name',
         whatsappPlaceholder: 'WhatsApp Number',
-        submit: 'Share My Story',
+        submit: 'Share Your Thoughts',
         submitting: 'Sharing…',
         submitError: 'Something went wrong. Please try again.',
         tagline: 'Designed with passion. Worn with grace.',
@@ -67,9 +67,9 @@ const copy = {
         loading: 'Loading…',
     },
     ar: {
-        eyebrow: 'حكايتكِ مع ستتشد',
-        question: 'هل سرقت هذه القطعة قلبكِ؟',
-        tapToRate: 'انقري للتقييم',
+        eyebrow: 'إطلالتكِ مع ستتشد',
+        question: 'هل لامست هذه القطعة ذوقكِ الرفيع؟',
+        tapToRate: 'اختاري تقييمكِ',
         ratingRequired: 'التقييم مطلوب لمشاركة حكايتكِ',
         ratings: {
             1: 'ليست هذه المرّة',
@@ -78,13 +78,13 @@ const copy = {
             4: 'أعشقها',
             5: 'سرقت قلبي ♡',
         } as Record<number, string>,
-        experienceLabel: 'شاركينا تجربتكِ',
+        experienceLabel: 'تفاصيل إطلالتكِ',
         optional: 'اختياري',
         experiencePlaceholder: 'أخبرينا ما الذي أحببتِه، أو ما يمكننا إتقانه…',
         aboutLabel: 'نودّ معرفتكِ',
         namePlaceholder: 'الاسم',
         whatsappPlaceholder: 'رقم الواتساب',
-        submit: 'شاركي حكايتي',
+        submit: 'اعتمدي التقييم',
         submitting: 'جارٍ المشاركة…',
         submitError: 'حدث خطأ ما. يرجى المحاولة مرة أخرى.',
         tagline: 'صُنعت بشغف. تُرتدى بأناقة.',
@@ -123,11 +123,23 @@ const FALLING_ICONS = [
 // ── Shared input styles ────────────────────────────────────────────────────
 
 const glassInputStyle: React.CSSProperties = {
-    background: 'rgba(255, 255, 255, 0.07)',
-    border: '1px solid rgba(255, 255, 255, 0.12)',
-    color: '#FFFFFF',
+    background: 'rgba(12, 12, 12, 0.85)',
+    border: '1px solid rgba(255, 255, 255, 0.08)',
+    color: '#FDFCF0',
+    borderRadius: '16px',
+    fontSize: '15px',
+    fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif",
+    transition: 'border-color 0.3s ease, box-shadow 0.3s ease',
+}
+
+const glassSectionStyle: React.CSSProperties = {
+    background: 'rgba(18, 18, 18, 0.75)',
+    border: '1px solid rgba(255, 255, 255, 0.10)',
     backdropFilter: 'blur(12px)',
     WebkitBackdropFilter: 'blur(12px)',
+    borderRadius: '24px',
+    padding: '24px',
+    boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.05)',
 }
 
 // ── Page Component ─────────────────────────────────────────────────────────
@@ -225,7 +237,7 @@ export default function CustomerReviewPage({
 
     // ── Submit ────────────────────────────────────────────────────────────
 
-    const handleSubmit = async (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent | React.MouseEvent) => {
         e.preventDefault()
         if (!product) return
 
@@ -265,10 +277,10 @@ export default function CustomerReviewPage({
 
     if (productLoading) {
         return (
-            <div className="fixed inset-0 flex items-center justify-center" style={{ background: '#0A0A0A' }}>
-                <div className="flex flex-col items-center gap-4">
-                    <div className="w-10 h-10 border-2 border-white/20 border-t-white/80 rounded-full animate-spin" />
-                    <p className="text-[#A0A0A0] text-sm tracking-wide">{t.loading}</p>
+            <div className="fixed inset-0 flex items-center justify-center" style={{ background: '#050505' }}>
+                <div className="flex flex-col items-center" style={{ gap: '16px' }}>
+                    <div style={{ width: '40px', height: '40px', border: '2px solid #1A1A1A', borderTopColor: '#C5A059', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
+                    <p style={{ color: '#6A6A6A', fontSize: '14px', letterSpacing: '0.05em' }}>{t.loading}</p>
                 </div>
             </div>
         )
@@ -280,12 +292,12 @@ export default function CustomerReviewPage({
         return (
             <div
                 className="fixed inset-0 flex items-center justify-center px-6"
-                style={{ background: '#0A0A0A' }}
+                style={{ background: '#050505' }}
                 dir={isRtl ? 'rtl' : 'ltr'}
             >
                 <div className="text-center max-w-sm">
-                    <p className="font-serif text-2xl text-white mb-3">{t.productNotFound}</p>
-                    <p className="text-[#A0A0A0] text-sm leading-relaxed">{t.productNotFoundDesc}</p>
+                    <p className="font-serif" style={{ fontSize: '24px', color: '#FDFCF0', marginBottom: '12px' }}>{t.productNotFound}</p>
+                    <p style={{ color: '#6A6A6A', fontSize: '14px', lineHeight: '1.6' }}>{t.productNotFoundDesc}</p>
                 </div>
             </div>
         )
@@ -297,7 +309,7 @@ export default function CustomerReviewPage({
         return (
             <>
                 <style>{`
-                    html, body { background: #000000 !important; margin: 0; padding: 0; }
+                    html, body { background: #050505 !important; margin: 0; padding: 0; }
                     @keyframes reviewFadeInUp {
                         from { opacity: 0; transform: translateY(24px); }
                         to { opacity: 1; transform: translateY(0); }
@@ -316,7 +328,7 @@ export default function CustomerReviewPage({
 
                 <div
                     className="fixed inset-0"
-                    style={{ background: 'radial-gradient(circle at 50% -20%, #2c2725 0%, #0a0808 60%, #000000 100%)' }}
+                    style={{ background: 'radial-gradient(ellipse 60% 45% at 50% 8%, rgba(26,24,22,0.9) 0%, rgba(20,17,14,0.5) 50%, #000000 100%)' }}
                     dir={isRtl ? 'rtl' : 'ltr'}
                 >
                     {/* Falling Stitching Icons */}
@@ -425,11 +437,16 @@ export default function CustomerReviewPage({
             <style>{`
                 html, body { background: #000000 !important; margin: 0; padding: 0; }
                 input::placeholder, textarea::placeholder {
-                    color: rgba(255,255,255,0.40) !important;
+                    color: #4A4A4A !important;
                     opacity: 1;
+                    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+                }
+                input:focus, textarea:focus {
+                    border-color: rgba(197, 160, 89, 0.45) !important;
+                    box-shadow: 0 0 0 1px rgba(197, 160, 89, 0.12), inset 0 1px 4px rgba(0,0,0,0.3) !important;
                 }
                 @keyframes reviewSlideIn {
-                    from { opacity: 0; transform: translateY(8px); }
+                    from { opacity: 0; transform: translateY(12px); }
                     to { opacity: 1; transform: translateY(0); }
                 }
                 @keyframes ratingShake {
@@ -439,266 +456,384 @@ export default function CustomerReviewPage({
                     60% { transform: translateX(-4px); }
                     80% { transform: translateX(4px); }
                 }
+                @keyframes btnShimmer {
+                    0% { background-position: -200% center; }
+                    100% { background-position: 200% center; }
+                }
+                @keyframes btnActivate {
+                    0% { box-shadow: 0 4px 32px rgba(197,160,89,0.3), 0 1px 3px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.2); }
+                    50% { box-shadow: 0 4px 48px rgba(197,160,89,0.5), 0 0 80px rgba(197,160,89,0.12), 0 1px 3px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.2); }
+                    100% { box-shadow: 0 4px 32px rgba(197,160,89,0.3), 0 1px 3px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.2); }
+                }
+                @keyframes ambientPulse {
+                    0%, 100% { opacity: 0.85; }
+                    50% { opacity: 1; }
+                }
             `}</style>
 
             <div
-                className="fixed inset-0"
-                style={{ background: 'radial-gradient(circle at 50% -20%, #2c2725 0%, #0a0808 60%, #000000 100%)' }}
+                style={{
+                    background: '#000000',
+                    minHeight: '100dvh',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    position: 'relative',
+                    overflow: 'hidden',
+                }}
                 dir={isRtl ? 'rtl' : 'ltr'}
             >
-                <form
-                    onSubmit={handleSubmit}
-                    className="absolute inset-0 z-10 flex flex-col p-5 overflow-y-auto gap-4"
+                {/* ── Multi-layered spotlight gradient ──────────── */}
+                <div
                     style={{
-                        paddingTop: 'max(24px, env(safe-area-inset-top))',
-                        paddingBottom: 'max(24px, env(safe-area-inset-bottom))',
-                        justifyContent: 'safe center',
+                        position: 'absolute',
+                        inset: 0,
+                        zIndex: 0,
+                        pointerEvents: 'none',
+                        animation: 'ambientPulse 10s ease-in-out infinite',
+                        background: [
+                            'radial-gradient(ellipse 60% 45% at 50% 8%, rgba(26,24,22,0.9) 0%, transparent 70%)',
+                            'radial-gradient(ellipse 90% 60% at 50% 0%, rgba(20,17,14,0.5) 0%, transparent 80%)',
+                            'radial-gradient(circle at 50% 25%, rgba(197,160,89,0.04) 0%, transparent 50%)',
+                        ].join(', '),
+                    }}
+                />
+                {/* ── Scrollable form content ─────────────────────── */}
+                <div
+                    style={{
+                        position: 'relative',
+                        zIndex: 1,
+                        flex: '1 1 auto',
+                        overflowY: 'auto',
+                        WebkitOverflowScrolling: 'touch',
+                        paddingBottom: '120px',
                     }}
                 >
-                    {/* ── Header: Logo + Language Toggle ──────────────── */}
-                    <div
-                        className="flex items-center justify-between"
-                        style={{ animation: 'reviewSlideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) both' }}
-                    >
-                        <div className="w-14" />
-                        <Image
-                            src="/images/stitched_logo.png"
-                            alt="Stitched"
-                            width={200}
-                            height={46}
-                            className="h-12 w-auto object-contain brightness-0 invert opacity-90"
-                        />
-                        <button
-                            type="button"
-                            onClick={toggleLang}
-                            className="w-14 py-1.5 px-3 rounded-full text-xs font-medium tracking-wide transition-all duration-200"
-                            style={{
-                                color: 'rgba(255,255,255,0.6)',
-                                background: 'rgba(255,255,255,0.06)',
-                                border: '1px solid rgba(255,255,255,0.10)',
-                            }}
-                        >
-                            {lang === 'en' ? 'عربي' : 'EN'}
-                        </button>
-                    </div>
-
-                    {/* ── Product Card ────────────────────────────────── */}
-                    <div
-                        className="flex items-center gap-4 p-4 rounded-2xl"
+                    <form
+                        id="review-form"
+                        onSubmit={handleSubmit}
+                        className="flex flex-col w-full"
                         style={{
-                            animation: 'reviewSlideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) 0.05s both',
-                            background: '#1F1E1C',
-                            border: '1px solid rgba(255, 255, 255, 0.08)',
-                            boxShadow: '0 4px 20px rgba(0,0,0,0.4)',
+                            padding: 'clamp(20px, 5dvh, 40px) 24px',
+                            paddingTop: 'max(clamp(20px, 4dvh, 40px), env(safe-area-inset-top))',
+                            gap: 'clamp(16px, 3.5dvh, 32px)',
+                            maxWidth: '480px',
+                            margin: '0 auto',
                         }}
                     >
-                        <div className="w-24 h-24 rounded-xl overflow-hidden flex-shrink-0 border border-white/10" style={{ background: '#F0F0F0' }}>
-                            {product.image ? (
-                                <img
-                                    src={product.image}
-                                    alt={product.title}
-                                    className="w-full h-full object-cover"
-                                />
-                            ) : (
-                                <div
-                                    className="w-full h-full flex items-center justify-center text-white/30 text-xs"
-                                    style={{ background: '#2A2A2A' }}
-                                >
-                                    S
-                                </div>
-                            )}
-                        </div>
-                        <div className="min-w-0 flex-1">
-                            <p className="text-[9px] uppercase tracking-[0.3em] font-bold mb-1.5" style={{ color: '#C9A96E' }}>
-                                {t.eyebrow}
-                            </p>
-                            <div className="h-px w-8 mb-2" style={{ background: 'rgba(201,169,110,0.25)' }} />
-                            <h1
-                                className="font-serif text-xl !text-white font-semibold tracking-tight leading-snug line-clamp-2"
-                                style={{ textShadow: '0 1px 8px #C9A96E' }}
+                        {/* ── Header: Logo + Language Toggle ──────────────── */}
+                        <div
+                            className="flex items-center justify-between"
+                            style={{ animation: 'reviewSlideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) both' }}
+                        >
+                            <div className="w-14" />
+                            <Image
+                                src="/images/stitched_logo.png"
+                                alt="Stitched"
+                                width={200}
+                                height={46}
+                                className="w-auto object-contain brightness-0 invert opacity-90"
+                                style={{ height: 'clamp(36px, 5dvh, 48px)' }}
+                            />
+                            <button
+                                type="button"
+                                onClick={toggleLang}
+                                className="w-14 rounded-full text-xs font-medium tracking-wide transition-all duration-200"
+                                style={{
+                                    padding: '6px 12px',
+                                    color: 'rgba(255,255,255,0.6)',
+                                    background: 'rgba(255,255,255,0.06)',
+                                    border: '1px solid rgba(255,255,255,0.10)',
+                                }}
                             >
-                                {product.title}
-                            </h1>
+                                {lang === 'en' ? 'عربي' : 'EN'}
+                            </button>
                         </div>
-                    </div>
 
-                    {/* ── Heart Rating ────────────────────────────────── */}
-                    <div
-                        className="flex flex-col items-center gap-2"
-                        style={{ animation: 'reviewSlideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) 0.1s both' }}
-                    >
-                        <p className="font-serif text-base text-white tracking-wide">
-                            {t.question}
-                        </p>
-                        <p
-                            className="text-sm font-serif tracking-wide h-5"
-                            style={{ color: rating ? '#FFFFFF' : 'rgba(255,255,255,0.40)' }}
-                        >
-                            {rating ? t.ratings[rating] : t.tapToRate}
-                        </p>
+                        {/* ── Product Card ────────────────────────────────── */}
                         <div
-                            dir="ltr"
-                            className="flex justify-center gap-3 w-full px-2 py-1"
-                            style={ratingError ? { animation: 'ratingShake 0.5s ease-in-out' } : undefined}
-                        >
-                            {[1, 2, 3, 4, 5].map((value) => {
-                                const isFilled = rating !== null && value <= rating
-                                return (
-                                    <button
-                                        key={value}
-                                        type="button"
-                                        onClick={() => handleRatingSelect(value as RatingValue)}
-                                        className="p-1.5 transition-all duration-200 active:scale-90 focus:outline-none focus:ring-0"
-                                    >
-                                        <Heart
-                                            className={`w-10 h-10 transition-all duration-200 ${isFilled
-                                                ? 'fill-white text-white'
-                                                : ratingError
-                                                    ? 'text-red-400/60'
-                                                    : 'text-[#555555] hover:text-[#888888]'
-                                                }`}
-                                            strokeWidth={1.5}
-                                            style={isFilled ? { filter: 'drop-shadow(0 0 8px rgba(255,255,255,0.35))' } : undefined}
-                                        />
-                                    </button>
-                                )
-                            })}
-                        </div>
-                        {ratingError && (
-                            <p className="text-xs mt-0.5" style={{ color: 'rgba(248,113,113,0.9)' }}>
-                                {t.ratingRequired}
-                            </p>
-                        )}
-                    </div>
-
-                    {/* ── Text Area ───────────────────────────────────── */}
-                    <div
-                        style={{ animation: 'reviewSlideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) 0.15s both' }}
-                    >
-                        <label className="block text-[11px] uppercase tracking-[0.15em] text-white/80 font-semibold mb-2">
-                            {t.experienceLabel}{' '}
-                            <span className="normal-case tracking-normal text-white/30">({t.optional})</span>
-                        </label>
-                        <textarea
-                            ref={textareaRef}
-                            value={reviewText}
-                            onChange={(e) => {
-                                if (e.target.value.length <= MAX_REVIEW_CHARS) {
-                                    setReviewText(e.target.value)
-                                }
+                            className="flex items-center rounded-2xl"
+                            style={{
+                                animation: 'reviewSlideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) 0.05s both',
+                                background: 'rgba(18, 18, 18, 0.75)',
+                                backdropFilter: 'blur(12px)',
+                                WebkitBackdropFilter: 'blur(12px)',
+                                border: '1px solid rgba(255, 255, 255, 0.10)',
+                                boxShadow: '0 8px 32px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.05)',
+                                padding: 'clamp(16px, 2.5dvh, 24px)',
+                                gap: '16px',
                             }}
-                            maxLength={MAX_REVIEW_CHARS}
-                            placeholder={t.experiencePlaceholder}
-                            className="
-                                w-full h-24 px-4 py-3 rounded-xl
-                                text-sm leading-relaxed
-                                focus:outline-none focus:border-white/25
-                                resize-none transition-colors duration-300
-                            "
-                            style={glassInputStyle}
-                        />
-                        {reviewText.length > 0 && (
-                            <p className="text-[10px] text-white/25 text-end mt-1">
-                                {reviewText.length}/{MAX_REVIEW_CHARS}
+                        >
+                            <div className="rounded-xl overflow-hidden flex-shrink-0 border border-white/10" style={{ width: 'clamp(72px, 12dvh, 96px)', height: 'clamp(72px, 12dvh, 96px)', background: '#F0F0F0' }}>
+                                {product.image ? (
+                                    <img
+                                        src={product.image}
+                                        alt={product.title}
+                                        className="w-full h-full object-cover"
+                                    />
+                                ) : (
+                                    <div
+                                        className="w-full h-full flex items-center justify-center text-white/30 text-xs"
+                                        style={{ background: '#2A2A2A' }}
+                                    >
+                                        S
+                                    </div>
+                                )}
+                            </div>
+                            <div className="min-w-0 flex-1">
+                                <p className="uppercase font-semibold" style={{ color: '#C5A059', fontSize: '9px', letterSpacing: '0.25em', marginBottom: '6px' }}>
+                                    {t.eyebrow}
+                                </p>
+                                <div style={{ height: '1px', width: '32px', background: 'rgba(197,160,89,0.2)', marginBottom: '8px' }} />
+                                <h1
+                                    className="font-serif font-semibold leading-snug line-clamp-2"
+                                    style={{ color: '#FDFCF0', fontSize: 'clamp(17px, 2.5dvh, 20px)', letterSpacing: '-0.01em', textShadow: '0 1px 12px rgba(197,160,89,0.15)' }}
+                                >
+                                    {product.title}
+                                </h1>
+                            </div>
+                        </div>
+
+                        {/* ── Heart Rating ────────────────────────────────── */}
+                        <div
+                            className="flex flex-col items-center"
+                            style={{
+                                animation: 'reviewSlideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) 0.1s both',
+                                gap: 'clamp(4px, 1dvh, 8px)',
+                                padding: 'clamp(4px, 1dvh, 8px) 0',
+                            }}
+                        >
+                            <p className="font-serif" style={{ color: '#FDFCF0', fontSize: 'clamp(15px, 2dvh, 17px)', letterSpacing: '0.01em' }}>
+                                {t.question}
+                            </p>
+                            <p
+                                className="font-serif"
+                                style={{ color: rating ? '#FDFCF0' : '#6A6A6A', fontSize: '14px', height: '24px', lineHeight: '24px', letterSpacing: '0.02em' }}
+                            >
+                                {rating ? t.ratings[rating] : t.tapToRate}
+                            </p>
+                            <div
+                                dir="ltr"
+                                className="flex justify-center w-full"
+                                style={{
+                                    gap: 'clamp(8px, 2dvw, 16px)',
+                                    padding: 'clamp(4px, 1dvh, 8px) 0',
+                                    ...(ratingError ? { animation: 'ratingShake 0.5s ease-in-out' } : {}),
+                                }}
+                            >
+                                {[1, 2, 3, 4, 5].map((value) => {
+                                    const isFilled = rating !== null && value <= rating
+                                    return (
+                                        <button
+                                            key={value}
+                                            type="button"
+                                            onClick={() => handleRatingSelect(value as RatingValue)}
+                                            className="transition-all duration-200 active:scale-90 focus:outline-none focus:ring-0"
+                                            style={{ padding: '8px' }}
+                                        >
+                                            <Heart
+                                                className={`transition-all duration-300 ${isFilled
+                                                    ? 'text-white'
+                                                    : ratingError
+                                                        ? 'text-red-400/60'
+                                                        : 'text-[#3A3A3A] hover:text-[#6A6A6A]'
+                                                    }`}
+                                                style={{
+                                                    width: 'clamp(32px, 5dvh, 40px)',
+                                                    height: 'clamp(32px, 5dvh, 40px)',
+                                                    fill: isFilled ? '#FDFCF0' : 'none',
+                                                    filter: isFilled ? 'drop-shadow(0 0 8px rgba(197, 160, 89, 0.4))' : undefined,
+                                                }}
+                                                strokeWidth={1.5}
+                                            />
+                                        </button>
+                                    )
+                                })}
+                            </div>
+                            {ratingError && (
+                                <p style={{ fontSize: '12px', marginTop: '4px', color: 'rgba(248,113,113,0.9)' }}>
+                                    {t.ratingRequired}
+                                </p>
+                            )}
+                        </div>
+
+                        {/* ── Text Area ───────────────────────────────────── */}
+                        <div
+                            style={{
+                                animation: 'reviewSlideIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.15s both',
+                                ...glassSectionStyle,
+                                padding: 'clamp(16px, 2.5dvh, 24px)',
+                            }}
+                        >
+                            <label className="block uppercase font-semibold" style={{ marginBottom: '12px', fontSize: '11px', letterSpacing: '0.1em', color: '#A1A1A1', fontFamily: "'Inter', sans-serif" }}>
+                                {t.experienceLabel}{' '}
+                                <span style={{ textTransform: 'none', letterSpacing: 'normal', color: '#4A4A4A' }}>({t.optional})</span>
+                            </label>
+                            <textarea
+                                ref={textareaRef}
+                                value={reviewText}
+                                onChange={(e) => {
+                                    if (e.target.value.length <= MAX_REVIEW_CHARS) {
+                                        setReviewText(e.target.value)
+                                    }
+                                }}
+                                maxLength={MAX_REVIEW_CHARS}
+                                placeholder={t.experiencePlaceholder}
+                                className="
+                                    w-full rounded-2xl
+                                    text-[15px] leading-relaxed
+                                    focus:outline-none
+                                    resize-none transition-all duration-300
+                                "
+                                style={{ ...glassInputStyle, padding: '16px 20px', minHeight: 'clamp(96px, 14dvh, 128px)' }}
+                            />
+                            {reviewText.length > 0 && (
+                                <p style={{ fontSize: '10px', color: 'rgba(255,255,255,0.15)', textAlign: 'end', marginTop: '6px' }}>
+                                    {reviewText.length}/{MAX_REVIEW_CHARS}
+                                </p>
+                            )}
+                        </div>
+
+                        {/* ── Contact Inputs ──────────────────────────────── */}
+                        {!isPrefilled && (
+                            <div
+                                style={{
+                                    animation: 'reviewSlideIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.2s both',
+                                    ...glassSectionStyle,
+                                    padding: 'clamp(16px, 2.5dvh, 24px)',
+                                }}
+                            >
+                                <label className="block uppercase font-semibold" style={{ marginBottom: '12px', fontSize: '11px', letterSpacing: '0.1em', color: '#A1A1A1', fontFamily: "'Inter', sans-serif" }}>
+                                    {t.aboutLabel}{' '}
+                                    <span style={{ textTransform: 'none', letterSpacing: 'normal', color: '#4A4A4A' }}>({t.optional})</span>
+                                </label>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                                    <input
+                                        id="customerName"
+                                        name="customerName"
+                                        type="text"
+                                        autoComplete="name"
+                                        value={customerName}
+                                        onChange={(e) => setCustomerName(e.target.value)}
+                                        placeholder={t.namePlaceholder}
+                                        className="
+                                            w-full text-[15px] rounded-2xl
+                                            focus:outline-none
+                                            transition-all duration-300
+                                        "
+                                        style={{ ...glassInputStyle, padding: '16px 20px' }}
+                                    />
+                                    <input
+                                        id="whatsapp"
+                                        name="whatsapp"
+                                        type="tel"
+                                        autoComplete="tel"
+                                        dir="ltr"
+                                        value={whatsapp}
+                                        onChange={(e) => setWhatsapp(e.target.value)}
+                                        onBlur={() => { if (whatsapp.trim()) setWhatsapp(normalizePhoneNumber(whatsapp.trim())) }}
+                                        placeholder={t.whatsappPlaceholder}
+                                        className="
+                                            w-full text-[15px] rounded-2xl
+                                            focus:outline-none
+                                            transition-all duration-300
+                                        "
+                                        style={{ ...glassInputStyle, padding: '16px 20px' }}
+                                    />
+                                </div>
+                            </div>
+                        )}
+
+                        {/* ── Submit Error (inline, above sticky CTA) ─────── */}
+                        {submitError && (
+                            <p style={{ textAlign: 'center', fontSize: '12px', color: 'rgba(248,113,113,0.9)' }}>
+                                {t.submitError}
                             </p>
                         )}
-                    </div>
+                    </form>
+                </div>
 
-                    {/* ── Contact Inputs ──────────────────────────────── */}
-                    {!isPrefilled && (
-                        <div
-                            className="space-y-3"
-                            style={{ animation: 'reviewSlideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) 0.2s both' }}
-                        >
-                            <label className="block text-[11px] uppercase tracking-[0.15em] text-white/80 font-semibold">
-                                {t.aboutLabel}{' '}
-                                <span className="normal-case tracking-normal text-white/30">({t.optional})</span>
-                            </label>
-                            <input
-                                id="customerName"
-                                name="customerName"
-                                type="text"
-                                autoComplete="name"
-                                value={customerName}
-                                onChange={(e) => setCustomerName(e.target.value)}
-                                placeholder={t.namePlaceholder}
-                                className="
-                                    w-full text-sm py-3 px-4 rounded-xl
-                                    focus:outline-none focus:border-white/25
-                                    transition-colors duration-300
-                                "
-                                style={glassInputStyle}
-                            />
-                            <input
-                                id="whatsapp"
-                                name="whatsapp"
-                                type="tel"
-                                autoComplete="tel"
-                                dir="ltr"
-                                value={whatsapp}
-                                onChange={(e) => setWhatsapp(e.target.value)}
-                                onBlur={() => { if (whatsapp.trim()) setWhatsapp(normalizePhoneNumber(whatsapp.trim())) }}
-                                placeholder={t.whatsappPlaceholder}
-                                className="
-                                    w-full text-sm py-3 px-4 rounded-xl
-                                    focus:outline-none focus:border-white/25
-                                    transition-colors duration-300
-                                "
-                                style={glassInputStyle}
-                            />
-                        </div>
-                    )}
+                {/* ── Sticky CTA + Footer ─────────────────────────── */}
+                <div
+                    style={{
+                        position: 'sticky',
+                        bottom: 0,
+                        zIndex: 20,
+                        padding: '0 24px',
+                        paddingBottom: 'max(16px, env(safe-area-inset-bottom))',
+                        background: 'linear-gradient(to top, #000000 50%, rgba(0,0,0,0.92) 75%, rgba(0,0,0,0) 100%)',
+                        backdropFilter: 'blur(16px)',
+                        WebkitBackdropFilter: 'blur(16px)',
+                        maxWidth: '480px',
+                        margin: '0 auto',
+                        width: '100%',
+                    }}
+                >
+                    {/* Fade edge */}
+                    <div style={{ height: '24px' }} />
 
-                    {/* ── Submit Error ─────────────────────────────────── */}
-                    {submitError && (
-                        <p className="text-center text-xs" style={{ color: 'rgba(248,113,113,0.9)' }}>
-                            {t.submitError}
-                        </p>
-                    )}
-
-                    {/* ── CTA Button ──────────────────────────────────── */}
-                    <div
-                        style={{ animation: 'reviewSlideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) 0.25s both' }}
+                    <button
+                        type="submit"
+                        form="review-form"
+                        disabled={submitting}
+                        onClick={handleSubmit}
+                        className="
+                            w-full text-[15px] font-bold
+                            transition-all duration-500 ease-out
+                            flex items-center justify-center gap-2
+                            focus:outline-none focus:ring-0
+                            active:scale-[0.97]
+                        "
+                        style={{
+                            padding: '20px 24px',
+                            background: submitting
+                                ? 'rgba(197, 160, 89, 0.4)'
+                                : rating
+                                    ? 'linear-gradient(135deg, #C5A059 0%, #D4B978 50%, #C5A059 100%)'
+                                    : 'linear-gradient(135deg, rgba(197,160,89,0.15) 0%, rgba(142,115,91,0.10) 100%)',
+                            backgroundSize: '200% auto',
+                            animation: submitting
+                                ? 'none'
+                                : rating
+                                    ? 'btnShimmer 3s ease-in-out infinite, btnActivate 1.5s ease-out 1'
+                                    : 'none',
+                            color: rating ? '#050505' : 'rgba(197,160,89,0.45)',
+                            boxShadow: rating
+                                ? '0 4px 32px rgba(197, 160, 89, 0.3), 0 1px 3px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.2)'
+                                : '0 2px 8px rgba(0,0,0,0.3)',
+                            border: rating
+                                ? '1px solid rgba(197, 160, 89, 0.5)'
+                                : '1px solid rgba(197, 160, 89, 0.12)',
+                            letterSpacing: '0.1em',
+                            fontFamily: "'Inter', sans-serif",
+                            transition: 'all 0.6s cubic-bezier(0.22, 1, 0.36, 1)',
+                            borderRadius: '16px',
+                        }}
                     >
-                        <button
-                            type="submit"
-                            disabled={submitting}
-                            className="
-                                w-full py-4 rounded-xl text-sm font-bold tracking-wide
-                                transition-all duration-300 ease-out
-                                flex items-center justify-center gap-2
-                                focus:outline-none focus:ring-0
-                                bg-white text-[#0A0A0A]
-                                shadow-lg shadow-white/10
-                                active:scale-[0.98] hover:shadow-white/20
-                            "
-                            style={submitting ? { opacity: 0.7 } : undefined}
-                        >
-                            {submitting ? (
-                                <>
-                                    <Loader2 className="w-4 h-4 animate-spin" />
-                                    <span>{t.submitting}</span>
-                                </>
-                            ) : (
-                                <span>{t.submit}</span>
-                            )}
-                        </button>
-                    </div>
+                        {submitting ? (
+                            <>
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                                <span>{t.submitting}</span>
+                            </>
+                        ) : (
+                            <span>{t.submit}</span>
+                        )}
+                    </button>
 
-                    {/* ── Footer ──────────────────────────────────────── */}
-                    <div className="flex flex-col items-center gap-1">
+                    {/* Footer */}
+                    <div className="flex flex-col items-center" style={{ marginTop: '16px', gap: '6px' }}>
                         <Image
                             src="/images/stitched_logo.png"
                             alt="Stitched"
                             width={200}
                             height={66}
-                            className="h-5 w-auto object-contain brightness-0 invert opacity-50"
+                            className="w-auto object-contain brightness-0 invert opacity-40"
+                            style={{ height: '18px' }}
                         />
-                        <p className="text-[10px] tracking-[0.2em] uppercase" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                        <p style={{ fontSize: '10px', letterSpacing: '0.2em', textTransform: 'uppercase', color: '#3A3A3A' }}>
                             {t.tagline}
                         </p>
                     </div>
-                </form>
+                </div>
             </div>
         </>
     )
