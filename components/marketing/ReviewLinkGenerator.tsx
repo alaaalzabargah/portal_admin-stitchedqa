@@ -377,25 +377,15 @@ function CustomerSelectModal({
         const whatsappWindow = window.open('', '_blank')
 
         try {
-            // Create a short link — keeps the URL clean in WhatsApp
-            const res = await fetch('/api/review-links', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    productHandle: product.handle,
-                    customerName: selectedCustomer.full_name,
-                    customerWhatsapp: selectedCustomer.phone,
-                }),
-            })
-            const json = await res.json()
-            const origin = typeof window !== 'undefined' ? window.location.origin : ''
             const reviewsBase = process.env.NEXT_PUBLIC_REVIEWS_URL || 'https://reviews.stitchedqa.com'
-            // Fallback to full URL if short link creation failed
-            const reviewLink = json.code
-                ? `${origin}/r/${json.code}`
-                : `${reviewsBase}/${product.handle}`
-
-            const firstName = selectedCustomer.full_name?.split(' ')[0] || selectedCustomer.full_name
+            const reviewUrl = new URL(`${reviewsBase}/${product.handle}`)
+            if (selectedCustomer.full_name) {
+                reviewUrl.searchParams.set('n', btoa(encodeURIComponent(selectedCustomer.full_name)))
+            }
+            if (selectedCustomer.phone) {
+                reviewUrl.searchParams.set('p', btoa(encodeURIComponent(selectedCustomer.phone)))
+            }
+            const reviewLink = reviewUrl.toString()
 
             let textToCopy = ''
             if (language === 'EN') {
@@ -409,8 +399,9 @@ function CustomerSelectModal({
 
             if (whatsappWindow) {
                 whatsappWindow.location.href = waUrl
+                // Close the blank tab once WhatsApp app takes over
+                setTimeout(() => { try { whatsappWindow.close() } catch {} }, 1500)
             } else {
-                // Fallback if pre-opened window was blocked
                 window.open(waUrl, '_blank')
             }
 

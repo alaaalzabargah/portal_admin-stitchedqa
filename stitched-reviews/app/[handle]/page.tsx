@@ -607,8 +607,8 @@ export default function CustomerReviewPage({
                             className="flex flex-col items-center"
                             style={{
                                 animation: 'reviewSlideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) 0.1s both',
-                                gap: 'clamp(4px, 1dvh, 8px)',
-                                padding: 'clamp(4px, 1dvh, 8px) 0',
+                                gap: '6px',
+                                padding: '6px 0',
                             }}
                         >
                             <p style={{ color: '#FDFCF0', fontSize: 'clamp(15px, 2dvh, 17px)', letterSpacing: '0.01em', fontFamily: fontSerif }}>
@@ -623,8 +623,8 @@ export default function CustomerReviewPage({
                                 dir="ltr"
                                 className="flex justify-center w-full"
                                 style={{
-                                    gap: 'clamp(8px, 2dvw, 16px)',
-                                    padding: 'clamp(4px, 1dvh, 8px) 0',
+                                    gap: '12px',
+                                    padding: '6px 0',
                                     ...(ratingError ? { animation: 'ratingShake 0.5s ease-in-out' } : {}),
                                 }}
                             >
@@ -646,8 +646,8 @@ export default function CustomerReviewPage({
                                                         : 'text-[#3A3A3A] hover:text-[#6A6A6A]'
                                                     }`}
                                                 style={{
-                                                    width: 'clamp(32px, 5dvh, 40px)',
-                                                    height: 'clamp(32px, 5dvh, 40px)',
+                                                    width: '36px',
+                                                    height: '36px',
                                                     fill: isFilled ? '#FDFCF0' : 'none',
                                                     filter: isFilled ? 'drop-shadow(0 0 8px rgba(197, 160, 89, 0.4))' : undefined,
                                                 }}

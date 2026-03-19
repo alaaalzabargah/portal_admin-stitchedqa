@@ -7,10 +7,16 @@ const notoSansArabic = Noto_Sans_Arabic({ subsets: ['arabic'], variable: '--font
 
 export const metadata: Metadata = {
     title: 'Stitched — Share Your Story',
-    description: 'Tell us about your Stitched experience.',
+    description: 'We\'d love to hear about your Stitched experience ♡',
     icons: {
         icon: '/images/favicon-icon.png',
         apple: '/images/favicon-icon.png',
+    },
+    openGraph: {
+        title: 'Stitched — Share Your Story',
+        description: 'We\'d love to hear about your Stitched experience ♡',
+        siteName: 'Stitched',
+        type: 'website',
     },
 }
 
