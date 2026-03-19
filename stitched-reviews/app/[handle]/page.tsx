@@ -396,7 +396,7 @@ export default function CustomerReviewPage({
                             <p className="text-base text-white/70 mb-2 italic" style={{ fontFamily: fontSerif }}>
                                 {t.thankYouSubtitle}
                             </p>
-                            <p className="text-white/40 text-xs leading-relaxed mb-8 px-2">
+                            <p className="text-white/40 text-xs leading-relaxed mb-8 px-2" style={{ fontFamily: fontSans }}>
                                 {t.thankYouBody}
                             </p>
 
@@ -406,11 +406,12 @@ export default function CustomerReviewPage({
                                 rel="noopener noreferrer"
                                 className="
                                     inline-flex items-center gap-2 px-8 py-3.5 rounded-xl
-                                    bg-white text-stone-900 text-sm font-bold tracking-wide
+                                    bg-white text-stone-900 text-sm font-bold
                                     shadow-xl shadow-black/30
                                     active:scale-[0.98] transition-all duration-300
                                     focus:outline-none focus:ring-0
                                 "
+                                style={{ letterSpacing: isRtl ? '0' : '0.05em', fontFamily: fontSans }}
                             >
                                 {t.visitStitched}
                                 <ExternalLink className="w-4 h-4" />
@@ -430,7 +431,7 @@ export default function CustomerReviewPage({
                             height={66}
                             className="h-4 w-auto object-contain brightness-0 invert opacity-55 mx-auto mb-0.5"
                         />
-                        <p className="text-[10px] tracking-[0.2em] uppercase text-white/45">
+                        <p className="text-[10px] text-white/45" style={{ letterSpacing: isRtl ? '0' : '0.2em', textTransform: isRtl ? 'none' : 'uppercase', fontFamily: fontSans }}>
                             {t.tagline}
                         </p>
                     </div>
@@ -837,7 +838,7 @@ export default function CustomerReviewPage({
                                 className="w-auto object-contain brightness-0 invert opacity-40"
                                 style={{ height: '18px' }}
                             />
-                            <p style={{ fontSize: '10px', letterSpacing: isRtl ? '0' : '0.2em', textTransform: isRtl ? 'none' : 'uppercase', color: '#3A3A3A' }}>
+                            <p style={{ fontSize: '10px', letterSpacing: isRtl ? '0' : '0.2em', textTransform: isRtl ? 'none' : 'uppercase', color: '#3A3A3A', fontFamily: fontSans }}>
                                 {t.tagline}
                             </p>
                         </div>
