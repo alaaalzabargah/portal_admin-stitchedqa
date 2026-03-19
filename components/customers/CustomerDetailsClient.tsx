@@ -102,7 +102,7 @@ export function CustomerDetailsClient({
                                     </div>
                                 </div>
 
-                                <OrderHistory customerId={customer.id} />
+                                <OrderHistory customerId={customer.id} customerName={customer.full_name} customerPhone={customer.phone} />
                             </div>
                         </div>
                     )}

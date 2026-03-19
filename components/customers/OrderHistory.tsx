@@ -6,7 +6,7 @@ import { createClient } from '@/lib/supabase/client'
 import { useThemeSystem } from '@/lib/themes/context'
 import { markDepositAsPaid } from '@/app/actions/orders'
 import { useRouter } from 'next/navigation'
-import { CheckCircle2, Loader2, ShoppingBag, ChevronDown, Package, Wallet, BadgeCheck } from 'lucide-react'
+import { Loader2, ShoppingBag, ChevronDown, Wallet, BadgeCheck, Send, Check, MessageSquare, Globe, X } from 'lucide-react'
 
 interface OrderItem {
     id: string
@@ -33,43 +33,80 @@ interface Order {
     order_items: OrderItem[]
 }
 
-export function OrderHistory({ customerId }: { customerId: string }) {
+interface OrderHistoryProps {
+    customerId: string
+    customerName?: string
+    customerPhone?: string
+}
+
+// ── WhatsApp Message Builders ────────────────────────────────────────
+
+function buildEnMessage(items: { title: string }[], reviewLinks: string[]): string {
+    if (items.length === 1) {
+        return `\u200EStitched would love to hear from you \u2728\n\n\u200EWe hope your new *${items[0].title}* is making you feel extraordinary \uD83E\uDD0D\n\n\u200EWhenever you have a moment, we'd be honored if you shared your experience with us \u2661\n\n\u200E\uD83D\uDC49 ${reviewLinks[0]}`
+    }
+    const itemLines = items.map((p, i) => `\u200E\u2726 *${p.title}* \u2192 ${reviewLinks[i]}`).join('\n')
+    return `\u200EStitched would love to hear from you \u2728\n\n\u200EWe hope you're enjoying your recent Stitched pieces \uD83E\uDD0D\n\n\u200EWhenever you have a moment, we'd love your thoughts \u2661\n\n${itemLines}`
+}
+
+function buildArMessage(items: { title: string }[], reviewLinks: string[]): string {
+    if (items.length === 1) {
+        return `\u200F\u0639\u0627\u0626\u0644\u0629 Stitched \u062A\u062A\u0648\u0642 \u0644\u0633\u0645\u0627\u0639 \u0631\u0623\u064A\u0643 \u2728\n\n\u200F\u0646\u062A\u0645\u0646\u0649 \u0623\u0646 \u062A\u0643\u0648\u0646 *${items[0].title}* \u0642\u062F \u0623\u0636\u0627\u0641\u062A \u0644\u0645\u0633\u0629 \u0645\u0646 \u0627\u0644\u0623\u0646\u0627\u0642\u0629 \u0648\u0627\u0644\u062A\u0645\u064A\u0632 \u0644\u0623\u064A\u0627\u0645\u0643 \uD83E\uDD0D\n\n\u200F\u0645\u062A\u0649 \u0645\u0627 \u0633\u0646\u062D\u062A \u0644\u0643\u0650 \u0627\u0644\u0641\u0631\u0635\u0629\u060C \u064A\u0633\u0639\u062F\u0646\u0627 \u0623\u0646 \u062A\u0634\u0627\u0631\u0643\u064A\u0646\u0627 \u062A\u062C\u0631\u0628\u062A\u0643 \u2661\n\n\u200E\uD83D\uDC49 ${reviewLinks[0]}`
+    }
+    const itemLines = items.map((p, i) => `\u200E\u2726 *${p.title}* \u2190 ${reviewLinks[i]}`).join('\n')
+    return `\u200F\u0639\u0627\u0626\u0644\u0629 Stitched \u062A\u062A\u0648\u0642 \u0644\u0633\u0645\u0627\u0639 \u0631\u0623\u064A\u0643 \u2728\n\n\u200F\u0646\u062A\u0645\u0646\u0649 \u0623\u0646 \u062A\u0643\u0648\u0646 \u0642\u0637\u0639\u0643 \u0627\u0644\u0623\u062E\u064A\u0631\u0629 \u0645\u0646 Stitched \u0642\u062F \u0623\u0636\u0627\u0641\u062A \u0644\u0645\u0633\u0629 \u0645\u0646 \u0627\u0644\u062A\u0645\u064A\u0632 \uD83E\uDD0D\n\n\u200F\u0645\u062A\u0649 \u0645\u0627 \u0633\u0646\u062D\u062A \u0644\u0643\u0650 \u0627\u0644\u0641\u0631\u0635\u0629\u060C \u064A\u0633\u0639\u062F\u0646\u0627 \u0623\u0646 \u062A\u0634\u0627\u0631\u0643\u064A\u0646\u0627 \u062A\u062C\u0631\u0628\u062A\u0643 \u2661\n\n${itemLines}`
+}
+
+// ── Status Helpers ───────────────────────────────────────────────────
+
+function getStatusColor(status: string, financialStatus?: string | null) {
+    if (financialStatus === 'partially_paid') return { bg: 'bg-purple-50', text: 'text-purple-700', border: 'border-purple-200' }
+    switch (status?.toLowerCase()) {
+        case 'paid': return { bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200' }
+        case 'pending': return { bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-200' }
+        case 'cancelled': case 'refunded': return { bg: 'bg-red-50', text: 'text-red-700', border: 'border-red-200' }
+        default: return { bg: 'bg-stone-50', text: 'text-stone-600', border: 'border-stone-200' }
+    }
+}
+
+function getStatusLabel(status: string, financialStatus?: string | null) {
+    if (financialStatus === 'partially_paid') return 'Deposit'
+    return status
+}
+
+// ── Component ────────────────────────────────────────────────────────
+
+export function OrderHistory({ customerId, customerName, customerPhone }: OrderHistoryProps) {
     const [orders, setOrders] = useState<Order[]>([])
     const [loading, setLoading] = useState(true)
     const [expandedOrder, setExpandedOrder] = useState<string | null>(null)
     const [markingPaid, setMarkingPaid] = useState<string | null>(null)
-    const [toastMessage, setToastMessage] = useState<{ text: string, error?: boolean } | null>(null)
+    const [toastMessage, setToastMessage] = useState<{ text: string; error?: boolean } | null>(null)
+
+    // Send review state
+    const [sendingReviewFor, setSendingReviewFor] = useState<string | null>(null)
+    const [reviewSending, setReviewSending] = useState<'EN' | 'AR' | null>(null)
+    const [reviewSent, setReviewSent] = useState<string | null>(null)
+
     const supabase = createClient()
     const { themeConfig } = useThemeSystem()
     const router = useRouter()
 
     useEffect(() => {
         const fetchOrders = async () => {
-            const { data, error } = await supabase
+            const { data } = await supabase
                 .from('orders')
                 .select(`
-                    id,
-                    shopify_order_number,
-                    created_at,
-                    source,
-                    status,
-                    financial_status,
-                    fulfillment_status,
-                    total_amount_minor,
-                    paid_amount_minor,
-                    total_shipping_minor,
-                    currency,
+                    id, shopify_order_number, created_at, source, status,
+                    financial_status, fulfillment_status, total_amount_minor,
+                    paid_amount_minor, total_shipping_minor, currency,
                     order_items (*)
                 `)
                 .eq('customer_id', customerId)
                 .order('created_at', { ascending: false })
-
-            if (data) {
-                setOrders(data)
-            }
+            if (data) setOrders(data)
             setLoading(false)
         }
-
         fetchOrders()
     }, [customerId])
 
@@ -78,330 +115,391 @@ export function OrderHistory({ customerId }: { customerId: string }) {
     }
 
     const handleMarkPaid = async (e: React.MouseEvent, orderId: string) => {
-        // Prevent accordion toggle
         e.stopPropagation()
         setMarkingPaid(orderId)
-
         const result = await markDepositAsPaid(orderId, customerId)
-
         if (result.success) {
-            setToastMessage({ text: 'Order marked as fully paid successfully!' })
-            // Instantly update local state so badge changes from Deposit → Paid
-            setOrders(prev => prev.map(o => o.id === orderId ? {
-                ...o,
-                financial_status: 'paid',
-                status: 'paid',
-                paid_amount_minor: o.total_amount_minor
-            } : o))
+            setToastMessage({ text: 'Order marked as fully paid!' })
+            setOrders(prev => prev.map(o => o.id === orderId ? { ...o, financial_status: 'paid', status: 'paid', paid_amount_minor: o.total_amount_minor } : o))
             router.refresh()
         } else {
             setToastMessage({ text: result.error || 'Failed to update order', error: true })
         }
-
         setMarkingPaid(null)
         setTimeout(() => setToastMessage(null), 3000)
     }
 
-    if (loading) {
-        return <div className="text-center py-12 text-muted-foreground">Loading orders...</div>
-    }
+    // ── Send Review via WhatsApp ─────────────────────────────────────
 
-    const getStatusColor = (status: string, financialStatus?: string | null) => {
-        if (financialStatus === 'partially_paid') return 'bg-purple-100 text-purple-700'
-        switch (status?.toLowerCase()) {
-            case 'paid':
-                return 'bg-emerald-100 text-emerald-700'
-            case 'pending':
-                return 'bg-amber-100 text-amber-700'
-            case 'cancelled':
-            case 'refunded':
-                return 'bg-red-100 text-red-700'
-            default:
-                return 'bg-sand-100 text-sand-700'
+    const handleSendReview = async (e: React.MouseEvent, orderId: string, language: 'EN' | 'AR') => {
+        e.stopPropagation()
+        if (!customerPhone || reviewSending) return
+
+        const order = orders.find(o => o.id === orderId)
+        if (!order || !order.order_items?.length) return
+
+        setReviewSending(language)
+        const whatsappWindow = window.open('', '_blank')
+
+        try {
+            const reviewsBase = process.env.NEXT_PUBLIC_REVIEWS_URL || 'https://reviews.stitchedqa.com'
+            const productNames = order.order_items.map(item => item.product_name)
+
+            let handleMap: Record<string, { title: string; handle: string }> = {}
+            try {
+                const res = await fetch('/api/admin/products/resolve-handles', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ productNames }),
+                })
+                const data = await res.json()
+                if (data.resolved) handleMap = data.resolved
+            } catch {}
+
+            const items: { title: string; handle: string }[] = []
+            const reviewLinks: string[] = []
+
+            for (const orderItem of order.order_items) {
+                const resolved = handleMap[orderItem.product_name]
+                if (!resolved) continue
+
+                items.push({ title: resolved.title, handle: resolved.handle })
+
+                let link = `${reviewsBase}/${resolved.handle}`
+                try {
+                    const res = await fetch('/api/review-links', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            productHandle: resolved.handle,
+                            customerName: customerName?.split(' ')[0],
+                            customerWhatsapp: customerPhone,
+                        }),
+                    })
+                    const json = await res.json()
+                    if (json.code) link = `${reviewsBase}/r/${json.code}`
+                } catch {}
+                reviewLinks.push(link)
+            }
+
+            if (items.length === 0) {
+                setToastMessage({ text: 'Could not match order items to products', error: true })
+                setTimeout(() => setToastMessage(null), 3000)
+                whatsappWindow?.close()
+                return
+            }
+
+            const message = language === 'EN' ? buildEnMessage(items, reviewLinks) : buildArMessage(items, reviewLinks)
+            const phone = customerPhone.replace(/[^0-9]/g, '')
+            const waUrl = `https://api.whatsapp.com/send?phone=${phone}&text=${encodeURIComponent(message)}`
+
+            if (whatsappWindow) {
+                whatsappWindow.location.href = waUrl
+                setTimeout(() => { try { whatsappWindow.close() } catch {} }, 1500)
+            } else {
+                window.open(waUrl, '_blank')
+            }
+
+            setReviewSent(orderId)
+            setSendingReviewFor(null)
+            setTimeout(() => setReviewSent(null), 3000)
+        } catch {
+            whatsappWindow?.close()
+            setToastMessage({ text: 'Failed to send review link', error: true })
+            setTimeout(() => setToastMessage(null), 3000)
+        } finally {
+            setReviewSending(null)
         }
     }
 
-    const getStatusLabel = (status: string, financialStatus?: string | null) => {
-        if (financialStatus === 'partially_paid') return 'Deposit'
-        return status
+    // ── Render ────────────────────────────────────────────────────────
+
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center py-16">
+                <Loader2 className="w-6 h-6 animate-spin text-stone-300" />
+            </div>
+        )
     }
 
     if (!orders || orders.length === 0) {
         return (
-            <div className="text-center py-12 text-muted-foreground">
-                <ShoppingBag className="w-12 h-12 mx-auto mb-3 text-sand-300" />
+            <div className="text-center py-16 text-muted-foreground">
+                <ShoppingBag className="w-10 h-10 mx-auto mb-3 text-stone-200" />
                 <p className="text-sm">No orders yet.</p>
             </div>
         )
     }
 
     return (
-        <div className="space-y-4">
+        <div className="space-y-3">
+            {/* Toast */}
+            {toastMessage && (
+                <div className={cn(
+                    "fixed bottom-6 left-1/2 -translate-x-1/2 z-50 px-5 py-3 rounded-xl text-sm font-medium shadow-lg",
+                    toastMessage.error
+                        ? "bg-red-50 text-red-700 border border-red-200"
+                        : "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                )}>
+                    {toastMessage.text}
+                </div>
+            )}
+
             {orders.map((order) => {
                 const isExpanded = expandedOrder === order.id
                 const itemCount = order.order_items?.length || 0
+                const isDeposit = order.financial_status === 'partially_paid'
+                const isPaid = order.financial_status === 'paid'
+                const statusStyle = getStatusColor(order.status, order.financial_status)
+                const isShowingLangPicker = sendingReviewFor === order.id
+                const wasSent = reviewSent === order.id
 
                 return (
                     <div
                         key={order.id}
                         className={cn(
-                            "luxury-gradient-card overflow-hidden transition-all",
-                            isExpanded && "ring-2 ring-[var(--theme-primary)]/20"
+                            "rounded-2xl overflow-hidden transition-all duration-200 border",
+                            isExpanded ? "shadow-lg" : "shadow-sm hover:shadow-md",
                         )}
+                        style={{
+                            background: 'rgba(255,255,255,0.85)',
+                            backdropFilter: 'blur(12px)',
+                            WebkitBackdropFilter: 'blur(12px)',
+                            borderColor: isExpanded ? `${themeConfig.colors.accent}25` : 'rgba(0,0,0,0.06)',
+                        }}
                     >
-                        {/* Order Header - Clickable */}
-                        <div
-                            role="button"
-                            tabIndex={0}
+                        {/* ── Collapsed Header ─────────────────────────── */}
+                        <button
                             onClick={() => toggleOrder(order.id)}
-                            onKeyDown={(e) => e.key === 'Enter' && toggleOrder(order.id)}
-                            className="relative w-full p-4 sm:p-5 text-left hover:bg-white/30 transition-colors cursor-pointer"
+                            className="w-full text-left p-4 sm:p-5 focus:outline-none transition-colors hover:bg-white/50"
                         >
-                            {/*
-                              * TWO-MODE LAYOUT
-                              * Mobile  (default): vertical stack — info top, action button bottom
-                              * Desktop (md+):     two columns — info left, [button + chevron] right
-                              */}
-                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 sm:gap-6 w-full">
-
-                                {/* ── INFO SECTION ── icon + all text data */}
-                                <div className="flex items-start gap-3 sm:gap-4 flex-1 min-w-0">
-
-                                    {/* Icon + status badge column */}
-                                    <div className="flex flex-col items-center gap-2.5 flex-shrink-0">
-                                        <div
-                                            className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl flex items-center justify-center shadow-sm"
-                                            style={{
-                                                background: `linear-gradient(135deg, ${themeConfig.colors.gradientFrom}20, ${themeConfig.colors.gradientTo}30)`,
-                                                backdropFilter: 'blur(8px)',
-                                                border: `1px solid ${themeConfig.colors.gradientFrom}30`
-                                            }}
-                                        >
-                                            <Package className="w-6 h-6 sm:w-7 sm:h-7" style={{ color: themeConfig.colors.accent }} />
-                                        </div>
-                                        <span className={cn(
-                                            "px-3 py-1.5 rounded-lg text-xs uppercase font-extrabold tracking-wider whitespace-nowrap shadow-sm border border-transparent",
-                                            getStatusColor(order.status, order.financial_status),
-                                            order.financial_status === 'partially_paid' ? "border-purple-200" : ""
-                                        )}>
-                                            {getStatusLabel(order.status, order.financial_status)}
-                                        </span>
-                                    </div>
-
-                                    {/* Text data — grouped cleanly */}
-                                    <div className="flex-1 min-w-0 flex flex-col justify-center space-y-1 pt-0.5">
-                                        {/* Order number */}
-                                        <div className="font-bold text-primary text-base sm:text-lg font-mono tracking-tight text-gray-900">
-                                            #{order.shopify_order_number || order.id.slice(0, 8)}
-                                        </div>
-
-                                        {/* Pricing Block */}
-                                        <div className="flex flex-col gap-0.5 mt-1">
-                                            <div
-                                                className="font-extrabold font-mono text-base sm:text-lg"
-                                                style={{ color: themeConfig.colors.accent }}
-                                            >
-                                                {formatCurrency(
-                                                    order.financial_status === 'partially_paid'
-                                                        ? (order.paid_amount_minor || 0)
-                                                        : order.total_amount_minor,
-                                                    order.currency
-                                                )}
-                                            </div>
-
-                                            {/* Deposit details or shipping note */}
-                                            {order.financial_status === 'partially_paid' ? (
-                                                <div className="text-[13px] sm:text-sm space-y-0.5 leading-snug">
-                                                    <span className="text-gray-500 block">
-                                                        Total: {formatCurrency(order.total_amount_minor, order.currency)}
-                                                    </span>
-                                                    <span className="text-purple-600 font-semibold block bg-purple-50 px-2 py-0.5 rounded-md inline-block mt-0.5 border border-purple-100">
-                                                        Remaining: {formatCurrency((order.total_amount_minor || 0) - (order.paid_amount_minor || 0), order.currency)}
-                                                    </span>
-                                                </div>
-                                            ) : order.total_shipping_minor && order.total_shipping_minor > 0 ? (
-                                                <div className="text-xs sm:text-sm text-gray-500">
-                                                    incl. {formatCurrency(order.total_shipping_minor, order.currency)} ship
-                                                </div>
-                                            ) : null}
-                                        </div>
-
-                                        {/* Meta data (Items & Date) */}
-                                        <div className="flex items-center gap-2 mt-2 text-xs sm:text-sm text-gray-500 font-medium">
-                                            {itemCount > 0 && (
-                                                <>
-                                                    <span>{itemCount} item{itemCount !== 1 ? 's' : ''}</span>
-                                                    <span className="text-gray-300">•</span>
-                                                </>
-                                            )}
-                                            <span className="text-gray-600">
-                                                {new Date(order.created_at).toLocaleDateString(undefined, {
-                                                    day: 'numeric',
-                                                    month: 'short',
-                                                    year: 'numeric'
-                                                })}
-                                            </span>
-                                        </div>
-                                    </div>
+                            {/* Row 1: Order # + Badge + Chevron */}
+                            <div className="flex items-center justify-between gap-3 mb-2">
+                                <div className="flex items-center gap-2.5 min-w-0">
+                                    <span className="font-bold text-base sm:text-lg font-mono tracking-tight text-stone-900">
+                                        #{order.shopify_order_number || order.id.slice(0, 8)}
+                                    </span>
+                                    <span className={cn(
+                                        "px-2 py-0.5 rounded-md text-[10px] uppercase font-bold tracking-wider border",
+                                        statusStyle.bg, statusStyle.text, statusStyle.border
+                                    )}>
+                                        {getStatusLabel(order.status, order.financial_status)}
+                                    </span>
                                 </div>
-
-                                {/* ── ACTION SECTION ── */}
-                                <div className="flex sm:flex-col sm:justify-center items-center justify-between sm:items-end gap-3 sm:flex-shrink-0 pt-4 sm:pt-0 mt-2 sm:mt-0 border-t border-black/5 sm:border-0 w-full sm:w-auto">
-
-                                    <div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-end">
-                                        {/* Status / Actions */}
-                                        {order.financial_status === 'partially_paid' && (
-                                            <button
-                                                onClick={(e) => handleMarkPaid(e, order.id)}
-                                                disabled={markingPaid === order.id}
-                                                className="relative z-10 flex-1 sm:flex-initial inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-[14px] text-sm sm:text-xs font-bold transition-all whitespace-nowrap
-                                                         bg-amber-50 text-amber-700 hover:bg-emerald-50 hover:text-emerald-700 border-2 border-amber-200 hover:border-emerald-300 active:scale-95 shadow-sm"
-                                            >
-                                                {markingPaid === order.id ? (
-                                                    <Loader2 className="w-4 h-4 sm:w-3.5 sm:h-3.5 animate-spin" />
-                                                ) : (
-                                                    <Wallet className="w-4 h-4 sm:w-3.5 sm:h-3.5" />
-                                                )}
-                                                {markingPaid === order.id ? 'Updating...' : 'Mark Fully Paid'}
-                                            </button>
-                                        )}
-
-                                        {order.financial_status === 'paid' && (
-                                            <span className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-sm whitespace-nowrap">
-                                                <BadgeCheck className="w-4 h-4 sm:w-3.5 sm:h-3.5" />
-                                                Fully Paid
-                                            </span>
-                                        )}
-
-                                        {/* Chevron for expansion */}
-                                        <div className="w-10 h-10 rounded-full hover:bg-gray-100 flex items-center justify-center transition-colors">
-                                            <ChevronDown className={cn(
-                                                "w-5 h-5 text-gray-400 transition-transform",
-                                                isExpanded && "rotate-180"
-                                            )} />
-                                        </div>
-                                    </div>
-                                </div>
+                                <ChevronDown className={cn(
+                                    "w-5 h-5 text-stone-300 transition-transform flex-shrink-0",
+                                    isExpanded && "rotate-180"
+                                )} />
                             </div>
-                        </div>
 
-                        {/* Expanded Order Items */}
+                            {/* Row 2: Price block */}
+                            <div className="flex items-baseline gap-3 flex-wrap">
+                                <span
+                                    className="font-bold font-mono text-lg sm:text-xl"
+                                    style={{ color: themeConfig.colors.accent }}
+                                >
+                                    {formatCurrency(
+                                        isDeposit ? (order.paid_amount_minor || 0) : order.total_amount_minor,
+                                        order.currency
+                                    )}
+                                </span>
+                                {isDeposit && (
+                                    <>
+                                        <span className="text-stone-400 text-sm">
+                                            / {formatCurrency(order.total_amount_minor, order.currency)}
+                                        </span>
+                                        <span className="text-purple-600 text-xs font-semibold bg-purple-50 px-2 py-0.5 rounded-md border border-purple-100">
+                                            Remaining: {formatCurrency((order.total_amount_minor || 0) - (order.paid_amount_minor || 0), order.currency)}
+                                        </span>
+                                    </>
+                                )}
+                            </div>
+
+                            {/* Row 3: Meta */}
+                            <div className="flex items-center gap-1.5 mt-2 text-xs text-stone-400">
+                                {itemCount > 0 && (
+                                    <>
+                                        <span>{itemCount} item{itemCount !== 1 ? 's' : ''}</span>
+                                        <span>·</span>
+                                    </>
+                                )}
+                                <span className="capitalize">{order.source?.replace('_', ' ')}</span>
+                                <span>·</span>
+                                <span>
+                                    {new Date(order.created_at).toLocaleDateString(undefined, {
+                                        day: 'numeric', month: 'short', year: 'numeric'
+                                    })}
+                                </span>
+                            </div>
+                        </button>
+
+                        {/* ── Action Bar (always visible, between header and expanded) ── */}
+                        {(isDeposit || isPaid) && (
+                            <div
+                                className="flex items-center gap-2 px-4 sm:px-5 pb-3"
+                                style={{ marginTop: '-4px' }}
+                            >
+                                {isDeposit && (
+                                    <button
+                                        onClick={(e) => handleMarkPaid(e, order.id)}
+                                        disabled={markingPaid === order.id}
+                                        className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-semibold transition-all active:scale-[0.97] disabled:opacity-50 border"
+                                        style={{
+                                            background: `${themeConfig.colors.accent}10`,
+                                            borderColor: `${themeConfig.colors.accent}25`,
+                                            color: themeConfig.colors.accent,
+                                        }}
+                                    >
+                                        {markingPaid === order.id ? (
+                                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                        ) : (
+                                            <Wallet className="w-3.5 h-3.5" />
+                                        )}
+                                        {markingPaid === order.id ? 'Updating...' : 'Mark Fully Paid'}
+                                    </button>
+                                )}
+                                {isPaid && (
+                                    <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-50 text-emerald-600 border border-emerald-100">
+                                        <BadgeCheck className="w-3.5 h-3.5" />
+                                        Paid
+                                    </span>
+                                )}
+                            </div>
+                        )}
+
+                        {/* ── Expanded Section ─────────────────────────── */}
                         {isExpanded && (
                             <div
-                                className="border-t p-4 sm:p-5 space-y-3"
-                                style={{
-                                    backgroundColor: 'rgba(255, 255, 255, 0.3)',
-                                    borderColor: 'rgba(255, 255, 255, 0.5)'
-                                }}
+                                className="border-t px-4 sm:px-5 py-4 space-y-0"
+                                style={{ borderColor: 'rgba(0,0,0,0.05)', background: 'rgba(0,0,0,0.015)' }}
                             >
-                                {/* Items Header */}
-                                <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-3">
-                                    Order Items
-                                </p>
-
-                                {/* Items List */}
+                                {/* Items */}
                                 {order.order_items && order.order_items.length > 0 ? (
-                                    <div className="space-y-3">
+                                    <div className="divide-y" style={{ borderColor: 'rgba(0,0,0,0.05)' }}>
                                         {order.order_items.map((item) => (
-                                            <div
-                                                key={item.id}
-                                                className="rounded-2xl p-3 sm:p-4 shadow-sm"
-                                                style={{
-                                                    backgroundColor: 'rgba(255, 255, 255, 0.8)',
-                                                    backdropFilter: 'blur(8px)',
-                                                    WebkitBackdropFilter: 'blur(8px)',
-                                                    border: `2px solid ${themeConfig.colors.accent}20`
-                                                }}
-                                            >
-                                                {/* Item Details */}
-                                                <div className="flex justify-between items-start gap-3 mb-2">
-                                                    <div className="flex-1 min-w-0">
-                                                        <p className="font-semibold text-primary text-sm sm:text-base">
-                                                            {item.product_name}
-                                                        </p>
-                                                    </div>
-                                                    {/* Price */}
-                                                    <p
-                                                        className="font-bold font-mono text-base sm:text-lg flex-shrink-0"
-                                                        style={{ color: themeConfig.colors.accent }}
-                                                    >
-                                                        {formatCurrency(item.unit_price_minor, order.currency)}
+                                            <div key={item.id} className="flex items-start justify-between gap-3 py-3 first:pt-0">
+                                                <div className="min-w-0 flex-1">
+                                                    <p className="font-medium text-sm text-stone-800">
+                                                        {item.product_name}
+                                                        {item.quantity > 1 && (
+                                                            <span className="text-stone-400 font-normal"> × {item.quantity}</span>
+                                                        )}
                                                     </p>
-                                                </div>
-
-                                                {/* Variant Info - Only show size/color if not in variant_title */}
-                                                <div className="flex flex-wrap gap-2">
-                                                    {item.variant_title ? (
-                                                        <span className="bg-white/60 px-2 py-0.5 rounded-full text-xs">
-                                                            {item.variant_title}
-                                                        </span>
-                                                    ) : (
-                                                        <>
-                                                            {item.size && (
-                                                                <span className="bg-white/60 px-2 py-0.5 rounded-full text-xs">
-                                                                    {item.size}
-                                                                </span>
-                                                            )}
-                                                            {item.color && (
-                                                                <span className="bg-white/60 px-2 py-0.5 rounded-full text-xs">
-                                                                    {item.color}
-                                                                </span>
-                                                            )}
-                                                        </>
-                                                    )}
-                                                    {item.quantity > 1 && (
-                                                        <span className="text-xs text-muted-foreground">
-                                                            × {item.quantity}
-                                                        </span>
+                                                    {(item.variant_title || item.size || item.color) && (
+                                                        <p className="text-xs text-stone-400 mt-0.5">
+                                                            {item.variant_title || [item.size, item.color].filter(Boolean).join(' / ')}
+                                                        </p>
                                                     )}
                                                 </div>
+                                                <span
+                                                    className="font-semibold font-mono text-sm flex-shrink-0"
+                                                    style={{ color: themeConfig.colors.accent }}
+                                                >
+                                                    {formatCurrency(item.unit_price_minor, order.currency)}
+                                                </span>
                                             </div>
                                         ))}
                                     </div>
                                 ) : (
-                                    <p className="text-sm text-muted-foreground italic">
-                                        No item details available
-                                    </p>
+                                    <p className="text-sm text-stone-400 italic py-3">No item details available</p>
                                 )}
 
-                                {/* Shipping */}
-                                {order.total_shipping_minor && order.total_shipping_minor > 0 && (
-                                    <div
-                                        className="px-4 py-3 rounded-2xl border flex justify-between items-center"
-                                        style={{
-                                            backgroundColor: 'rgba(255, 255, 255, 0.6)',
-                                            backdropFilter: 'blur(8px)',
-                                            WebkitBackdropFilter: 'blur(8px)',
-                                            borderColor: 'rgba(255, 255, 255, 0.6)'
-                                        }}
-                                    >
-                                        <span className="text-sm text-muted-foreground">Shipping:</span>
+                                {/* Shipping + Total */}
+                                <div
+                                    className="pt-3 mt-1 border-t space-y-2"
+                                    style={{ borderColor: 'rgba(0,0,0,0.06)' }}
+                                >
+                                    {order.total_shipping_minor != null && order.total_shipping_minor > 0 && (
+                                        <div className="flex justify-between text-xs text-stone-400">
+                                            <span>Shipping</span>
+                                            <span className="font-mono">
+                                                {formatCurrency(order.total_shipping_minor, order.currency)}
+                                            </span>
+                                        </div>
+                                    )}
+                                    <div className="flex justify-between items-center">
+                                        <span className="text-xs font-medium text-stone-500">
+                                            {isDeposit ? 'Total Paid' : 'Total'}
+                                        </span>
                                         <span
-                                            className="text-sm font-bold font-mono"
+                                            className="font-bold font-mono text-base"
                                             style={{ color: themeConfig.colors.accent }}
                                         >
-                                            {formatCurrency(order.total_shipping_minor, order.currency)}
+                                            {formatCurrency(
+                                                isDeposit ? (order.paid_amount_minor || 0) : order.total_amount_minor,
+                                                order.currency
+                                            )}
                                         </span>
                                     </div>
-                                )}
-
-                                {/* Order Summary Footer */}
-                                <div
-                                    className="flex flex-wrap justify-between items-center pt-4 mt-3 border-t gap-2"
-                                    style={{ borderColor: `${themeConfig.colors.accent}30` }}
-                                >
-                                    <div className="text-xs text-muted-foreground">
-                                        Source: <span className="capitalize font-medium">{order.source?.replace('_', ' ')}</span>
-                                    </div>
-                                    <div
-                                        className="font-bold text-base sm:text-lg font-mono"
-                                        style={{ color: themeConfig.colors.primary }}
-                                    >
-                                        {order.financial_status === 'partially_paid'
-                                            ? <>Paid: {formatCurrency(order.paid_amount_minor || 0, order.currency)}</>
-                                            : <>Total: {formatCurrency(order.total_amount_minor, order.currency)}</>}
-                                    </div>
                                 </div>
+
+                                {/* ── Send Review ──────────────────────────── */}
+                                {customerPhone && itemCount > 0 && (
+                                    <div
+                                        className="pt-3 mt-3 border-t"
+                                        style={{ borderColor: 'rgba(0,0,0,0.06)' }}
+                                    >
+                                        {wasSent ? (
+                                            <div className="flex items-center justify-center gap-2 py-2.5 rounded-xl bg-emerald-50 text-emerald-600 text-xs font-semibold border border-emerald-100">
+                                                <Check className="w-3.5 h-3.5" />
+                                                Opened in WhatsApp
+                                            </div>
+                                        ) : !isShowingLangPicker ? (
+                                            <button
+                                                onClick={(e) => {
+                                                    e.stopPropagation()
+                                                    setSendingReviewFor(order.id)
+                                                }}
+                                                className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-semibold transition-all active:scale-[0.98] focus:outline-none border"
+                                                style={{
+                                                    color: themeConfig.colors.accent,
+                                                    borderColor: `${themeConfig.colors.accent}20`,
+                                                    background: `${themeConfig.colors.accent}05`,
+                                                }}
+                                            >
+                                                <Send className="w-3.5 h-3.5" />
+                                                Send Review Link
+                                            </button>
+                                        ) : (
+                                            <div className="flex items-center gap-2">
+                                                <button
+                                                    onClick={(e) => handleSendReview(e, order.id, 'EN')}
+                                                    disabled={reviewSending !== null}
+                                                    className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-semibold transition-all active:scale-[0.97] focus:outline-none disabled:opacity-50 text-white"
+                                                    style={{
+                                                        background: `linear-gradient(135deg, ${themeConfig.colors.accent}, ${themeConfig.colors.gradientTo || themeConfig.colors.accent})`,
+                                                        boxShadow: `0 2px 12px ${themeConfig.colors.accent}25`,
+                                                    }}
+                                                >
+                                                    {reviewSending === 'EN' ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <MessageSquare className="w-3.5 h-3.5" />}
+                                                    {reviewSending === 'EN' ? 'Sending...' : 'English'}
+                                                </button>
+                                                <button
+                                                    onClick={(e) => handleSendReview(e, order.id, 'AR')}
+                                                    disabled={reviewSending !== null}
+                                                    className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-semibold transition-all active:scale-[0.97] focus:outline-none disabled:opacity-50 border"
+                                                    style={{
+                                                        color: themeConfig.colors.accent,
+                                                        borderColor: `${themeConfig.colors.accent}25`,
+                                                        background: `${themeConfig.colors.accent}08`,
+                                                    }}
+                                                >
+                                                    {reviewSending === 'AR' ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Globe className="w-3.5 h-3.5" />}
+                                                    {reviewSending === 'AR' ? 'Sending...' : 'Arabic'}
+                                                </button>
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation()
+                                                        setSendingReviewFor(null)
+                                                    }}
+                                                    className="w-9 h-9 flex items-center justify-center rounded-lg text-stone-300 hover:text-stone-500 hover:bg-stone-100 transition-colors focus:outline-none flex-shrink-0"
+                                                >
+                                                    <X className="w-3.5 h-3.5" />
+                                                </button>
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
                             </div>
                         )}
                     </div>
