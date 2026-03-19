@@ -120,15 +120,21 @@ const FALLING_ICONS = [
     { icon: '🧵', left: '90%', delay: '2.5s', duration: '5s', size: 'text-xs' },
 ]
 
+// ── Font stacks ──────────────────────────────────────────────────────────────
+
+const FONT_SANS_EN = "'Inter', -apple-system, BlinkMacSystemFont, sans-serif"
+const FONT_SANS_AR = "'Tajawal', 'Noto Naskh Arabic', -apple-system, sans-serif"
+const FONT_SERIF_EN = "'Cormorant Garamond', Georgia, serif"
+const FONT_SERIF_AR = "'Noto Naskh Arabic', 'Tajawal', serif"
+
 // ── Shared input styles ────────────────────────────────────────────────────
 
-const glassInputStyle: React.CSSProperties = {
+const glassInputBase: React.CSSProperties = {
     background: 'rgba(12, 12, 12, 0.85)',
     border: '1px solid rgba(255, 255, 255, 0.08)',
     color: '#FDFCF0',
     borderRadius: '16px',
     fontSize: '15px',
-    fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif",
     transition: 'border-color 0.3s ease, box-shadow 0.3s ease',
 }
 
@@ -155,6 +161,9 @@ export default function CustomerReviewPage({
     const [lang, setLang] = useState<Lang>('en')
     const t = copy[lang]
     const isRtl = lang === 'ar'
+    const fontSans = isRtl ? FONT_SANS_AR : FONT_SANS_EN
+    const fontSerif = isRtl ? FONT_SERIF_AR : FONT_SERIF_EN
+    const glassInputStyle: React.CSSProperties = { ...glassInputBase, fontFamily: fontSans }
 
     const [product, setProduct] = useState<Product | null>(null)
     const [productLoading, setProductLoading] = useState(true)
@@ -296,7 +305,7 @@ export default function CustomerReviewPage({
                 dir={isRtl ? 'rtl' : 'ltr'}
             >
                 <div className="text-center max-w-sm">
-                    <p className="font-serif" style={{ fontSize: '24px', color: '#FDFCF0', marginBottom: '12px' }}>{t.productNotFound}</p>
+                    <p style={{ fontSize: '24px', color: '#FDFCF0', marginBottom: '12px', fontFamily: fontSerif }}>{t.productNotFound}</p>
                     <p style={{ color: '#6A6A6A', fontSize: '14px', lineHeight: '1.6' }}>{t.productNotFoundDesc}</p>
                 </div>
             </div>
@@ -379,12 +388,12 @@ export default function CustomerReviewPage({
                             </div>
 
                             <h1
-                                className="font-serif text-4xl text-white mb-2 tracking-tight"
-                                style={{ textShadow: '0 2px 24px rgba(0,0,0,0.6)' }}
+                                className="text-4xl text-white mb-2 tracking-tight"
+                                style={{ textShadow: '0 2px 24px rgba(0,0,0,0.6)', fontFamily: fontSerif }}
                             >
                                 {t.thankYouTitle}
                             </h1>
-                            <p className="font-serif text-base text-white/70 mb-2 italic">
+                            <p className="text-base text-white/70 mb-2 italic" style={{ fontFamily: fontSerif }}>
                                 {t.thankYouSubtitle}
                             </p>
                             <p className="text-white/40 text-xs leading-relaxed mb-8 px-2">
@@ -439,7 +448,7 @@ export default function CustomerReviewPage({
                 input::placeholder, textarea::placeholder {
                     color: #4A4A4A !important;
                     opacity: 1;
-                    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+                    font-family: ${fontSans};
                 }
                 input:focus, textarea:focus {
                     border-color: rgba(197, 160, 89, 0.45) !important;
@@ -478,7 +487,7 @@ export default function CustomerReviewPage({
                     display: 'flex',
                     flexDirection: 'column',
                     position: 'relative',
-                    overflow: 'hidden',
+                    fontFamily: fontSans,
                 }}
                 dir={isRtl ? 'rtl' : 'ltr'}
             >
@@ -585,8 +594,8 @@ export default function CustomerReviewPage({
                                 </p>
                                 <div style={{ height: '1px', width: '32px', background: 'rgba(197,160,89,0.2)', marginBottom: '8px' }} />
                                 <h1
-                                    className="font-serif font-semibold leading-snug line-clamp-2"
-                                    style={{ color: '#FDFCF0', fontSize: 'clamp(17px, 2.5dvh, 20px)', letterSpacing: '-0.01em', textShadow: '0 1px 12px rgba(197,160,89,0.15)' }}
+                                    className="font-semibold leading-snug line-clamp-2"
+                                    style={{ color: '#FDFCF0', fontSize: 'clamp(17px, 2.5dvh, 20px)', letterSpacing: '-0.01em', textShadow: '0 1px 12px rgba(197,160,89,0.15)', fontFamily: fontSerif }}
                                 >
                                     {product.title}
                                 </h1>
@@ -602,12 +611,11 @@ export default function CustomerReviewPage({
                                 padding: 'clamp(4px, 1dvh, 8px) 0',
                             }}
                         >
-                            <p className="font-serif" style={{ color: '#FDFCF0', fontSize: 'clamp(15px, 2dvh, 17px)', letterSpacing: '0.01em' }}>
+                            <p style={{ color: '#FDFCF0', fontSize: 'clamp(15px, 2dvh, 17px)', letterSpacing: '0.01em', fontFamily: fontSerif }}>
                                 {t.question}
                             </p>
                             <p
-                                className="font-serif"
-                                style={{ color: rating ? '#FDFCF0' : '#6A6A6A', fontSize: '14px', height: '24px', lineHeight: '24px', letterSpacing: '0.02em' }}
+                                style={{ color: rating ? '#FDFCF0' : '#6A6A6A', fontSize: '14px', height: '24px', lineHeight: '24px', letterSpacing: '0.02em', fontFamily: fontSerif }}
                             >
                                 {rating ? t.ratings[rating] : t.tapToRate}
                             </p>
@@ -664,7 +672,7 @@ export default function CustomerReviewPage({
                                 padding: 'clamp(16px, 2.5dvh, 24px)',
                             }}
                         >
-                            <label className="block uppercase font-semibold" style={{ marginBottom: '12px', fontSize: '11px', letterSpacing: '0.1em', color: '#A1A1A1', fontFamily: "'Inter', sans-serif" }}>
+                            <label className="block uppercase font-semibold" style={{ marginBottom: '12px', fontSize: '11px', letterSpacing: '0.1em', color: '#A1A1A1', fontFamily: fontSans }}>
                                 {t.experienceLabel}{' '}
                                 <span style={{ textTransform: 'none', letterSpacing: 'normal', color: '#4A4A4A' }}>({t.optional})</span>
                             </label>
@@ -702,7 +710,7 @@ export default function CustomerReviewPage({
                                     padding: 'clamp(16px, 2.5dvh, 24px)',
                                 }}
                             >
-                                <label className="block uppercase font-semibold" style={{ marginBottom: '12px', fontSize: '11px', letterSpacing: '0.1em', color: '#A1A1A1', fontFamily: "'Inter', sans-serif" }}>
+                                <label className="block uppercase font-semibold" style={{ marginBottom: '12px', fontSize: '11px', letterSpacing: '0.1em', color: '#A1A1A1', fontFamily: fontSans }}>
                                     {t.aboutLabel}{' '}
                                     <span style={{ textTransform: 'none', letterSpacing: 'normal', color: '#4A4A4A' }}>({t.optional})</span>
                                 </label>
@@ -752,86 +760,87 @@ export default function CustomerReviewPage({
                     </form>
                 </div>
 
-                {/* ── Sticky CTA + Footer ─────────────────────────── */}
+                {/* ── Fixed CTA + Footer ─────────────────────────── */}
                 <div
                     style={{
-                        position: 'sticky',
+                        position: 'fixed',
                         bottom: 0,
+                        left: 0,
+                        right: 0,
                         zIndex: 20,
                         padding: '0 24px',
                         paddingBottom: 'max(16px, env(safe-area-inset-bottom))',
                         background: 'linear-gradient(to top, #000000 50%, rgba(0,0,0,0.92) 75%, rgba(0,0,0,0) 100%)',
                         backdropFilter: 'blur(16px)',
                         WebkitBackdropFilter: 'blur(16px)',
-                        maxWidth: '480px',
-                        margin: '0 auto',
-                        width: '100%',
                     }}
                 >
-                    {/* Fade edge */}
-                    <div style={{ height: '24px' }} />
+                    <div style={{ maxWidth: '480px', margin: '0 auto', width: '100%' }}>
+                        {/* Fade edge */}
+                        <div style={{ height: '24px' }} />
 
-                    <button
-                        type="submit"
-                        form="review-form"
-                        disabled={submitting}
-                        onClick={handleSubmit}
-                        className="
-                            w-full text-[15px] font-bold
-                            transition-all duration-500 ease-out
-                            flex items-center justify-center gap-2
-                            focus:outline-none focus:ring-0
-                            active:scale-[0.97]
-                        "
-                        style={{
-                            padding: '20px 24px',
-                            background: submitting
-                                ? 'rgba(197, 160, 89, 0.4)'
-                                : rating
-                                    ? 'linear-gradient(135deg, #C5A059 0%, #D4B978 50%, #C5A059 100%)'
-                                    : 'linear-gradient(135deg, rgba(197,160,89,0.15) 0%, rgba(142,115,91,0.10) 100%)',
-                            backgroundSize: '200% auto',
-                            animation: submitting
-                                ? 'none'
-                                : rating
-                                    ? 'btnShimmer 3s ease-in-out infinite, btnActivate 1.5s ease-out 1'
-                                    : 'none',
-                            color: rating ? '#050505' : 'rgba(197,160,89,0.45)',
-                            boxShadow: rating
-                                ? '0 4px 32px rgba(197, 160, 89, 0.3), 0 1px 3px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.2)'
-                                : '0 2px 8px rgba(0,0,0,0.3)',
-                            border: rating
-                                ? '1px solid rgba(197, 160, 89, 0.5)'
-                                : '1px solid rgba(197, 160, 89, 0.12)',
-                            letterSpacing: '0.1em',
-                            fontFamily: "'Inter', sans-serif",
-                            transition: 'all 0.6s cubic-bezier(0.22, 1, 0.36, 1)',
-                            borderRadius: '16px',
-                        }}
-                    >
-                        {submitting ? (
-                            <>
-                                <Loader2 className="w-4 h-4 animate-spin" />
-                                <span>{t.submitting}</span>
-                            </>
-                        ) : (
-                            <span>{t.submit}</span>
-                        )}
-                    </button>
+                        <button
+                            type="submit"
+                            form="review-form"
+                            disabled={submitting}
+                            onClick={handleSubmit}
+                            className="
+                                w-full text-[15px] font-bold
+                                transition-all duration-500 ease-out
+                                flex items-center justify-center gap-2
+                                focus:outline-none focus:ring-0
+                                active:scale-[0.97]
+                            "
+                            style={{
+                                padding: '20px 24px',
+                                background: submitting
+                                    ? 'rgba(197, 160, 89, 0.4)'
+                                    : rating
+                                        ? 'linear-gradient(135deg, #C5A059 0%, #D4B978 50%, #C5A059 100%)'
+                                        : 'linear-gradient(135deg, rgba(197,160,89,0.15) 0%, rgba(142,115,91,0.10) 100%)',
+                                backgroundSize: '200% auto',
+                                animation: submitting
+                                    ? 'none'
+                                    : rating
+                                        ? 'btnShimmer 3s ease-in-out infinite, btnActivate 1.5s ease-out 1'
+                                        : 'none',
+                                color: rating ? '#050505' : 'rgba(197,160,89,0.45)',
+                                boxShadow: rating
+                                    ? '0 4px 32px rgba(197, 160, 89, 0.3), 0 1px 3px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.2)'
+                                    : '0 2px 8px rgba(0,0,0,0.3)',
+                                border: rating
+                                    ? '1px solid rgba(197, 160, 89, 0.5)'
+                                    : '1px solid rgba(197, 160, 89, 0.12)',
+                                letterSpacing: '0.1em',
+                                fontFamily: fontSans,
+                                transition: 'all 0.6s cubic-bezier(0.22, 1, 0.36, 1)',
+                                borderRadius: '16px',
+                            }}
+                        >
+                            {submitting ? (
+                                <>
+                                    <Loader2 className="w-4 h-4 animate-spin" />
+                                    <span>{t.submitting}</span>
+                                </>
+                            ) : (
+                                <span>{t.submit}</span>
+                            )}
+                        </button>
 
-                    {/* Footer */}
-                    <div className="flex flex-col items-center" style={{ marginTop: '16px', gap: '6px' }}>
-                        <Image
-                            src="/images/stitched_logo.png"
-                            alt="Stitched"
-                            width={200}
-                            height={66}
-                            className="w-auto object-contain brightness-0 invert opacity-40"
-                            style={{ height: '18px' }}
-                        />
-                        <p style={{ fontSize: '10px', letterSpacing: '0.2em', textTransform: 'uppercase', color: '#3A3A3A' }}>
-                            {t.tagline}
-                        </p>
+                        {/* Footer */}
+                        <div className="flex flex-col items-center" style={{ marginTop: '16px', gap: '6px' }}>
+                            <Image
+                                src="/images/stitched_logo.png"
+                                alt="Stitched"
+                                width={200}
+                                height={66}
+                                className="w-auto object-contain brightness-0 invert opacity-40"
+                                style={{ height: '18px' }}
+                            />
+                            <p style={{ fontSize: '10px', letterSpacing: '0.2em', textTransform: 'uppercase', color: '#3A3A3A' }}>
+                                {t.tagline}
+                            </p>
+                        </div>
                     </div>
                 </div>
             </div>
