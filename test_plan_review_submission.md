@@ -9,14 +9,14 @@
 ### 🟢 Positive Test Cases
 | Test ID | Scenario | Steps to Execute | Expected Result |
 | :--- | :--- | :--- | :--- |
-| **FT-P01** | **Submit full valid review** | 1. Select a rating (e.g., 5 stars).<br>2. Fill in Name and Email (if applicable).<br>3. Enter review text.<br>4. Click "Share My Story". | Form submits successfully. A success confirmation/thank you state is displayed. |
-| **FT-P02** | **Submit minimum required data** | 1. Select the mandatory rating.<br>2. Leave optional text fields empty.<br>3. Click "Share My Story". | Form submits successfully if text is optional, OR prompts for text if it is mandatory. |
+| **FT-P01** | **Submit full valid review** | 1. Select a rating (e.g., 5 stars).<br>2. Fill in Name and Email (if applicable).<br>3. Enter review text.<br>4. Click "Share Your Thoughts". | Form submits successfully. A success confirmation/thank you state is displayed. |
+| **FT-P02** | **Submit minimum required data** | 1. Select the mandatory rating.<br>2. Leave optional text fields empty.<br>3. Click "Share Your Thoughts". | Form submits successfully if text is optional, OR prompts for text if it is mandatory. |
 | **FT-P03** | **Change rating before submission** | 1. Click 3 stars.<br>2. Change to 5 stars.<br>3. Submit. | The final selected rating (5 stars) is recorded in the payload and database. |
 
 ### 🔴 Negative Test Cases
 | Test ID | Scenario | Steps to Execute | Expected Result |
 | :--- | :--- | :--- | :--- |
-| **FT-N01** | **Submit empty form** | 1. Load the page.<br>2. Do not interact with any fields.<br>3. Click "Share My Story". | Submission blocked. Inline validation errors appear (e.g., "Rating is required", "Name is required"). |
+| **FT-N01** | **Submit empty form** | 1. Load the page.<br>2. Do not interact with any fields.<br>3. Click "Share Your Thoughts". | Submission blocked. Inline validation errors appear (e.g., "Rating is required", "Name is required"). |
 | **FT-N02** | **Submit without rating** | 1. Fill in all text fields (Name, Review).<br>2. Leave the star rating empty.<br>3. Click submit. | Submission blocked. Highlight the rating component indicating it is mandatory. |
 | **FT-N03** | **Invalid Email Format (if applicable)** | 1. Enter `test@.com` or `invalid-email` into the email field.<br>2. Fill other required fields and submit. | Submission blocked. Inline validation error: "Please enter a valid email address." |
 
@@ -36,7 +36,7 @@
 | :--- | :--- | :--- | :--- |
 | **FT-E01** | **Exceed max character limit** | 1. Paste 10,000+ characters into the review text area.<br>2. Attempt to type more or submit. | The input should truncate at the max limit (e.g., 500 or 1000 chars), or submission should fail with a clear "Text too long" error. |
 | **FT-E02** | **Special characters & emojis** | 1. Enter names and reviews containing emojis (✨👗), Arabic text (عباية), and symbols (`'<>;--`).<br>2. Submit. | Data is accepted, stored, and retrieved without corruption, encoding issues, or triggering SQL injection/XSS. |
-| **FT-E03** | **Rapid double-click submission** | 1. Fill valid data.<br>2. Rapidly double-click/tap the "Share My Story" button. | Only ONE network request is sent. The button should enter a disabled/loading state immediately after the first click. |
+| **FT-E03** | **Rapid double-click submission** | 1. Fill valid data.<br>2. Rapidly double-click/tap the "Share Your Thoughts" button. | Only ONE network request is sent. The button should enter a disabled/loading state immediately after the first click. |
 | **FT-E04** | **Network drop during submission** | 1. Fill valid data.<br>2. Use browser tools to go "Offline".<br>3. Submit. | The app handles the timeout gracefully and shows "Please check your network connection" rather than crashing. |
 
 ---
@@ -50,7 +50,7 @@
 | **UI-03** | **Form Positioning** | The review form, rating, and inputs must sit entirely within the dark bottom half of the screen where the gradient is darkest. |
 | **UI-04** | **Typography & Contrast** | Primary text (labels, inputs) must be crisp white. Placeholder text must be a legible light grey (`#e0d0c0` or similar). |
 | **UI-05** | **Input Fields & Focus** | Text areas and inputs should have a subtle white/translucent background fill and a delicate border. Upon focus, they should highlight smoothly without jarring layout shifts. |
-| **UI-06** | **"Share My Story" CTA** | The button must look premium. Hover and active states must trigger smooth transitions (e.g., color shift, slight scale, or shadow change). |
+| **UI-06** | **"Share Your Thoughts" CTA** | The button must look premium. Hover and active states must trigger smooth transitions (e.g., color shift, slight scale, or shadow change). |
 | **UI-07** | **Responsive Design** | On mobile (iPhone SE, Pro Max) and tablets: The form should stack neatly, inputs should be large enough to tap easily (min 44px height), and the on-screen keyboard should not obscure the active input field. |
 
 ---
@@ -60,7 +60,7 @@
 | Test ID | Area | Testing Steps & Expected Outcome |
 | :--- | :--- | :--- |
 | **TC-01** | **API Payload Structure** | Intercept the POST request. Verify the JSON payload correctly maps data (e.g., `rating`: 5, `text`: "...", `product_id`: "s17"). Types should be correct (rating as number vs. string). |
-| **TC-02** | **Loading States** | Upon submission, the "Share My Story" button should become disabled and preferably show a spinner/loading text to indicate network activity. |
+| **TC-02** | **Loading States** | Upon submission, the "Share Your Thoughts" button should become disabled and preferably show a spinner/loading text to indicate network activity. |
 | **TC-03** | **Server Errors (5xx)** | Mock the API to return a `500 Internal Server Error`. The UI must catch this and display a user-friendly error string (e.g., "Something went wrong. Please try again.") instead of logging the raw error or crashing. |
 | **TC-04** | **Cross-Site Scripting (XSS)** | Attempt to input `<script>alert('hack')</script>` in the review body. The backend OR frontend must sanitize the input so it is treated as plain text if rendered later. |
 | **TC-05** | **Performance (LCP/CLS)** | Run Lighthouse. The large background image must be optimized (e.g., WebP, proper sizing) so the Largest Contentful Paint (LCP) is under 2.5 seconds. The layout must not shift (CLS < 0.1) as the form loads over the image limit. |
@@ -71,7 +71,7 @@
 
 | Test ID | Area | Testing Steps & Expected Outcome |
 | :--- | :--- | :--- |
-| **ML-01** | **Language Toggle (AR/EN)** | 1. Switch the page language to Arabic.<br>2. Verify RTL layout, Arabic fonts, and translated placeholders ("Share My Story" -> "شارك قصتك").<br>3. Submit a review in Arabic.<br>4. Switch back to English and submit an English review.<br>**Expected:** Both submit successfully. Layout behaves correctly in RTL. |
+| **ML-01** | **Language Toggle (AR/EN)** | 1. Switch the page language to Arabic.<br>2. Verify RTL layout, Arabic fonts, and translated placeholders ("Share Your Thoughts" -> "شارك قصتك").<br>3. Submit a review in Arabic.<br>4. Switch back to English and submit an English review.<br>**Expected:** Both submit successfully. Layout behaves correctly in RTL. |
 | **MP-01** | **Cross-Product Submission** | 1. Submit a review on `/review/s17`.<br>2. Navigate to another product, e.g., `/review/k4`.<br>3. Submit a review there.<br>**Expected:** Each review is correctly associated with its respective `product_id`. The S17 review should not appear under K4. |
 
 ---

@@ -1,17 +1,67 @@
 @import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Inter:wght@300;400;500;600&display=swap');
 
-/* ── Base reset for review app ──────────────────────────────────── */
+/* ── Quiet Luxury Design Tokens ──────────────────────────────────── */
 
-* {
-    margin: 0;
-    padding: 0;
+:root {
+    /* Surfaces */
+    --void: #050505;
+    --canvas: #121212;
+    --canvas-elevated: #1A1A1A;
+
+    /* Accent */
+    --gold: #C5A059;
+    --gold-muted: #8E735B;
+    --gold-glow: rgba(197, 160, 89, 0.4);
+    --gold-border: rgba(197, 160, 89, 0.18);
+    --gold-border-focus: rgba(197, 160, 89, 0.45);
+
+    /* Text hierarchy */
+    --text-heading: #FDFCF0;
+    --text-body: #A1A1A1;
+    --text-muted: #6A6A6A;
+    --text-placeholder: #4A4A4A;
+
+    /* Borders */
+    --rim-light: rgba(255, 255, 255, 0.08);
+    --rim-light-hover: rgba(255, 255, 255, 0.12);
+
+    /* Typography */
+    --font-serif: 'Cormorant Garamond', 'Georgia', serif;
+    --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+
+    /* Spacing (8px grid) */
+    --space-1: 8px;
+    --space-2: 16px;
+    --space-3: 24px;
+    --space-4: 32px;
+    --space-5: 40px;
+
+    /* Radii */
+    --radius-input: 16px;
+    --radius-card: 24px;
+}
+
+/* ── Base Reset ──────────────────────────────────────────────────── */
+
+*,
+*::before,
+*::after {
     box-sizing: border-box;
 }
 
 html, body {
-    background: #000000;
+    background: var(--void);
+    font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    color: var(--text-body);
+}
+
+/* ── Typography ──────────────────────────────────────────────────── */
+
+.font-serif {
+    font-family: var(--font-serif) !important;
 }
 
 /* ── Scrollbar — minimal dark ───────────────────────────────────── */
@@ -23,7 +73,7 @@ html, body {
     background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.15);
+    background: rgba(255, 255, 255, 0.12);
     border-radius: 99px;
 }
 
