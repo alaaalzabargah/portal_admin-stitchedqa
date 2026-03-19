@@ -425,90 +425,234 @@ function CustomerSelectModal({
     }
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-stone-900/50 backdrop-blur-sm">
-            <div className="bg-white rounded-2xl w-full max-w-lg shadow-xl overflow-hidden flex flex-col max-h-[90vh]">
-                <div className="p-4 border-b border-stone-100 flex items-center justify-between">
-                    <div>
-                        <h3 className="font-semibold text-stone-900">Send Review Link</h3>
-                        <p className="text-xs text-stone-500 mt-0.5">{product.title}</p>
+        <div
+            className="fixed inset-0 z-50 flex items-end sm:items-center justify-center"
+            style={{ background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}
+            onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
+        >
+            <div
+                className="w-full max-w-md overflow-hidden flex flex-col sm:rounded-2xl rounded-t-2xl"
+                style={{
+                    maxHeight: '85vh',
+                    background: '#0A0A0A',
+                    border: '1px solid rgba(201,169,110,0.12)',
+                    boxShadow: '0 24px 80px rgba(0,0,0,0.6), 0 0 1px rgba(201,169,110,0.2)',
+                }}
+            >
+                {/* ── Header ──────────────────────────────────── */}
+                <div
+                    className="flex items-center justify-between"
+                    style={{
+                        padding: '20px 24px 16px',
+                        borderBottom: '1px solid rgba(255,255,255,0.06)',
+                    }}
+                >
+                    <div className="min-w-0 flex-1">
+                        {selectedCustomer && (
+                            <button
+                                onClick={() => setSelectedCustomer(null)}
+                                className="flex items-center gap-1 text-xs mb-2 transition-colors focus:outline-none"
+                                style={{ color: 'rgba(201,169,110,0.7)' }}
+                                onMouseEnter={e => (e.currentTarget.style.color = '#C9A96E')}
+                                onMouseLeave={e => (e.currentTarget.style.color = 'rgba(201,169,110,0.7)')}
+                            >
+                                <ChevronLeft className="w-3 h-3" />
+                                Back to search
+                            </button>
+                        )}
+                        <h3 style={{ fontSize: '16px', fontWeight: 600, color: '#FAFAFA', letterSpacing: '0.01em' }}>
+                            {selectedCustomer ? 'Send via WhatsApp' : 'Send Review Link'}
+                        </h3>
+                        <p style={{ fontSize: '12px', color: 'rgba(250,250,250,0.4)', marginTop: '2px' }}>{product.title}</p>
                     </div>
-                    <button onClick={onClose} className="p-2 hover:bg-stone-100 rounded-lg text-stone-400 focus:outline-none">
+                    <button
+                        onClick={onClose}
+                        className="flex-shrink-0 rounded-lg transition-colors focus:outline-none"
+                        style={{ padding: '8px', color: 'rgba(250,250,250,0.3)' }}
+                        onMouseEnter={e => (e.currentTarget.style.color = 'rgba(250,250,250,0.6)')}
+                        onMouseLeave={e => (e.currentTarget.style.color = 'rgba(250,250,250,0.3)')}
+                    >
                         <X className="w-5 h-5" />
                     </button>
                 </div>
-                
-                <div className="p-4 flex-1 overflow-y-auto">
+
+                {/* ── Body ────────────────────────────────────── */}
+                <div style={{ padding: '16px 24px 24px', flex: '1 1 auto', overflowY: 'auto' }}>
                     {!selectedCustomer ? (
                         <>
-                            <div className="relative mb-4">
-                                <Search className="absolute start-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400" />
+                            {/* Search Input */}
+                            <div className="relative" style={{ marginBottom: '16px' }}>
+                                <Search
+                                    className="absolute top-1/2 -translate-y-1/2 w-4 h-4"
+                                    style={{ left: '14px', color: 'rgba(201,169,110,0.5)' }}
+                                />
                                 <input
                                     type="text"
-                                    placeholder="Search customer by name, phone, or order #..."
+                                    placeholder="Search by name, phone, or order..."
                                     value={query}
                                     onChange={(e) => setQuery(e.target.value)}
-                                    className="w-full ps-9 pe-4 py-2 border border-stone-200 rounded-xl text-sm text-start focus:outline-none focus:border-stone-900 focus:ring-1 focus:ring-stone-900"
                                     autoFocus
+                                    className="w-full text-sm focus:outline-none"
+                                    style={{
+                                        padding: '12px 16px 12px 40px',
+                                        borderRadius: '12px',
+                                        background: 'rgba(255,255,255,0.04)',
+                                        border: '1px solid rgba(255,255,255,0.08)',
+                                        color: '#FAFAFA',
+                                        transition: 'border-color 0.2s ease, box-shadow 0.2s ease',
+                                    }}
+                                    onFocus={e => {
+                                        e.currentTarget.style.borderColor = 'rgba(201,169,110,0.35)'
+                                        e.currentTarget.style.boxShadow = '0 0 0 1px rgba(201,169,110,0.1)'
+                                    }}
+                                    onBlur={e => {
+                                        e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'
+                                        e.currentTarget.style.boxShadow = 'none'
+                                    }}
                                 />
                             </div>
 
+                            {/* Customer List */}
                             {loading ? (
-                                <div className="py-8 flex justify-center"><Loader2 className="w-5 h-5 animate-spin text-stone-300" /></div>
+                                <div className="flex justify-center" style={{ padding: '40px 0' }}>
+                                    <Loader2 className="w-5 h-5 animate-spin" style={{ color: 'rgba(201,169,110,0.5)' }} />
+                                </div>
                             ) : customers.length === 0 ? (
-                                <p className="text-sm text-center py-8 text-stone-400">No customers found.</p>
+                                <div className="text-center" style={{ padding: '40px 0' }}>
+                                    <Search className="w-8 h-8 mx-auto" style={{ color: 'rgba(255,255,255,0.08)', marginBottom: '12px' }} />
+                                    <p style={{ fontSize: '13px', color: 'rgba(250,250,250,0.3)' }}>
+                                        {query ? 'No customers found' : 'Start typing to search'}
+                                    </p>
+                                </div>
                             ) : (
-                                <div className="space-y-1">
+                                <div className="flex flex-col" style={{ gap: '4px' }}>
                                     {customers.map(c => (
                                         <button
                                             key={c.id}
                                             onClick={() => setSelectedCustomer(c)}
-                                            className="w-full flex items-center justify-between p-3 rounded-xl hover:bg-stone-50 transition-colors text-left border border-transparent hover:border-stone-100"
+                                            className="w-full flex items-center justify-between text-left transition-all focus:outline-none group"
+                                            style={{
+                                                padding: '12px 14px',
+                                                borderRadius: '12px',
+                                                border: '1px solid transparent',
+                                                background: 'transparent',
+                                            }}
+                                            onMouseEnter={e => {
+                                                e.currentTarget.style.background = 'rgba(255,255,255,0.04)'
+                                                e.currentTarget.style.borderColor = 'rgba(201,169,110,0.12)'
+                                            }}
+                                            onMouseLeave={e => {
+                                                e.currentTarget.style.background = 'transparent'
+                                                e.currentTarget.style.borderColor = 'transparent'
+                                            }}
                                         >
-                                            <div>
-                                                <p className="font-medium text-sm text-stone-900">{c.full_name}</p>
-                                                <p className="text-xs text-stone-500">{c.phone}</p>
+                                            <div className="flex items-center gap-3 min-w-0">
+                                                <div
+                                                    className="flex-shrink-0 flex items-center justify-center rounded-full"
+                                                    style={{
+                                                        width: '36px',
+                                                        height: '36px',
+                                                        background: 'rgba(201,169,110,0.08)',
+                                                        border: '1px solid rgba(201,169,110,0.12)',
+                                                        color: '#C9A96E',
+                                                        fontSize: '13px',
+                                                        fontWeight: 600,
+                                                    }}
+                                                >
+                                                    {c.full_name?.charAt(0)?.toUpperCase() || '?'}
+                                                </div>
+                                                <div className="min-w-0">
+                                                    <p className="truncate" style={{ fontSize: '14px', fontWeight: 500, color: 'rgba(250,250,250,0.87)' }}>
+                                                        {c.full_name}
+                                                    </p>
+                                                    <p className="truncate" style={{ fontSize: '12px', color: 'rgba(250,250,250,0.35)', marginTop: '1px' }}>
+                                                        {c.phone || 'No phone'}
+                                                    </p>
+                                                </div>
                                             </div>
-                                            <Send className="w-4 h-4 text-stone-300" />
+                                            <Send className="w-4 h-4 flex-shrink-0 transition-all opacity-0 group-hover:opacity-100" style={{ color: 'rgba(201,169,110,0.5)' }} />
                                         </button>
                                     ))}
                                 </div>
                             )}
                         </>
                     ) : (
-                        <div className="space-y-6">
-                            <div className="bg-stone-50 p-4 rounded-xl border border-stone-100 text-center">
-                                <p className="text-sm text-stone-500 mb-1">Sending to:</p>
-                                <p className="font-semibold text-stone-900 text-lg">{selectedCustomer.full_name}</p>
-                                <p className="text-stone-500 text-sm">{selectedCustomer.phone || 'No phone number'}</p>
-                                <button 
-                                    onClick={() => setSelectedCustomer(null)}
-                                    className="text-xs text-stone-400 underline mt-2 hover:text-stone-600 focus:outline-none"
+                        <div className="flex flex-col" style={{ gap: '20px' }}>
+                            {/* Selected Customer Card */}
+                            <div
+                                className="text-center"
+                                style={{
+                                    padding: '24px 16px',
+                                    borderRadius: '16px',
+                                    background: 'rgba(255,255,255,0.03)',
+                                    border: '1px solid rgba(201,169,110,0.1)',
+                                }}
+                            >
+                                <div
+                                    className="mx-auto flex items-center justify-center rounded-full"
+                                    style={{
+                                        width: '48px',
+                                        height: '48px',
+                                        background: 'rgba(201,169,110,0.1)',
+                                        border: '1px solid rgba(201,169,110,0.18)',
+                                        color: '#C9A96E',
+                                        fontSize: '18px',
+                                        fontWeight: 600,
+                                        marginBottom: '12px',
+                                    }}
                                 >
-                                    Change customer
-                                </button>
+                                    {selectedCustomer.full_name?.charAt(0)?.toUpperCase() || '?'}
+                                </div>
+                                <p style={{ fontSize: '17px', fontWeight: 600, color: 'rgba(250,250,250,0.9)', marginBottom: '4px' }}>
+                                    {selectedCustomer.full_name}
+                                </p>
+                                <p style={{ fontSize: '13px', color: 'rgba(250,250,250,0.35)' }}>
+                                    {selectedCustomer.phone || 'No phone number'}
+                                </p>
                             </div>
 
-                            <div className="space-y-3">
+                            {/* Send Buttons */}
+                            <div className="flex flex-col" style={{ gap: '10px' }}>
                                 <button
                                     disabled={!selectedCustomer.phone || sending !== null}
                                     onClick={() => handleSend('EN')}
-                                    className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-stone-900 text-white font-medium text-sm hover:bg-stone-800 focus:outline-none focus:ring-2 focus:ring-stone-900/50 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    className="w-full flex items-center justify-center gap-2 font-medium text-sm transition-all focus:outline-none active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed"
+                                    style={{
+                                        padding: '14px 20px',
+                                        borderRadius: '12px',
+                                        background: 'linear-gradient(135deg, #C9A96E 0%, #D4B978 100%)',
+                                        color: '#0A0A0A',
+                                        boxShadow: '0 4px 24px rgba(201,169,110,0.2)',
+                                        letterSpacing: '0.02em',
+                                    }}
                                 >
                                     {sending === 'EN' ? <Loader2 className="w-4 h-4 animate-spin" /> : copiedId === 'EN' ? <Check className="w-4 h-4" /> : <MessageSquare className="w-4 h-4" />}
-                                    {sending === 'EN' ? 'Creating link…' : copiedId === 'EN' ? 'Opened in WhatsApp!' : 'Send in English (WhatsApp)'}
+                                    {sending === 'EN' ? 'Creating link...' : copiedId === 'EN' ? 'Opened in WhatsApp!' : 'Send in English'}
                                 </button>
                                 <button
                                     disabled={!selectedCustomer.phone || sending !== null}
                                     onClick={() => handleSend('AR')}
-                                    className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-white text-stone-900 border border-stone-200 font-medium text-sm hover:bg-stone-50 focus:outline-none focus:ring-2 focus:ring-stone-900/10 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    className="w-full flex items-center justify-center gap-2 font-medium text-sm transition-all focus:outline-none active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed"
+                                    style={{
+                                        padding: '14px 20px',
+                                        borderRadius: '12px',
+                                        background: 'rgba(255,255,255,0.04)',
+                                        border: '1px solid rgba(201,169,110,0.18)',
+                                        color: '#C9A96E',
+                                        letterSpacing: '0.02em',
+                                    }}
+                                    onMouseEnter={e => { if (!e.currentTarget.disabled) e.currentTarget.style.background = 'rgba(201,169,110,0.08)' }}
+                                    onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.04)' }}
                                 >
                                     {sending === 'AR' ? <Loader2 className="w-4 h-4 animate-spin" /> : copiedId === 'AR' ? <Check className="w-4 h-4" /> : <Globe className="w-4 h-4" />}
-                                    {sending === 'AR' ? 'Creating link…' : copiedId === 'AR' ? 'Opened in WhatsApp!' : 'Send in Arabic (WhatsApp)'}
+                                    {sending === 'AR' ? 'Creating link...' : copiedId === 'AR' ? 'Opened in WhatsApp!' : 'Send in Arabic'}
                                 </button>
                             </div>
-                            
+
                             {!selectedCustomer.phone && (
-                                <p className="text-xs text-red-500 text-center">This customer does not have a phone number on record.</p>
+                                <p style={{ fontSize: '12px', color: 'rgba(239,68,68,0.8)', textAlign: 'center' }}>
+                                    This customer does not have a phone number on record.
+                                </p>
                             )}
                         </div>
                     )}

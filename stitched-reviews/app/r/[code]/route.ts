@@ -32,11 +32,13 @@ export async function GET(
             .maybeSingle();
 
         if (error || !data) {
-            return NextResponse.redirect(new URL('/', request.url));
+            const base = process.env.NEXT_PUBLIC_REVIEWS_URL || 'https://reviews.stitchedqa.com';
+            return NextResponse.redirect(new URL('/', base));
         }
 
-        // Build the full review URL on this same domain
-        const reviewUrl = new URL(`/${data.product_handle}`, request.url);
+        // Use the public domain — request.url is localhost behind a reverse proxy
+        const base = process.env.NEXT_PUBLIC_REVIEWS_URL || 'https://reviews.stitchedqa.com';
+        const reviewUrl = new URL(`/${data.product_handle}`, base);
 
         if (data.customer_name) {
             reviewUrl.searchParams.set('n', btoa(encodeURIComponent(data.customer_name)));
@@ -48,6 +50,7 @@ export async function GET(
         return NextResponse.redirect(reviewUrl, { status: 302 });
     } catch (err) {
         console.error('[GET /r/[code]] Unexpected error:', err);
-        return NextResponse.redirect(new URL('/', request.url));
+        const fallback = process.env.NEXT_PUBLIC_REVIEWS_URL || 'https://reviews.stitchedqa.com';
+        return NextResponse.redirect(new URL('/', fallback));
     }
 }
