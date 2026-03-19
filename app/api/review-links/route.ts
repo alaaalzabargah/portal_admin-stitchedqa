@@ -30,7 +30,7 @@ function generateCode(length = 7): string {
 export async function POST(request: NextRequest) {
     try {
         const body = await request.json();
-        const { productHandle, customerName, customerWhatsapp } = body;
+        const { productHandle, customerName, customerWhatsapp, lang } = body;
 
         if (!productHandle || typeof productHandle !== 'string') {
             return NextResponse.json({ error: 'productHandle is required' }, { status: 400 });
@@ -57,6 +57,7 @@ export async function POST(request: NextRequest) {
                 product_handle: productHandle,
                 customer_name: customerName?.trim().split(' ')[0] || null,
                 customer_whatsapp: customerWhatsapp?.trim() || null,
+                lang: lang === 'ar' ? 'ar' : null,
             });
 
         if (error) {

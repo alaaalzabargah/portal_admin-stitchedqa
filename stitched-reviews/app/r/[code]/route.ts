@@ -27,7 +27,7 @@ export async function GET(
 
         const { data, error } = await supabase
             .from('review_short_links')
-            .select('product_handle, customer_name, customer_whatsapp')
+            .select('product_handle, customer_name, customer_whatsapp, lang')
             .eq('code', code)
             .maybeSingle();
 
@@ -45,6 +45,9 @@ export async function GET(
         }
         if (data.customer_whatsapp) {
             reviewUrl.searchParams.set('p', btoa(encodeURIComponent(data.customer_whatsapp)));
+        }
+        if (data.lang) {
+            reviewUrl.searchParams.set('lang', data.lang);
         }
 
         return NextResponse.redirect(reviewUrl, { status: 302 });
