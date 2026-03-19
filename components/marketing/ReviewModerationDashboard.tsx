@@ -485,7 +485,7 @@ export default function ReviewModerationDashboard() {
                                                         {review.product_title}
                                                     </h3>
                                                     <p className="text-xs text-stone-400 mt-0.5">
-                                                        {review.customer_name ?? 'Anonymous'} · {formatDate(review.created_at)}
+                                                        {review.customer_name?.split(' ')[0] ?? 'Anonymous'} · {formatDate(review.created_at)}
                                                     </p>
                                                 </div>
 

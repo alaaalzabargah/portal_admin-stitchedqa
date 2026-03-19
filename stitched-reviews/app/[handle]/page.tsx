@@ -52,7 +52,7 @@ const copy = {
         optional: 'optional',
         experiencePlaceholder: 'Tell us what you loved, or what we can perfect…',
         aboutLabel: 'A little about you',
-        namePlaceholder: 'Your Name',
+        namePlaceholder: 'Your First Name',
         whatsappPlaceholder: 'WhatsApp Number',
         submit: 'Share Your Thoughts',
         submitting: 'Sharing…',
@@ -82,7 +82,7 @@ const copy = {
         optional: 'اختياري',
         experiencePlaceholder: 'أخبرينا ما الذي أحببتِه، أو ما يمكننا إتقانه…',
         aboutLabel: 'نودّ معرفتكِ',
-        namePlaceholder: 'الاسم',
+        namePlaceholder: 'الاسم الأول',
         whatsappPlaceholder: 'رقم الواتساب',
         submit: 'اعتمدي التقييم',
         submitting: 'جارٍ المشاركة…',
@@ -209,7 +209,7 @@ export default function CustomerReviewPage({
 
             if (nParam && pParam) {
                 try {
-                    const decodedName = decodeURIComponent(atob(nParam))
+                    const decodedName = decodeURIComponent(atob(nParam)).split(' ')[0]
                     const decodedPhone = decodeURIComponent(atob(pParam))
                     setCustomerName(decodedName)
                     setWhatsapp(decodedPhone)
@@ -719,7 +719,7 @@ export default function CustomerReviewPage({
                                         id="customerName"
                                         name="customerName"
                                         type="text"
-                                        autoComplete="name"
+                                        autoComplete="given-name"
                                         value={customerName}
                                         onChange={(e) => setCustomerName(e.target.value)}
                                         placeholder={t.namePlaceholder}

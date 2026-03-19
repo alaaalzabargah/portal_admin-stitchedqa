@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
             .insert({
                 product_handle: productHandle.trim(),
                 product_title: productTitle.trim(),
-                customer_name: customerName?.trim() || null,
+                customer_name: customerName?.trim().split(' ')[0] || null,
                 customer_whatsapp: customerWhatsapp?.trim() || null,
                 rating: Math.round(rating),
                 review_text: reviewText?.trim() || null,

@@ -387,7 +387,7 @@ function CustomerSelectModal({
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         productHandle: product.handle,
-                        customerName: selectedCustomer.full_name,
+                        customerName: selectedCustomer.full_name?.split(' ')[0],
                         customerWhatsapp: selectedCustomer.phone,
                     }),
                 })

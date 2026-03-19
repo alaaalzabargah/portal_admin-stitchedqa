@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
             .insert({
                 code,
                 product_handle: productHandle,
-                customer_name: customerName?.trim() || null,
+                customer_name: customerName?.trim().split(' ')[0] || null,
                 customer_whatsapp: customerWhatsapp?.trim() || null,
             });
 
