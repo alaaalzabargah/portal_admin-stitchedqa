@@ -589,7 +589,7 @@ export default function CustomerReviewPage({
                                 )}
                             </div>
                             <div className="min-w-0 flex-1">
-                                <p className="uppercase font-semibold" style={{ color: '#C5A059', fontSize: '9px', letterSpacing: '0.25em', marginBottom: '6px' }}>
+                                <p className="font-semibold" style={{ color: '#C5A059', fontSize: isRtl ? '12px' : '9px', letterSpacing: isRtl ? '0' : '0.25em', textTransform: isRtl ? 'none' : 'uppercase', marginBottom: '6px' }}>
                                     {t.eyebrow}
                                 </p>
                                 <div style={{ height: '1px', width: '32px', background: 'rgba(197,160,89,0.2)', marginBottom: '8px' }} />
@@ -672,7 +672,7 @@ export default function CustomerReviewPage({
                                 padding: '20px',
                             }}
                         >
-                            <label className="block uppercase font-semibold" style={{ marginBottom: '12px', fontSize: '11px', letterSpacing: '0.1em', color: '#A1A1A1', fontFamily: fontSans }}>
+                            <label className="block font-semibold" style={{ marginBottom: '12px', fontSize: '11px', letterSpacing: isRtl ? '0' : '0.1em', textTransform: isRtl ? 'none' : 'uppercase', color: '#A1A1A1', fontFamily: fontSans }}>
                                 {t.experienceLabel}{' '}
                                 <span style={{ textTransform: 'none', letterSpacing: 'normal', color: '#4A4A4A' }}>({t.optional})</span>
                             </label>
@@ -710,7 +710,7 @@ export default function CustomerReviewPage({
                                     padding: '20px',
                                 }}
                             >
-                                <label className="block uppercase font-semibold" style={{ marginBottom: '12px', fontSize: '11px', letterSpacing: '0.1em', color: '#A1A1A1', fontFamily: fontSans }}>
+                                <label className="block font-semibold" style={{ marginBottom: '12px', fontSize: '11px', letterSpacing: isRtl ? '0' : '0.1em', textTransform: isRtl ? 'none' : 'uppercase', color: '#A1A1A1', fontFamily: fontSans }}>
                                     {t.aboutLabel}{' '}
                                     <span style={{ textTransform: 'none', letterSpacing: 'normal', color: '#4A4A4A' }}>({t.optional})</span>
                                 </label>
@@ -745,7 +745,7 @@ export default function CustomerReviewPage({
                                             focus:outline-none
                                             transition-all duration-300
                                         "
-                                        style={{ ...glassInputStyle, padding: '16px 20px' }}
+                                        style={{ ...glassInputStyle, padding: '16px 20px', textAlign: isRtl && !whatsapp ? 'right' : 'left' }}
                                     />
                                 </div>
                             </div>
@@ -811,7 +811,7 @@ export default function CustomerReviewPage({
                                 border: rating
                                     ? '1px solid rgba(197, 160, 89, 0.5)'
                                     : '1px solid rgba(197, 160, 89, 0.12)',
-                                letterSpacing: '0.1em',
+                                letterSpacing: isRtl ? '0' : '0.1em',
                                 fontFamily: fontSans,
                                 transition: 'all 0.6s cubic-bezier(0.22, 1, 0.36, 1)',
                                 borderRadius: '16px',
@@ -837,7 +837,7 @@ export default function CustomerReviewPage({
                                 className="w-auto object-contain brightness-0 invert opacity-40"
                                 style={{ height: '18px' }}
                             />
-                            <p style={{ fontSize: '10px', letterSpacing: '0.2em', textTransform: 'uppercase', color: '#3A3A3A' }}>
+                            <p style={{ fontSize: '10px', letterSpacing: isRtl ? '0' : '0.2em', textTransform: isRtl ? 'none' : 'uppercase', color: '#3A3A3A' }}>
                                 {t.tagline}
                             </p>
                         </div>
