@@ -59,7 +59,7 @@ export const USER_ROLE_DESCRIPTIONS: Record<UserRole, string> = {
     owner: 'Full access including team management and all settings',
     admin: 'Manage users (except owners) and all features',
     manager: 'Manage customers, orders, and view finance',
-    moderator: 'Review and publish customer reviews',
+    moderator: 'Review and publish customer reviews, send review links to customers',
     viewer: 'Read-only access to view data'
 }
 

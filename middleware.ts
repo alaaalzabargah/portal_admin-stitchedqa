@@ -89,7 +89,7 @@ export async function middleware(request: NextRequest) {
                     .single();
 
                 if (portalUser?.role === 'moderator') {
-                    const allowedPaths = ['/marketing/reviews', '/marketing/moderation'];
+                    const allowedPaths = ['/marketing/reviews', '/marketing/moderation', '/customers'];
                     const isAllowed = allowedPaths.some(p => path.startsWith(p));
                     if (!isAllowed) {
                         // Redirect moderators to their default page
