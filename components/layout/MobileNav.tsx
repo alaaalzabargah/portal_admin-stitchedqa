@@ -47,7 +47,7 @@ export function MobileNav() {
         { href: '/marketing/moderation', label: 'Moderation', icon: ShieldCheck },
     ]
 
-    const moderatorPaths = ['/marketing/reviews', '/marketing/moderation']
+    const moderatorPaths = ['/customers', '/marketing/reviews', '/marketing/moderation']
     const mainNavItems = isModerator
         ? allNavItems.filter(item => moderatorPaths.includes(item.href))
         : allNavItems
