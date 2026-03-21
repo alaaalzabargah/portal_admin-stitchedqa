@@ -75,7 +75,7 @@ export default async function RootLayout({
           }}
         />
       </head>
-      <body className="min-h-screen bg-background font-sans text-foreground">
+      <body className="min-h-screen bg-background font-sans text-foreground" suppressHydrationWarning>
         <LanguageProvider initialLocale={locale}>
           <DialogProvider>
             <ThemeProvider
