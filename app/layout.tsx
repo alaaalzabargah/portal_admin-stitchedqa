@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { Noto_Sans_Arabic } from 'next/font/google';
 import { GeistSans } from 'geist/font/sans';
 import { GeistMono } from 'geist/font/mono';
@@ -7,11 +7,17 @@ import { cn } from '@/lib/utils';
 
 const notoSansArabic = Noto_Sans_Arabic({ subsets: ['arabic'], variable: '--font-noto-arabic' });
 
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  viewportFit: 'cover',
+}
+
 export const metadata: Metadata = {
   title: 'Stitched Admin Portal',
   description: 'Premium Administration Portal',
   icons: {
-    icon: '/images/favicon-icon.png', // Using the uploaded logo as favicon
+    icon: '/images/favicon-icon.png',
     apple: '/images/favicon-icon.png',
   },
 };
