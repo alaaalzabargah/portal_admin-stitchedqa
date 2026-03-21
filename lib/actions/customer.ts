@@ -59,7 +59,7 @@ export async function searchCustomers(query: string) {
             .from('customers')
             .select('id, full_name, phone')
             .order('created_at', { ascending: false })
-            .limit(10)
+            .limit(50)
 
         if (query) {
             dbQuery = dbQuery.or(`full_name.ilike.%${query}%,phone.ilike.%${query}%`)
@@ -74,7 +74,7 @@ export async function searchCustomers(query: string) {
         }
 
         // 2. Search by order number
-        if (query && customersMap.size < 10) {
+        if (query && customersMap.size < 50) {
             const { data: orderData, error: orderError } = await supabase
                 .from('orders')
                 .select('customer_id')
@@ -93,7 +93,7 @@ export async function searchCustomers(query: string) {
                         .from('customers')
                         .select('id, full_name, phone')
                         .in('id', customerIdsToFetch)
-                        .limit(10 - customersMap.size)
+                        .limit(50 - customersMap.size)
 
                     if (extraError) {
                         console.error('Error fetching extra customers:', extraError)

@@ -416,13 +416,13 @@ function CustomerSelectModal({
 
     return (
         <div
-            className="fixed inset-0 z-50 flex items-end sm:items-center justify-center"
+            className="fixed inset-0 z-50 sm:flex sm:items-center sm:justify-center"
             style={{ background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)' }}
             onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
         >
             <div
-                className="w-full sm:max-w-lg overflow-hidden flex flex-col sm:rounded-2xl rounded-t-2xl border bg-white shadow-2xl"
-                style={{ maxHeight: '80dvh', borderColor: 'rgba(0,0,0,0.08)' }}
+                className="fixed bottom-0 left-0 right-0 z-50 sm:relative sm:mx-auto sm:max-w-lg w-full overflow-hidden flex flex-col rounded-t-2xl sm:rounded-2xl border bg-white shadow-2xl sm:max-h-[80dvh]"
+                style={{ height: '85dvh', borderColor: 'rgba(0,0,0,0.08)' }}
             >
                 {/* ── Fixed Header + Search ────────────────────── */}
                 <div className="flex-shrink-0 border-b" style={{ borderColor: 'rgba(0,0,0,0.06)' }}>
@@ -456,7 +456,7 @@ function CustomerSelectModal({
                 </div>
 
                 {/* ── Scrollable Results ────────────────────────── */}
-                <div className="flex-1 overflow-y-auto overscroll-contain" style={{ minHeight: '200px' }}>
+                <div className="flex-1 overflow-y-auto overscroll-contain">
                     {loading ? (
                         <div className="flex justify-center py-12">
                             <Loader2 className="w-5 h-5 animate-spin text-stone-300" />
