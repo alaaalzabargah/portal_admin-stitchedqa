@@ -234,7 +234,8 @@ export default function ReviewModerationDashboard() {
             ? `مرحباً *${firstName}* 🙏\n\nنأسف جداً إن تجربتك مع *${review.product_title}* ما كانت بمستوى توقعاتك.\n\nنبي نصحح الأمر — ممكن تشاركينا أكثر عن اللي صار؟\n\nبكل اهتمام،\n*Stitched* 🪡`
             : `أهلاً *${firstName}* ✨\n\nشكراً لرأيك في *${review.product_title}* 🤍\n\nلاحظنا إن تجربتك كانت مختلطة — نبي نفهم أكثر ونحسّن لك الخدمة.\n\nبكل محبة،\n*Stitched* 🪡`
 
-        window.open(`https://wa.me/${phone}?text=${encodeURIComponent(message)}`, '_blank')
+        const w = window.open(`https://wa.me/${phone}?text=${encodeURIComponent(message)}`, '_blank')
+        if (w) setTimeout(() => { try { w.close() } catch {} }, 1500)
     }, [])
 
     // ── Computed ───────────────────────────────────────────────────────────

@@ -15,7 +15,8 @@ export function QuickActions({ phone, email }: QuickActionsProps) {
     const handleWhatsApp = () => {
         // Format phone for WhatsApp (remove spaces and +)
         const cleanPhone = phone.replace(/\s+/g, '').replace('+', '')
-        window.open(`https://wa.me/${cleanPhone}`, '_blank')
+        const w = window.open(`https://wa.me/${cleanPhone}`, '_blank')
+        if (w) setTimeout(() => { try { w.close() } catch {} }, 1500)
     }
 
     const handleEmail = () => {

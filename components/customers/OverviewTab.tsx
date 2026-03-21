@@ -54,7 +54,8 @@ export function OverviewTab({ customer: initialCustomer, tier, lastOrderDate, lo
     const handleWhatsApp = () => {
         if (!isEditing) {
             const cleanPhone = customer.phone.replace(/\s+/g, '').replace('+', '')
-            window.open(`https://wa.me/${cleanPhone}`, '_blank')
+            const w = window.open(`https://wa.me/${cleanPhone}`, '_blank')
+            if (w) setTimeout(() => { try { w.close() } catch {} }, 1500)
         }
     }
 
