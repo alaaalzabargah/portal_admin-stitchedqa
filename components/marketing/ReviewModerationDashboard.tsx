@@ -2,7 +2,9 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { useAuthUser } from '@/lib/auth'
 import { PageHeader } from '@/components/ui/PageHeader'
+import { StatsCards } from '@/components/ui/StatsCards'
 import {
     Star,
     MessageCircle,
@@ -99,8 +101,11 @@ function ProductThumbnail({ title, imageUrl }: { title: string; imageUrl?: strin
 // ── Main Component ─────────────────────────────────────────────────────────
 
 export default function ReviewModerationDashboard() {
+    const { profile } = useAuthUser()
+    const isOwner = profile?.role === 'owner'
     const [reviews, setReviews] = useState<Review[]>([])
     const [productImages, setProductImages] = useState<Record<string, string>>({})
+    const [totalProducts, setTotalProducts] = useState(0)
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
     const [activeTab, setActiveTab] = useState<'NEEDS_ATTENTION' | 'PUBLISHED'>('NEEDS_ATTENTION')
@@ -144,6 +149,13 @@ export default function ReviewModerationDashboard() {
     }, [])
 
     useEffect(() => { fetchReviews() }, [fetchReviews])
+
+    useEffect(() => {
+        fetch('/api/admin/products')
+            .then(r => r.ok ? r.json() : null)
+            .then(d => { if (d?.totalCount) setTotalProducts(d.totalCount) })
+            .catch(() => {})
+    }, [])
 
     // ── Supabase Realtime — push new reviews as they are inserted ─────────
 
@@ -244,9 +256,7 @@ export default function ReviewModerationDashboard() {
     const publishedCount = reviews.filter(r => r.status === 'PUBLISHED').length
 
     const publishedReviews = reviews.filter(r => r.status === 'PUBLISHED')
-    const avgRating = publishedReviews.length > 0
-        ? (publishedReviews.reduce((s, r) => s + r.rating, 0) / publishedReviews.length).toFixed(1)
-        : '—'
+    const ratedProductCount = new Set(publishedReviews.map(r => r.product_handle)).size
 
     // Per-product stats (from published reviews only) — O(N) single pass
     const productStats = (() => {
@@ -312,138 +322,91 @@ export default function ReviewModerationDashboard() {
                 label="MODERATION"
                 title="Review Moderation"
                 subtitle="Manage customer reviews before they appear on your storefront."
-                actions={
-                    <>
-                        <button
-                            onClick={() => fetchReviews()}
-                            className="p-2 rounded-lg border border-stone-200 text-stone-400 hover:text-stone-600 hover:bg-stone-50 transition-colors"
-                            title="Refresh"
-                        >
-                            <RefreshCw className="w-4 h-4" />
-                        </button>
-                        {reviews.length > 0 && (
-                            <button
-                                onClick={() => setShowClearConfirm(true)}
-                                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-red-200 text-red-500 text-xs font-medium hover:bg-red-50 transition-colors"
-                            >
-                                <Trash2 className="w-3.5 h-3.5" />
-                                Clear test data
-                            </button>
-                        )}
-                    </>
-                }
             />
 
-            {/* Clear confirmation */}
-            {showClearConfirm && (
-                <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex items-center justify-between gap-4">
-                    <div className="flex items-center gap-3">
-                        <AlertTriangle className="w-5 h-5 text-red-500 flex-shrink-0" />
-                        <p className="text-sm text-red-700 font-medium">
-                            This will permanently delete all {reviews.length} reviews. Cannot be undone.
-                        </p>
-                    </div>
-                    <div className="flex gap-2 flex-shrink-0">
-                        <button
-                            onClick={() => setShowClearConfirm(false)}
-                            className="px-3 py-1.5 rounded-lg text-xs font-medium text-stone-600 border border-stone-200 bg-white hover:bg-stone-50"
-                        >
-                            Cancel
-                        </button>
-                        <button
-                            onClick={handleClearAll}
-                            disabled={clearing}
-                            className="px-3 py-1.5 rounded-lg text-xs font-medium text-white bg-red-500 hover:bg-red-600 disabled:opacity-60 flex items-center gap-1.5"
-                        >
-                            {clearing ? <Loader2 className="w-3 h-3 animate-spin" /> : <Trash2 className="w-3 h-3" />}
-                            Delete all
-                        </button>
-                    </div>
-                </div>
-            )}
-
             {/* Stats Row */}
-            <div className="grid grid-cols-3 gap-4">
-                <div className="bg-white rounded-xl border border-stone-200 p-4">
-                    <div className="flex items-center gap-2 mb-1">
-                        <Clock className="w-4 h-4 text-amber-500" />
-                        <span className="text-xs text-stone-400 uppercase tracking-wider">Needs Attention</span>
-                    </div>
-                    <p className="text-2xl font-bold text-stone-900">{attentionCount}</p>
-                </div>
-                <div className="bg-white rounded-xl border border-stone-200 p-4">
-                    <div className="flex items-center gap-2 mb-1">
-                        <Eye className="w-4 h-4 text-emerald-500" />
-                        <span className="text-xs text-stone-400 uppercase tracking-wider">Published</span>
-                    </div>
-                    <p className="text-2xl font-bold text-stone-900">{publishedCount}</p>
-                </div>
-                <div className="bg-white rounded-xl border border-stone-200 p-4">
-                    <div className="flex items-center gap-2 mb-1">
-                        <TrendingUp className="w-4 h-4 text-blue-500" />
-                        <span className="text-xs text-stone-400 uppercase tracking-wider">Avg Rating</span>
-                    </div>
-                    <p className="text-2xl font-bold text-stone-900">{avgRating}</p>
-                </div>
-            </div>
+            <StatsCards
+                hero={{
+                    label: 'Reviews',
+                    value: reviews.length,
+                    icon: Star,
+                }}
+                cards={[
+                    {
+                        label: 'Needs Attention',
+                        value: attentionCount,
+                        color: '#F59E0B',
+                        icon: Clock,
+                    },
+                    {
+                        label: 'Published',
+                        value: publishedCount,
+                        color: '#10B981',
+                        icon: Eye,
+                    },
+                    {
+                        label: 'Rated Items',
+                        value: ratedProductCount,
+                        color: '#3B82F6',
+                        icon: TrendingUp,
+                        secondaryValue: totalProducts > 0 ? `/ ${totalProducts}` : undefined,
+                    },
+                ]}
+            />
 
-            {/* Tabs + Search — stacked on mobile, inline on desktop */}
-            <div className="flex flex-col gap-3">
-                <div className="flex items-center justify-between gap-3">
-                    <div className="flex gap-1 bg-stone-100 rounded-lg p-1">
-                        <button
-                            onClick={() => setActiveTab('NEEDS_ATTENTION')}
-                            className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${activeTab === 'NEEDS_ATTENTION'
-                                ? 'bg-white text-stone-900 shadow-sm'
-                                : 'text-stone-500 hover:text-stone-700'
-                                }`}
-                        >
-                            Needs Attention
-                            {attentionCount > 0 && (
-                                <span className="ml-2 px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-amber-100 text-amber-700">
-                                    {attentionCount}
-                                </span>
-                            )}
-                        </button>
-                        <button
-                            onClick={() => setActiveTab('PUBLISHED')}
-                            className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${activeTab === 'PUBLISHED'
-                                ? 'bg-white text-stone-900 shadow-sm'
-                                : 'text-stone-500 hover:text-stone-700'
-                                }`}
-                        >
-                            Published
-                            {publishedCount > 0 && (
-                                <span className="ml-2 px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-100 text-emerald-700">
-                                    {publishedCount}
-                                </span>
-                            )}
-                        </button>
-                    </div>
+            {/* Tabs + Search + Actions */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                {/* Left side: Tabs */}
+                <div className="flex gap-1 bg-stone-100 rounded-lg p-1 w-full flex-shrink-0 sm:w-auto">
+                    <button
+                        onClick={() => setActiveTab('NEEDS_ATTENTION')}
+                        className={`flex-1 sm:flex-none px-4 py-2.5 rounded-md text-sm font-medium transition-all duration-200 ${activeTab === 'NEEDS_ATTENTION'
+                            ? 'bg-white text-stone-900 shadow-sm'
+                            : 'text-stone-500 hover:text-stone-700'
+                            }`}
+                    >
+                        Needs Attention
+                        {attentionCount > 0 && (
+                            <span className="ml-2 px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-amber-100 text-amber-700">
+                                {attentionCount}
+                            </span>
+                        )}
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('PUBLISHED')}
+                        className={`flex-1 sm:flex-none px-4 py-2.5 rounded-md text-sm font-medium transition-all duration-200 ${activeTab === 'PUBLISHED'
+                            ? 'bg-white text-stone-900 shadow-sm'
+                            : 'text-stone-500 hover:text-stone-700'
+                            }`}
+                    >
+                        Published
+                        {publishedCount > 0 && (
+                            <span className="ml-2 px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-100 text-emerald-700">
+                                {publishedCount}
+                            </span>
+                        )}
+                    </button>
+                </div>
 
-                    {/* Search — hidden on mobile, shown on sm+ */}
-                    <div className="relative hidden sm:block">
+                {/* Right side: Search + Refresh */}
+                <div className="flex items-center gap-2 w-full sm:w-auto">
+                    <div className="relative flex-1 sm:flex-none sm:w-64">
                         <Search className="w-4 h-4 text-stone-400 absolute left-3 top-1/2 -translate-y-1/2" />
                         <input
                             type="text"
                             placeholder="Search reviews…"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="pl-9 pr-4 py-2 rounded-lg border border-stone-200 text-sm bg-white text-stone-800 placeholder:text-stone-300 focus:outline-none focus:border-stone-400 focus:ring-1 focus:ring-stone-400/20 w-64 transition-all"
+                            className="w-full pl-9 pr-4 py-2.5 sm:py-2 rounded-lg border border-stone-200 text-sm bg-white text-stone-800 placeholder:text-stone-300 focus:outline-none focus:border-stone-400 focus:ring-1 focus:ring-stone-400/20 transition-all"
                         />
                     </div>
-                </div>
-
-                {/* Search — full width below tabs on mobile only */}
-                <div className="relative sm:hidden">
-                    <Search className="w-4 h-4 text-stone-400 absolute left-3 top-1/2 -translate-y-1/2" />
-                    <input
-                        type="text"
-                        placeholder={`Search ${activeTab === 'NEEDS_ATTENTION' ? 'needs attention' : 'published'} reviews…`}
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        className="pl-9 pr-4 py-2.5 rounded-lg border border-stone-200 text-sm bg-white text-stone-800 placeholder:text-stone-300 focus:outline-none focus:border-stone-400 focus:ring-1 focus:ring-stone-400/20 w-full transition-all"
-                    />
+                    <button
+                        onClick={() => fetchReviews()}
+                        className="p-2.5 sm:p-2 rounded-lg border border-stone-200 bg-white text-stone-500 hover:text-stone-700 hover:bg-stone-50 transition-colors flex-shrink-0"
+                        title="Refresh Data"
+                    >
+                        <RefreshCw className="w-4 h-4 sm:w-4 sm:h-4" />
+                    </button>
                 </div>
             </div>
 
@@ -576,6 +539,56 @@ export default function ReviewModerationDashboard() {
                     })
                 )}
             </div>
+
+            {/* Danger Zone */}
+            {isOwner && reviews.length > 0 && (
+                <div className="pt-12 pb-6 mt-8 border-t border-red-50" style={{ borderColor: 'rgba(239, 68, 68, 0.1)' }}>
+                    {showClearConfirm ? (
+                        <div className="bg-red-50 border border-red-200 rounded-xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                            <div className="flex items-start sm:items-center gap-3">
+                                <AlertTriangle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5 sm:mt-0" />
+                                <div>
+                                    <h4 className="text-sm font-semibold text-red-700">Warning: Permanent Action</h4>
+                                    <p className="text-sm text-red-600/80 mt-0.5">
+                                        This will permanently delete all {reviews.length} reviews from the database. Cannot be undone.
+                                    </p>
+                                </div>
+                            </div>
+                            <div className="flex gap-2 flex-shrink-0 ml-8 sm:ml-0">
+                                <button
+                                    onClick={() => setShowClearConfirm(false)}
+                                    disabled={clearing}
+                                    className="px-4 py-2 rounded-lg text-sm font-medium text-stone-600 bg-white border border-stone-200 hover:bg-stone-50 transition-colors"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={handleClearAll}
+                                    disabled={clearing}
+                                    className="px-4 py-2 rounded-lg text-sm font-medium text-white bg-red-600 hover:bg-red-700 disabled:opacity-60 flex items-center gap-2 transition-colors"
+                                >
+                                    {clearing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
+                                    Yes, delete all
+                                </button>
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-5 rounded-xl border border-red-100 bg-[rgba(254,242,242,0.3)]">
+                            <div>
+                                <h4 className="text-sm font-semibold text-red-800">Danger Zone</h4>
+                                <p className="text-xs text-red-600/70 mt-1">Permanently remove all customer reviews from the system. Often used after testing.</p>
+                            </div>
+                            <button
+                                onClick={() => setShowClearConfirm(true)}
+                                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg border border-red-200/60 text-red-600 text-sm font-medium bg-white hover:bg-red-50 transition-colors flex-shrink-0 shadow-sm"
+                            >
+                                <Trash2 className="w-3.5 h-3.5" />
+                                Clear Test Data
+                            </button>
+                        </div>
+                    )}
+                </div>
+            )}
         </div>
     )
 }

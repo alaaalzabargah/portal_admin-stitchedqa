@@ -421,8 +421,8 @@ function CustomerSelectModal({
             onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
         >
             <div
-                className="fixed bottom-0 left-0 right-0 z-50 sm:relative sm:mx-auto sm:max-w-lg w-full overflow-hidden flex flex-col rounded-t-2xl sm:rounded-2xl border bg-white shadow-2xl sm:max-h-[80dvh]"
-                style={{ height: '85dvh', borderColor: 'rgba(0,0,0,0.08)' }}
+                className="fixed left-0 right-0 z-50 sm:relative sm:mx-auto sm:max-w-lg w-full overflow-hidden flex flex-col rounded-t-2xl sm:rounded-2xl border bg-white shadow-2xl sm:max-h-[80dvh]"
+                style={{ bottom: 'calc(-1 * env(safe-area-inset-bottom, 0px))', height: 'calc(85dvh + env(safe-area-inset-bottom, 0px))', paddingBottom: 'env(safe-area-inset-bottom, 0px)', borderColor: 'rgba(0,0,0,0.08)' }}
             >
                 {/* ── Fixed Header + Search ────────────────────── */}
                 <div className="flex-shrink-0 border-b" style={{ borderColor: 'rgba(0,0,0,0.06)' }}>
