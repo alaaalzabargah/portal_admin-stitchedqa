@@ -271,8 +271,13 @@ export async function handleOrderCreate(
         // Determine the correct paid amount, financial status, and REAL total
         let actualPaidAmountMinor = 0;
         let actualFinancialStatus = order.financial_status;
-        let actualTotalAmountMinor = priceToMinor(order.total_price); // default to Shopify total
-        let actualSubtotalMinor = priceToMinor(order.subtotal_price);
+        
+        // Use current_total_price which respects Shopify edits (removals/additions)
+        const baseTotalMinor = priceToMinor(order.current_total_price || order.total_price);
+        const baseSubtotalMinor = priceToMinor(order.current_subtotal_price || order.subtotal_price);
+        
+        let actualTotalAmountMinor = baseTotalMinor; 
+        let actualSubtotalMinor = baseSubtotalMinor;
 
         // Calculate shipping
         const shippingMinor = extractShippingTotal(order as any);
@@ -280,7 +285,7 @@ export async function handleOrderCreate(
         if (isDeposit) {
             // For mixed orders: Shopify total_price includes full items + deposit amounts + shipping
             // paid_amount = what Shopify actually charged = total_price
-            actualPaidAmountMinor = priceToMinor(order.total_price);
+            actualPaidAmountMinor = baseTotalMinor;
             actualFinancialStatus = 'partially_paid';
 
             // deposit delta = real full price of deposit items - deposit amount paid
@@ -289,8 +294,8 @@ export async function handleOrderCreate(
 
             // Real total = Shopify total + deposit delta
             // e.g. 3875 + 825 = 4700
-            actualTotalAmountMinor = priceToMinor(order.total_price) + depositDelta;
-            actualSubtotalMinor = priceToMinor(order.subtotal_price) + depositDelta;
+            actualTotalAmountMinor = baseTotalMinor + depositDelta;
+            actualSubtotalMinor = baseSubtotalMinor + depositDelta;
 
             logger.info('Deposit order detected', {
                 depositAmount: depositInfo.depositAmountMinor,
@@ -298,11 +303,11 @@ export async function handleOrderCreate(
                 realItemPrice: depositInfo.realItemTotalMinor,
                 depositDelta,
                 realTotal: actualTotalAmountMinor,
-                shopifyTotal: priceToMinor(order.total_price),
+                shopifyTotal: baseTotalMinor,
                 paidAmount: actualPaidAmountMinor,
             });
         } else if (order.financial_status === 'paid') {
-            actualPaidAmountMinor = priceToMinor(order.total_price);
+            actualPaidAmountMinor = baseTotalMinor;
         }
 
         // Upsert order
