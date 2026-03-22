@@ -363,7 +363,7 @@ export function extractLineItems(
 ): ExtractedLineItem[] {
     if (!lineItems || lineItems.length === 0) return [];
 
-    return lineItems.map((item) => {
+    const extracted = lineItems.map((item) => {
         const { size, color } = parseVariantTitle(item.variant_title);
         const unitPrice = priceToMinor(item.price);
         const quantity = typeof item.quantity === 'number' ? item.quantity : 1;
@@ -388,7 +388,35 @@ export function extractLineItems(
             lineTotalMinor: lineTotal,
             measurements: extractMeasurements(item.properties as any),
             properties: propertiesToRecord(item.properties as any),
+            _current_quantity: item.current_quantity // temp variable for filtering
         };
+    });
+
+    // Handle Shopify Order Edits: When merchants remove custom items and add generic items to collect a balance,
+    // the generic items will be missing measurements. We find removed items (current_quantity === 0) and copy
+    // their measurements to the active replacements before dropping the removed items to prevent duplicate rows.
+    
+    // Treat undefined as active (for backward compatibility if missing from payload)
+    const activeItems = extracted.filter(i => i._current_quantity !== 0);
+    const removedItems = extracted.filter(i => i._current_quantity === 0);
+
+    for (const active of activeItems) {
+        if (!active.measurements) {
+            // Find a removed item with the exact same title/sku that HAS measurements
+            const matchingRemoved = removedItems.find(r => r.title === active.title && r.measurements);
+            if (matchingRemoved) {
+                active.measurements = matchingRemoved.measurements;
+                // DO NOT merge matchingRemoved.properties! The removed items are deposit items and have PartialPay metadata
+                // (e.g. partialpay_amount). If we copy that metadata onto full-priced generic items, it breaks the financial math.
+                console.log(`[LineItem Extractor] Merged measurements from removed item ${matchingRemoved.shopifyLineItemId} into active item ${active.shopifyLineItemId}`);
+            }
+        }
+    }
+
+    // Clean up temporary variable and return only active items
+    return activeItems.map(item => {
+        const { _current_quantity, ...rest } = item;
+        return rest;
     });
 }
 
@@ -461,6 +489,9 @@ export function extractDepositInfo(lineItems: ShopifyLineItem[] | undefined): De
 
     for (const item of lineItems) {
         if (!item.properties) continue;
+        
+        // Skip over items that were fully removed from the order
+        if (item.current_quantity === 0) continue;
 
         let propsArray: Array<{ name: string; value: string }> = [];
         if (Array.isArray(item.properties)) {

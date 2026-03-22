@@ -153,6 +153,8 @@ export const ShopifyOrderSchema = z.object({
     subtotal_price: optionalCoerceNumber,
     total_tax: optionalCoerceNumber,
     total_price: optionalCoerceNumber,
+    current_subtotal_price: optionalCoerceNumber,
+    current_total_price: optionalCoerceNumber,
     total_shipping_price_set: z.object({
         shop_money: z.object({
             amount: z.string().optional(),

@@ -822,6 +822,17 @@ export async function replaceOrderItems(
                 return true;
             });
 
+            // Cleanup obsolete items: When Shopify edits an order, line item IDs change.
+            // Delete items in the DB that belong to this order but are NOT in the incoming payload.
+            const incomingIds = uniqueItems.map(i => i.shopifyLineItemId).filter(Boolean) as string[];
+            if (incomingIds.length > 0) {
+                await supabase
+                    .from('order_items')
+                    .delete()
+                    .eq('order_id', orderId)
+                    .not('shopify_line_item_id', 'in', `(${incomingIds.join(',')})`);
+            }
+
             const itemsToInsert = uniqueItems.map(item => ({
                 order_id: orderId,
                 shopify_line_item_id: item.shopifyLineItemId,
@@ -846,6 +857,12 @@ export async function replaceOrderItems(
                 logger.error('Failed to upsert order items', error.message);
                 return false;
             }
+        } else {
+            // If items array is explicitly empty, delete all items
+            await supabase
+                .from('order_items')
+                .delete()
+                .eq('order_id', orderId);
         }
 
         return true;

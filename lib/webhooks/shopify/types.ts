@@ -19,6 +19,7 @@ export interface ShopifyLineItem {
     variant_title?: string | null;
     sku?: string | null;
     quantity: number;
+    current_quantity?: number;
     price: string;
     line_price?: string | null;
     total_discount?: string | null;
@@ -121,6 +122,8 @@ export interface ShopifyOrderPayload {
     subtotal_price?: string;
     total_tax?: string;
     total_price?: string;
+    current_subtotal_price?: string;
+    current_total_price?: string;
     total_shipping_price_set?: {
         shop_money?: { amount?: string; currency_code?: string };
     };
