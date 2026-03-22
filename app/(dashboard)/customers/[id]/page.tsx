@@ -9,16 +9,22 @@ import { CustomerDetailsWrapper } from '@/components/customers/CustomerDetailsWr
 import { CustomerDetailsClient } from '@/components/customers/CustomerDetailsClient'
 import { GlassButton } from '@/components/ui/GlassButton'
 import { AddOrderButton } from '@/components/orders/AddOrderButton'
+import { CustomerBackButton } from '@/components/customers/CustomerBackButton'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
 
 interface PageProps {
     params: Promise<{ id: string }>
+    searchParams: Promise<{ [key: string]: string | string[] | undefined }>
 }
 
-export default async function CustomerDetailsPage({ params }: PageProps) {
+export default async function CustomerDetailsPage({ params, searchParams }: PageProps) {
     const { id } = await params
+    const resolvedSearchParams = await searchParams
+    const initialTab = (resolvedSearchParams?.tab as string) || 'overview'
+    const from = resolvedSearchParams?.from as string | undefined
+
     const supabase = await createClient()
 
     const cookieStore = await cookies()
@@ -75,13 +81,7 @@ export default async function CustomerDetailsPage({ params }: PageProps) {
             <div className="relative pt-6 sm:pt-8 pb-6 sm:pb-8">
                 {/* Back Button */}
                 <div className="absolute top-6 ltr:left-6 rtl:right-6 sm:top-8 sm:ltr:left-8 sm:rtl:right-8 z-20">
-                    <Link
-                        href="/customers"
-                        className="inline-flex items-center gap-2 text-sm text-primary/70 hover:text-primary transition-colors bg-white/50 backdrop-blur-sm px-3 py-2 rounded-full"
-                    >
-                        <ArrowLeft className={`w-4 h-4 ${locale === 'ar' ? 'rotate-180' : ''}`} />
-                        {locale === 'en' ? 'Back' : 'رجوع'}
-                    </Link>
+                    <CustomerBackButton fallback="/customers" locale={locale} />
                 </div>
 
                 {/* Action Buttons */}
@@ -135,6 +135,7 @@ export default async function CustomerDetailsPage({ params }: PageProps) {
                 orders={orders}
                 locale={locale}
                 dict={dict}
+                initialTab={initialTab}
             />
         </CustomerDetailsWrapper>
     )

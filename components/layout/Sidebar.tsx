@@ -68,8 +68,8 @@ export function Sidebar() {
         { href: '/marketing/moderation', label: 'Moderation', icon: ShieldCheck },
     ]
 
-    // Moderators see review-related pages + customers (for sending review links)
-    const moderatorPaths = ['/customers', '/marketing/reviews', '/marketing/moderation']
+    // Moderators see review-related pages + customers (for sending review links) + finance orders
+    const moderatorPaths = ['/customers', '/marketing/reviews', '/marketing/moderation', '/finance/orders']
     const mainNavItems = isModerator
         ? allNavItems.filter(item => moderatorPaths.includes(item.href))
         : allNavItems

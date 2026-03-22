@@ -67,7 +67,7 @@ const copy = {
         loading: 'Loading…',
     },
     ar: {
-        eyebrow: 'إطلالتكِ مع ستتشد',
+        eyebrow: 'إطلالتكِ مع Stitched',
         question: 'هل لامست هذه القطعة ذوقكِ الرفيع؟',
         tapToRate: 'اختاري تقييمكِ',
         ratingRequired: 'التقييم مطلوب لمشاركة حكايتكِ',

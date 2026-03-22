@@ -176,69 +176,77 @@ export default function OrderHistoryPage() {
             <div className="glass-card p-4 rounded-xl space-y-4">
                 <div className="flex flex-col md:flex-row gap-4">
                     {/* Search */}
-                    <div className="flex-1 relative">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                    <div className="flex-1 min-w-[280px] relative group">
+                        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-[18px] h-[18px] text-muted-foreground/60 group-focus-within:text-primary transition-colors" />
                         <input
                             type="text"
                             placeholder="Search by order #, customer, or phone..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full pl-10 pr-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20"
+                            className="w-full pl-11 pr-4 py-2.5 bg-white/60 hover:bg-white/80 border border-white/60 hover:border-primary/30 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all text-sm placeholder:text-muted-foreground/60 shadow-sm"
                         />
                     </div>
 
-                    {/* Status Filter */}
-                    <div className="relative">
-                        <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                        <select
-                            value={statusFilter}
-                            onChange={(e) => setStatusFilter(e.target.value)}
-                            className="pl-10 pr-8 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 appearance-none"
-                        >
-                            <option value="all">All Status</option>
-                            <option value="paid">Paid</option>
-                            <option value="deposit">Deposit</option>
-                            <option value="completed">Completed</option>
-                            <option value="pending">Pending</option>
-                            <option value="cancelled">Cancelled</option>
-                        </select>
-                        <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
-                    </div>
+                    <div className="flex flex-col sm:flex-row gap-4 sm:items-center">
+                        {/* Status Filter */}
+                        <div className="relative group min-w-[160px]">
+                            <Filter className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/60 group-focus-within:text-primary transition-colors" />
+                            <select
+                                value={statusFilter}
+                                onChange={(e) => setStatusFilter(e.target.value)}
+                                className="w-full pl-10 pr-10 py-2.5 bg-white/60 hover:bg-white/80 border border-white/60 hover:border-primary/30 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all text-sm appearance-none cursor-pointer shadow-sm text-foreground font-medium"
+                            >
+                                <option value="all">All Status</option>
+                                <option value="paid">Paid</option>
+                                <option value="deposit">Deposit</option>
+                                <option value="completed">Completed</option>
+                                <option value="pending">Pending</option>
+                                <option value="cancelled">Cancelled</option>
+                            </select>
+                            <ChevronDown className="absolute right-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/60 pointer-events-none" />
+                        </div>
 
-                    {/* Sort */}
-                    <div className="flex gap-2">
-                        <button
-                            onClick={() => {
-                                if (sortBy === 'date') {
-                                    setSortOrder(sortOrder === 'desc' ? 'asc' : 'desc')
-                                } else {
-                                    setSortBy('date')
-                                    setSortOrder('desc')
-                                }
-                            }}
-                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${sortBy === 'date'
-                                ? 'bg-primary text-white'
-                                : 'bg-background border border-border hover:bg-muted'
-                                }`}
-                        >
-                            Date {sortBy === 'date' && (sortOrder === 'desc' ? '↓' : '↑')}
-                        </button>
-                        <button
-                            onClick={() => {
-                                if (sortBy === 'amount') {
-                                    setSortOrder(sortOrder === 'desc' ? 'asc' : 'desc')
-                                } else {
-                                    setSortBy('amount')
-                                    setSortOrder('desc')
-                                }
-                            }}
-                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${sortBy === 'amount'
-                                ? 'bg-primary text-white'
-                                : 'bg-background border border-border hover:bg-muted'
-                                }`}
-                        >
-                            Amount {sortBy === 'amount' && (sortOrder === 'desc' ? '↓' : '↑')}
-                        </button>
+                        {/* Sort Toggle (Segmented Control style) */}
+                        <div className="flex p-1 bg-white/50 border border-white/60 rounded-xl shadow-sm leading-none shrink-0">
+                            <button
+                                onClick={() => {
+                                    if (sortBy === 'date') {
+                                        setSortOrder(sortOrder === 'desc' ? 'asc' : 'desc')
+                                    } else {
+                                        setSortBy('date')
+                                        setSortOrder('desc')
+                                    }
+                                }}
+                                className={`flex items-center justify-center gap-1.5 px-4 py-2 rounded-lg text-sm transition-all font-medium ${sortBy === 'date'
+                                    ? 'bg-primary text-primary-foreground shadow-sm'
+                                    : 'text-muted-foreground hover:text-foreground hover:bg-white/60'
+                                    }`}
+                            >
+                                Date
+                                {sortBy === 'date' && (
+                                    <span className="text-[10px] leading-none opacity-80">{sortOrder === 'desc' ? '▼' : '▲'}</span>
+                                )}
+                            </button>
+                            <button
+                                onClick={() => {
+                                    if (sortBy === 'amount') {
+                                        setSortOrder(sortOrder === 'desc' ? 'asc' : 'desc')
+                                    } else {
+                                        setSortBy('amount')
+                                        setSortOrder('desc')
+                                    }
+                                }}
+                                className={`flex items-center justify-center gap-1.5 px-4 py-2 rounded-lg text-sm transition-all font-medium ${sortBy === 'amount'
+                                    ? 'bg-primary text-primary-foreground shadow-sm'
+                                    : 'text-muted-foreground hover:text-foreground hover:bg-white/60'
+                                    }`}
+                            >
+                                Amount
+                                {sortBy === 'amount' && (
+                                    <span className="text-[10px] leading-none opacity-80">{sortOrder === 'desc' ? '▼' : '▲'}</span>
+                                )}
+                            </button>
+                        </div>
                     </div>
                 </div>
 
@@ -272,7 +280,16 @@ export default function OrderHistoryPage() {
                                     <div className="flex-1 space-y-2">
                                         <div className="flex items-center gap-3 flex-wrap">
                                             <h3 className="font-semibold text-lg">
-                                                #{order.shopify_order_number || order.id.slice(0, 8)}
+                                                {order.customer ? (
+                                                    <Link 
+                                                        href={`/customers/${order.customer.id}?tab=orders&from=/finance/orders`}
+                                                        className="text-primary/95 hover:text-primary underline underline-offset-[5px] decoration-primary/30 hover:decoration-primary transition-all duration-200 inline-block"
+                                                    >
+                                                        #{order.shopify_order_number || order.id.slice(0, 8)}
+                                                    </Link>
+                                                ) : (
+                                                    `#${order.shopify_order_number || order.id.slice(0, 8)}`
+                                                )}
                                             </h3>
                                             <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(order.status, order.financial_status)}`}>
                                                 {getStatusLabel(order.status, order.financial_status)}
@@ -294,9 +311,14 @@ export default function OrderHistoryPage() {
                                                     <User className="w-4 h-4" />
                                                     <Link
                                                         href={`/customers/${order.customer.id}`}
-                                                        className="hover:text-primary transition-colors"
+                                                        className="group flex items-center gap-1.5 text-foreground hover:text-primary transition-colors"
                                                     >
-                                                        {order.customer.full_name}
+                                                        <span className="border-b border-dashed border-muted-foreground/30 group-hover:border-primary/50 transition-colors pb-0.5">
+                                                            {order.customer.full_name}
+                                                        </span>
+                                                        <span className="opacity-0 -ml-1 group-hover:opacity-100 group-hover:ml-0 transition-all duration-200 text-[10px]">
+                                                            ↗
+                                                        </span>
                                                     </Link>
                                                 </div>
                                             )}
