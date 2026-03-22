@@ -67,7 +67,7 @@ const copy = {
         loading: 'Loading…',
     },
     ar: {
-        eyebrow: 'إطلالتكِ مع ستتشد',
+        eyebrow: 'إطلالتكِ مع Stitched',
         question: 'هل لامست هذه القطعة ذوقكِ الرفيع؟',
         tapToRate: 'اختاري تقييمكِ',
         ratingRequired: 'التقييم مطلوب لمشاركة حكايتكِ',
@@ -91,7 +91,7 @@ const copy = {
         thankYouTitle: 'شكراً لكِ',
         thankYouSubtitle: 'حكايتكِ محلّ تقديرنا.',
         thankYouBody: 'كل كلمة تُلهم غرزتنا القادمة. يشرّفنا أن شغفنا أصبح جزءاً من خزانتكِ.',
-        visitStitched: 'زوري ستتشد',
+        visitStitched: 'زوري Stitched',
         productNotFound: 'المنتج غير موجود',
         productNotFoundDesc: 'لم نتمكّن من العثور على هذا المنتج. يرجى التحقق من الرابط.',
         loading: 'جارٍ التحميل…',

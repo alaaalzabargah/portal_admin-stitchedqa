@@ -19,6 +19,7 @@ interface CustomerDetailsClientProps {
     orders?: any[]
     locale: 'ar' | 'en'
     dict: any
+    initialTab?: string
 }
 
 export function CustomerDetailsClient({
@@ -27,9 +28,10 @@ export function CustomerDetailsClient({
     lastOrderDate,
     orders = [],
     locale,
-    dict
+    dict,
+    initialTab = 'overview'
 }: CustomerDetailsClientProps) {
-    const [activeTab, setActiveTab] = useState('overview')
+    const [activeTab, setActiveTab] = useState(initialTab)
 
     const tabs = [
         {
