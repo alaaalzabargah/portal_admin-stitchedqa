@@ -176,25 +176,25 @@ export default function OrderHistoryPage() {
             <div className="glass-card p-4 rounded-xl space-y-4">
                 <div className="flex flex-col md:flex-row gap-4">
                     {/* Search */}
-                    <div className="flex-1 min-w-[280px] relative group">
+                    <div className="flex-1 min-w-[280px] relative group shrink-0">
                         <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-[18px] h-[18px] text-muted-foreground/60 group-focus-within:text-primary transition-colors" />
                         <input
                             type="text"
                             placeholder="Search by order #, customer, or phone..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full pl-11 pr-4 py-2.5 bg-white/60 hover:bg-white/80 border border-white/60 hover:border-primary/30 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all text-sm placeholder:text-muted-foreground/60 shadow-sm"
+                            className="w-full h-11 pl-11 pr-4 bg-white/60 hover:bg-white/80 border border-black/5 hover:border-primary/30 rounded-2xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all text-sm placeholder:text-muted-foreground/60 shadow-sm"
                         />
                     </div>
 
-                    <div className="flex flex-row items-center gap-2 sm:gap-4 w-full md:w-auto shrink-0 overflow-x-auto hide-scrollbar pb-1 sm:pb-0">
+                    <div className="flex flex-row items-center gap-2 sm:gap-3 w-full md:w-auto shrink-0 overflow-x-auto hide-scrollbar pb-1 sm:pb-0">
                         {/* Status Filter */}
                         <div className="relative group shrink-0">
-                            <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground/60 group-focus-within:text-primary transition-colors" />
+                            <Filter className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/60 group-focus-within:text-primary transition-colors" />
                             <select
                                 value={statusFilter}
                                 onChange={(e) => setStatusFilter(e.target.value)}
-                                className="w-full pl-8 pr-8 py-2.5 bg-white/60 hover:bg-white/80 border border-white/60 hover:border-primary/30 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all text-sm appearance-none cursor-pointer shadow-sm text-foreground font-medium"
+                                className="w-full h-11 pl-10 pr-10 bg-white/60 hover:bg-white/80 border border-black/5 hover:border-primary/30 rounded-2xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all text-sm appearance-none cursor-pointer shadow-sm text-foreground font-medium"
                             >
                                 <option value="all">Status</option>
                                 <option value="paid">Paid</option>
@@ -203,11 +203,11 @@ export default function OrderHistoryPage() {
                                 <option value="pending">Pending</option>
                                 <option value="cancelled">Cancelled</option>
                             </select>
-                            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/60 pointer-events-none" />
+                            <ChevronDown className="absolute right-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/60 pointer-events-none" />
                         </div>
 
                         {/* Sort Toggle (Segmented Control style) */}
-                        <div className="flex p-1 bg-white/50 border border-white/60 rounded-xl shadow-sm leading-none shrink-0 text-sm">
+                        <div className="flex p-1 h-11 bg-white/50 border border-black/5 rounded-2xl shadow-sm leading-none shrink-0 text-sm">
                             <button
                                 onClick={() => {
                                     if (sortBy === 'date') {
@@ -217,7 +217,7 @@ export default function OrderHistoryPage() {
                                         setSortOrder('desc')
                                     }
                                 }}
-                                className={`flex items-center justify-center gap-1 px-3 py-1.5 rounded-[8px] transition-all font-medium ${sortBy === 'date'
+                                className={`flex h-full items-center justify-center gap-1.5 px-3.5 rounded-xl transition-all font-medium ${sortBy === 'date'
                                     ? 'bg-primary text-primary-foreground shadow-sm'
                                     : 'text-muted-foreground hover:text-foreground hover:bg-white/60'
                                     }`}
@@ -236,7 +236,7 @@ export default function OrderHistoryPage() {
                                         setSortOrder('desc')
                                     }
                                 }}
-                                className={`flex items-center justify-center gap-1 px-3 py-1.5 rounded-[8px] transition-all font-medium ${sortBy === 'amount'
+                                className={`flex h-full items-center justify-center gap-1.5 px-3.5 rounded-xl transition-all font-medium ${sortBy === 'amount'
                                     ? 'bg-primary text-primary-foreground shadow-sm'
                                     : 'text-muted-foreground hover:text-foreground hover:bg-white/60'
                                     }`}
