@@ -91,7 +91,7 @@ const copy = {
         thankYouTitle: 'شكراً لكِ',
         thankYouSubtitle: 'حكايتكِ محلّ تقديرنا.',
         thankYouBody: 'كل كلمة تُلهم غرزتنا القادمة. يشرّفنا أن شغفنا أصبح جزءاً من خزانتكِ.',
-        visitStitched: 'زوري ستتشد',
+        visitStitched: 'زوري Stitched',
         productNotFound: 'المنتج غير موجود',
         productNotFoundDesc: 'لم نتمكّن من العثور على هذا المنتج. يرجى التحقق من الرابط.',
         loading: 'جارٍ التحميل…',
