@@ -1,12 +1,14 @@
 {
     "common": {
-        "dashboard": "الموجز",
+        "dashboard": "البوتيك",
         "login": "تسجيل الدخول",
         "customers": "العملاء",
         "measurements": "القياسات",
-        "finance": "المالية",
+        "finance": "الإيرادات",
         "whatsapp": "واتساب",
-        "marketing": "التسويق",
+        "marketing": "الحملات",
+        "automations": "التشغيل التلقائي",
+        "moderation": "المراجعة والاعتماد",
         "settings": "الإعدادات",
         "logout": "تسجيل الخروج",
         "admin_user": "المدير",

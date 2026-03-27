@@ -708,11 +708,49 @@ export async function upsertOrder(
         // First check if order exists
         const { data: existing } = await supabase
             .from('orders')
-            .select('id, external_id, shopify_order_id')
+            .select('id, external_id, shopify_order_id, wa_review_status, wa_scheduled_for')
             .or(`external_id.eq.${data.shopifyOrderId},shopify_order_id.eq.${data.shopifyOrderId}`)
             .single();
 
-        const orderRecord = {
+        let waStatus = existing?.wa_review_status || 'none';
+        let waScheduledFor = existing?.wa_scheduled_for;
+
+        // Trigger WhatsApp automation scheduling when order is fulfilled
+        if (data.fulfillmentStatus === 'fulfilled' && waStatus === 'none') {
+            // Only schedule if customer has a valid phone number
+            let hasPhone = false;
+            if (data.customerId) {
+                const { data: customer } = await supabase
+                    .from('customers')
+                    .select('phone')
+                    .eq('id', data.customerId)
+                    .single();
+                hasPhone = !!(customer?.phone && customer.phone.length > 4);
+            }
+
+            if (hasPhone) {
+                const { data: settings } = await supabase
+                    .from('store_settings')
+                    .select('whatsapp_review_delay_minutes, whatsapp_automation_enabled')
+                    .single();
+
+                if (settings && settings.whatsapp_automation_enabled) {
+                    const delayMinutes = settings.whatsapp_review_delay_minutes || 4320;
+                    const scheduledDate = new Date();
+                    scheduledDate.setMinutes(scheduledDate.getMinutes() + delayMinutes);
+                    waScheduledFor = scheduledDate.toISOString();
+                    waStatus = 'scheduled';
+                    logger.info('Scheduled WhatsApp review automation', { shopifyOrderId: data.shopifyOrderId, scheduledDate });
+                }
+            } else {
+                logger.info('Skipped WA automation — customer has no phone', { shopifyOrderId: data.shopifyOrderId });
+            }
+        }
+
+        // Keep WA scheduling fields separate — they'll be applied atomically after upsert
+        const shouldScheduleWA = waStatus === 'scheduled' && waScheduledFor;
+
+        const orderRecord: any = {
             external_id: data.shopifyOrderId,
             shopify_order_id: data.shopifyOrderId,
             shopify_order_number: data.shopifyOrderNumber,
@@ -781,6 +819,16 @@ export async function upsertOrder(
         }
 
 
+
+        // Atomically schedule WA automation — only if the row is still 'none'
+        // This prevents duplicate webhooks from resetting the schedule
+        if (result?.id && shouldScheduleWA) {
+            await supabase
+                .from('orders')
+                .update({ wa_review_status: 'scheduled', wa_scheduled_for: waScheduledFor })
+                .eq('id', result.id)
+                .eq('wa_review_status', 'none'); // Guard: no-op if another webhook already scheduled
+        }
 
         if (result?.id && data.customerId) {
             // Trigger background stats update (fire and forget)

@@ -142,6 +142,7 @@ export async function GET() {
             'checkouts/create',
             'checkouts/update',
             'orders/create',
+            'orders/updated',
             'orders/paid',
             'orders/cancelled',
             'refunds/create',
