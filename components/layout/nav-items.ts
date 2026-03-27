@@ -29,7 +29,8 @@ export const ALL_NAV_ITEMS: NavItem[] = [
     { href: '/finance/orders', labelKey: 'common.orders', icon: Package },
     { href: '/marketing', labelKey: 'common.marketing', icon: Megaphone },
     { href: '/marketing/reviews', labelKey: 'Reviews', icon: Star, isRawLabel: true },
-    { href: '/marketing/reviews/automations', labelKey: 'common.automations', icon: Bot },
+    // Hidden: uncomment the next line to re-enable the Workflows page in navigation
+    // { href: '/marketing/reviews/automations', labelKey: 'common.automations', icon: Bot },
     { href: '/marketing/moderation', labelKey: 'common.moderation', icon: ShieldCheck },
 ]
 
