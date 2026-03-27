@@ -1,12 +1,14 @@
 {
   "common": {
-    "dashboard": "Dashboard",
+    "dashboard": "The Boutique",
     "login": "Login",
     "customers": "Customers",
     "measurements": "Measurements",
-    "finance": "Finance",
+    "finance": "Revenue",
     "whatsapp": "WhatsApp",
-    "marketing": "Marketing",
+    "marketing": "Campaigns",
+    "automations": "Workflows",
+    "moderation": "Approvals",
     "settings": "Settings",
     "logout": "Sign Out",
     "admin_user": "Admin User",

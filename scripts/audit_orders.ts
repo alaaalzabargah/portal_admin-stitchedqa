@@ -46,7 +46,7 @@ async function auditOrder(orderNum: number) {
 
 async function main() {
   const start = parseInt(process.argv[2] || '1196')
-  const end = parseInt(process.argv[3] || '1205')
+  const end = parseInt(process.argv[3] || '1201')
   console.log(`Auditing orders #${start} to #${end}...\n`)
   for (let i = start; i <= end; i++) {
     await auditOrder(i)

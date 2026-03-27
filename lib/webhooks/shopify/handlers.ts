@@ -725,6 +725,7 @@ const handlerMap: Record<string, TopicHandler> = {
     'checkouts/create': handleCheckoutCreate,
     'checkouts/update': handleCheckoutCreate,
     'orders/create': handleOrderCreate,
+    'orders/updated': handleOrderCreate,
     'orders/paid': handleOrderPaid,
     'orders/cancelled': handleOrderCancelled,
     'refunds/create': handleRefundCreate,
