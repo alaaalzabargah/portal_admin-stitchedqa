@@ -23,7 +23,7 @@ export async function fetchFinancialMetrics(
     // Fetch completed orders (including shipping)
     const { data: orders, error: ordersError } = await supabase
         .from('orders')
-        .select('id, total_amount_minor, total_shipping_minor, financial_status, paid_amount_minor')
+        .select('id, total_amount_minor, total_shipping_minor, financial_status, paid_amount_minor, was_deposit')
         .gte('created_at', range.start)
         .lte('created_at', range.end)
         .or('status.in.(paid,completed,shipped),financial_status.eq.partially_paid')
@@ -172,10 +172,10 @@ export async function fetchTimeSeries(
 
     // OPTIMIZATION: Fetch ALL data for the entire range in batch (3 queries instead of N×3)
     const [orders, expenses] = await Promise.all([
-        // Query 1: All orders in the entire date range
+        // Query 1: All orders in the entire date range (with source + deposit flag for breakdowns)
         supabase
             .from('orders')
-            .select('id, total_amount_minor, total_shipping_minor, created_at')
+            .select('id, total_amount_minor, total_shipping_minor, financial_status, paid_amount_minor, was_deposit, source, created_at')
             .gte('created_at', minDateISO)
             .lte('created_at', maxDateISO)
             .or('status.in.(paid,completed,shipped),financial_status.eq.partially_paid')
@@ -188,10 +188,10 @@ export async function fetchTimeSeries(
                 return r.data || []
             }),
 
-        // Query 2: All expenses in the entire date range
+        // Query 2: All expenses in the entire date range (with category for breakdowns)
         supabase
             .from('expenses')
-            .select('amount_minor, incurred_at')
+            .select('amount_minor, incurred_at, category')
             .gte('incurred_at', minDateISO)
             .lte('incurred_at', maxDateISO)
             .then(r => {
@@ -256,13 +256,39 @@ export async function fetchTimeSeries(
         // Calculate metrics using existing aggregation logic
         const metrics = aggregateMetrics(periodOrders, periodExpenses, periodOrderItems)
 
+        // Revenue by source breakdown for this sub-period
+        const revenueBySource: Record<string, number> = {}
+        for (const o of periodOrders) {
+            const src = o.source || 'walk_in'
+            revenueBySource[src] = (revenueBySource[src] || 0) + o.total_amount_minor + (o.total_shipping_minor || 0)
+        }
+
+        // Expenses by category breakdown for this sub-period
+        const expensesByCategory: Record<string, number> = {}
+        for (const e of periodExpenses) {
+            const cat = e.category || 'Other'
+            expensesByCategory[cat] = (expensesByCategory[cat] || 0) + e.amount_minor
+        }
+
+        // Deposit vs direct order counts
+        const depositOrdersList = periodOrders.filter(o => o.was_deposit === true)
+        const depositOrders = depositOrdersList.length
+        const directOrders = periodOrders.length - depositOrders
+        // Collected = was_deposit + now financial_status='paid'
+        const collectedDeposits = depositOrdersList.filter(o => o.financial_status === 'paid').length
+
         results.push({
             period: period.label,
             date: period.start,
             revenue: metrics.revenue,
             expenses: metrics.expenses,
             grossProfit: metrics.grossProfit,
-            netProfit: metrics.netProfit
+            netProfit: metrics.netProfit,
+            depositOrders,
+            directOrders,
+            collectedDeposits,
+            revenueBySource,
+            expensesByCategory,
         })
     }
 

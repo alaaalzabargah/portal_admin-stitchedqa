@@ -79,6 +79,8 @@ export function buildComparison(current: FinancialMetrics, previous: FinancialMe
             orderCount: calculatePercentChange(current.orderCount, previous.orderCount),
             depositOrderCount: calculatePercentChange(current.depositOrderCount, previous.depositOrderCount),
             depositRevenue: calculatePercentChange(current.depositRevenue, previous.depositRevenue),
+            outstandingDeposits: calculatePercentChange(current.outstandingDeposits, previous.outstandingDeposits),
+            collectedDeposits: calculatePercentChange(current.collectedDeposits, previous.collectedDeposits),
             aov: calculatePercentChange(current.aov, previous.aov)
         }
     }
@@ -88,7 +90,7 @@ export function buildComparison(current: FinancialMetrics, previous: FinancialMe
  * Aggregate financial metrics from raw data
  */
 export function aggregateMetrics(
-    orders: { total_amount_minor: number; total_shipping_minor?: number; financial_status?: string | null; paid_amount_minor?: number | null }[],
+    orders: { total_amount_minor: number; total_shipping_minor?: number; financial_status?: string | null; paid_amount_minor?: number | null; was_deposit?: boolean }[],
     expenses: { amount_minor: number }[],
     orderItems: { quantity: number; unit_cost_minor: number | null }[] = []
 ): FinancialMetrics {
@@ -114,11 +116,16 @@ export function aggregateMetrics(
     const grossProfit = calculateGrossProfit(revenue, cogs)
     const netProfit = calculateNetProfit(revenue, cogs, totalExpenses)
     const orderCount = orders.length
-    
-    // Deposit metrics
-    const depositOrdersList = orders.filter(o => o.financial_status === 'partially_paid')
+
+    // Deposit metrics — use was_deposit flag for historical accuracy
+    // An order with was_deposit=true is a deposit order regardless of current financial_status
+    const depositOrdersList = orders.filter(o => o.was_deposit === true)
     const depositOrderCount = depositOrdersList.length
     const depositRevenue = depositOrdersList.reduce((sum, o) => sum + (o.paid_amount_minor || 0), 0)
+
+    // Outstanding = still partially_paid, Collected = was_deposit but now fully paid
+    const outstandingDeposits = depositOrdersList.filter(o => o.financial_status === 'partially_paid').length
+    const collectedDeposits = depositOrdersList.filter(o => o.financial_status === 'paid').length
 
     const aov = calculateAOV(revenue, orderCount)
 
@@ -131,6 +138,8 @@ export function aggregateMetrics(
         orderCount,
         depositOrderCount,
         depositRevenue,
+        outstandingDeposits,
+        collectedDeposits,
         aov
     }
 }
