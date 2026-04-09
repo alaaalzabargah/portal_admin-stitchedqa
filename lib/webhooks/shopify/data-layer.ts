@@ -769,6 +769,8 @@ export async function upsertOrder(
             notes: data.notes,
             raw_payload: data.rawPayload,
             is_test: data.isTest || false,
+            // Permanently flag deposit orders so they remain trackable after full payment
+            ...(data.financialStatus === 'partially_paid' ? { was_deposit: true } : {}),
         };
 
         console.log('--- UPSERT_ORDER DEBUG ---');
@@ -934,13 +936,28 @@ export async function markOrderPaid(
         console.log('--- MARK_ORDER_PAID DEBUG ---');
         console.log(`Called markOrderPaid for shopifyOrderId: ${shopifyOrderId} with paidAmountMinor: ${paidAmountMinor}`);
 
+        // Check if this was a deposit order before updating
+        const { data: existingOrder } = await supabase
+            .from('orders')
+            .select('was_deposit, financial_status')
+            .or(`external_id.eq.${shopifyOrderId},shopify_order_id.eq.${shopifyOrderId}`)
+            .single();
+
+        const updateData: any = {
+            status: 'paid',
+            financial_status: 'paid',
+            paid_amount_minor: paidAmountMinor,
+        };
+
+        // If this was a deposit order being converted to fully paid, record when
+        if (existingOrder?.was_deposit && existingOrder.financial_status === 'partially_paid') {
+            updateData.deposit_paid_at = new Date().toISOString();
+            logger.info('Deposit order being converted to fully paid', { shopifyOrderId });
+        }
+
         const { error } = await supabase
             .from('orders')
-            .update({
-                status: 'paid',
-                financial_status: 'paid',
-                paid_amount_minor: paidAmountMinor,
-            })
+            .update(updateData)
             .or(`external_id.eq.${shopifyOrderId},shopify_order_id.eq.${shopifyOrderId}`);
 
         if (error) {
@@ -949,8 +966,6 @@ export async function markOrderPaid(
         }
 
         // Trigger stats update if we can find the customer_id
-        // We need to fetch the order first to get the customer_id efficiently or use a subquery
-        // For simplicity, let's fetch the order id and customer id
         const { data: order } = await supabase
             .from('orders')
             .select('customer_id')
