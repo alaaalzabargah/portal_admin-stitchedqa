@@ -165,7 +165,7 @@ export function KPICard({
                         <span className="tabular-nums">
                             {changePercent > 0 && '+'}{changePercent.toFixed(1)}%
                         </span>
-                        <span className="font-normal opacity-70 hidden sm:inline">vs last</span>
+                        <span className="font-normal opacity-70 hidden sm:inline">vs prev</span>
                     </div>
                 )}
             </div>

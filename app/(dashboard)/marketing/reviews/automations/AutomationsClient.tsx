@@ -2,11 +2,11 @@
 
 import { useState, useMemo, useRef } from 'react'
 import { GlassButton } from '@/components/ui/GlassButton'
-import { updateStoreSettings } from './actions'
+import { updateStoreSettings, sendReviewRequestsNow } from './actions'
 import {
     Clock, Send, CheckCircle2, XCircle, History, Zap, ZapOff, Timer,
     ChevronDown, MessageCircle, ArrowUp, ArrowDown, ArrowUpDown,
-    Search, X, PhoneOff, Filter,
+    Search, X, PhoneOff, Filter, Users, Rocket, Check,
 } from 'lucide-react'
 import Link from 'next/link'
 import { format, formatDistanceToNow, isPast } from 'date-fns'
@@ -154,7 +154,7 @@ function StatusPickerModal({ open, current, counts, onSelect, onClose }: {
 
 // ── Main Component ─────────────────────────────────────
 
-export default function AutomationsClient({ settings, queue }: { settings: Settings, queue: any[] }) {
+export default function AutomationsClient({ settings, queue, eligibleOrders = [] }: { settings: Settings, queue: any[], eligibleOrders?: any[] }) {
     const initialParts = minutesToParts(settings?.whatsapp_review_delay_minutes ?? 4320)
     const [enabled, setEnabled] = useState(settings?.whatsapp_automation_enabled ?? false)
     const [days, setDays] = useState(initialParts.days)
@@ -169,6 +169,10 @@ export default function AutomationsClient({ settings, queue }: { settings: Setti
     const [noPhoneOnly, setNoPhoneOnly] = useState(false)
     const [statusPickerOpen, setStatusPickerOpen] = useState(false)
     const [notification, setNotification] = useState<{ message: string, type: 'success' | 'error' } | null>(null)
+    const [selectedOrderIds, setSelectedOrderIds] = useState<Set<string>>(new Set())
+    const [isSending, setIsSending] = useState(false)
+    const [eligibleSearch, setEligibleSearch] = useState('')
+    const [eligibleOpen, setEligibleOpen] = useState(false)
     const searchRef = useRef<HTMLInputElement>(null)
 
     const totalMinutes = useMemo(() => days * 1440 + hours * 60 + minutes, [days, hours, minutes])
@@ -266,6 +270,56 @@ export default function AutomationsClient({ settings, queue }: { settings: Setti
 
     const clamp = (v: number, max: number) => Math.max(0, Math.min(max, isNaN(v) ? 0 : Math.floor(v)))
 
+    // ── Eligible orders logic ──────────────────────────────
+    const filteredEligible = useMemo(() => {
+        if (!eligibleSearch.trim()) return eligibleOrders
+        const q = eligibleSearch.trim().toLowerCase()
+        return eligibleOrders.filter(o => {
+            const customer = Array.isArray(o.customers) ? o.customers[0] : o.customers
+            return String(o.shopify_order_number || '').includes(q) ||
+                (customer?.full_name || '').toLowerCase().includes(q) ||
+                (customer?.phone || '').includes(q)
+        })
+    }, [eligibleOrders, eligibleSearch])
+
+    const allEligibleSelected = filteredEligible.length > 0 && filteredEligible.every(o => selectedOrderIds.has(o.id))
+
+    const toggleSelectAll = () => {
+        if (allEligibleSelected) {
+            setSelectedOrderIds(new Set())
+        } else {
+            setSelectedOrderIds(new Set(filteredEligible.map(o => o.id)))
+        }
+    }
+
+    const toggleOrder = (id: string) => {
+        setSelectedOrderIds(prev => {
+            const next = new Set(prev)
+            if (next.has(id)) next.delete(id)
+            else next.add(id)
+            return next
+        })
+    }
+
+    const handleSendNow = async () => {
+        if (selectedOrderIds.size === 0) return
+        setIsSending(true)
+        try {
+            const result = await sendReviewRequestsNow(Array.from(selectedOrderIds))
+            if (result.success) {
+                setNotification({ message: `Sent ${result.sent} review request${result.sent !== 1 ? 's' : ''} successfully.`, type: 'success' })
+                setSelectedOrderIds(new Set())
+            } else {
+                setNotification({ message: result.error || 'Failed to send review requests.', type: 'error' })
+            }
+        } catch {
+            setNotification({ message: 'Could not reach the server. Check your connection and try again.', type: 'error' })
+        } finally {
+            setIsSending(false)
+            setTimeout(() => setNotification(null), 5000)
+        }
+    }
+
     // Active filter label for mobile button
     const activeFilterLabel = statusFilter === 'all' ? 'All' : STATUS_CONFIG[statusFilter]?.label || statusFilter
     return (
@@ -355,6 +409,138 @@ export default function AutomationsClient({ settings, queue }: { settings: Setti
                     </div>
                 </div>
             </div>
+
+            {/* ── Send Review Requests Section ──────────────── */}
+            {eligibleOrders.length > 0 && (
+                <div className="border border-black/[0.06] shadow-sm rounded-2xl overflow-hidden bg-white">
+                    <button
+                        type="button"
+                        onClick={() => setEligibleOpen(!eligibleOpen)}
+                        className="w-full flex items-center justify-between gap-3 px-4 sm:px-5 py-3.5 hover:bg-muted/20 transition-colors"
+                    >
+                        <div className="flex items-center gap-3 min-w-0">
+                            <Rocket className="w-4 h-4 text-primary flex-shrink-0" />
+                            <span className="text-sm font-medium">Send to Existing Orders</span>
+                            <span className="text-xs text-muted-foreground tabular-nums">
+                                {eligibleOrders.length} eligible
+                            </span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            {selectedOrderIds.size > 0 && (
+                                <span className="text-xs font-medium text-primary tabular-nums">
+                                    {selectedOrderIds.size} selected
+                                </span>
+                            )}
+                            <ChevronDown className={cn("w-4 h-4 text-muted-foreground flex-shrink-0 transition-transform duration-200", eligibleOpen && "rotate-180")} />
+                        </div>
+                    </button>
+
+                    <div className={cn("grid transition-all duration-200 ease-in-out", eligibleOpen ? "grid-rows-[1fr]" : "grid-rows-[0fr]")}>
+                        <div className="overflow-hidden">
+                            <div className="border-t border-black/[0.04]">
+                                {/* Toolbar */}
+                                <div className="flex items-center gap-2 px-4 sm:px-5 py-3">
+                                    <div className="relative flex-1 min-w-0">
+                                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+                                        <input
+                                            type="text"
+                                            value={eligibleSearch}
+                                            onChange={e => setEligibleSearch(e.target.value)}
+                                            placeholder="Search order, customer, or phone..."
+                                            className="w-full h-9 pl-9 pr-8 rounded-xl border border-black/10 bg-muted/20 text-sm outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all placeholder:text-muted-foreground/60"
+                                        />
+                                        {eligibleSearch && (
+                                            <button onClick={() => setEligibleSearch('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 rounded-md hover:bg-muted/50 transition-colors">
+                                                <X className="w-3.5 h-3.5 text-muted-foreground" />
+                                            </button>
+                                        )}
+                                    </div>
+                                    <button
+                                        onClick={toggleSelectAll}
+                                        className={cn(
+                                            "flex-shrink-0 inline-flex items-center gap-1.5 h-9 px-3 rounded-xl border text-xs font-medium transition-all",
+                                            allEligibleSelected
+                                                ? "bg-primary text-primary-foreground border-primary"
+                                                : "bg-white border-black/10 text-muted-foreground hover:bg-muted/30"
+                                        )}
+                                    >
+                                        <Check className="w-3.5 h-3.5" />
+                                        {allEligibleSelected ? 'Deselect All' : 'Select All'}
+                                    </button>
+                                </div>
+
+                                {/* Order list */}
+                                <div className="max-h-[320px] overflow-y-auto">
+                                    {filteredEligible.length === 0 ? (
+                                        <div className="flex flex-col items-center justify-center py-8 text-center">
+                                            <Search className="w-5 h-5 text-muted-foreground mb-2" />
+                                            <p className="text-sm text-muted-foreground">No matching orders</p>
+                                        </div>
+                                    ) : (
+                                        <div className="divide-y divide-black/[0.04]">
+                                            {filteredEligible.map(order => {
+                                                const customer = Array.isArray(order.customers) ? order.customers[0] : order.customers
+                                                const isSelected = selectedOrderIds.has(order.id)
+                                                return (
+                                                    <button
+                                                        key={order.id}
+                                                        type="button"
+                                                        onClick={() => toggleOrder(order.id)}
+                                                        className={cn(
+                                                            "w-full flex items-center gap-3 px-4 sm:px-5 py-3 text-left transition-colors",
+                                                            isSelected ? "bg-primary/[0.04]" : "hover:bg-muted/20"
+                                                        )}
+                                                    >
+                                                        <div className={cn(
+                                                            "flex-shrink-0 w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all",
+                                                            isSelected
+                                                                ? "bg-primary border-primary"
+                                                                : "border-black/15 bg-white"
+                                                        )}>
+                                                            {isSelected && <Check className="w-3 h-3 text-white" />}
+                                                        </div>
+                                                        <div className="flex-1 min-w-0 flex items-center justify-between gap-3">
+                                                            <div className="min-w-0">
+                                                                <div className="flex items-center gap-2">
+                                                                    <span className="text-sm font-medium">#{order.shopify_order_number}</span>
+                                                                    <span className="text-xs text-muted-foreground truncate">{customer?.full_name || 'Guest'}</span>
+                                                                </div>
+                                                                <p className="text-xs text-muted-foreground truncate">{customer?.phone}</p>
+                                                            </div>
+                                                            <span className="text-[11px] text-muted-foreground flex-shrink-0 tabular-nums">
+                                                                {format(new Date(order.created_at), 'MMM d, yyyy')}
+                                                            </span>
+                                                        </div>
+                                                    </button>
+                                                )
+                                            })}
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Send button */}
+                                {selectedOrderIds.size > 0 && (
+                                    <div className="border-t border-black/[0.04] px-4 sm:px-5 py-3 flex items-center justify-between gap-3">
+                                        <p className="text-xs text-muted-foreground">
+                                            <span className="font-medium text-foreground">{selectedOrderIds.size}</span> order{selectedOrderIds.size !== 1 ? 's' : ''} will receive a review request via WhatsApp
+                                        </p>
+                                        <GlassButton
+                                            onClick={handleSendNow}
+                                            variant="primary"
+                                            size="sm"
+                                            isLoading={isSending}
+                                            className="flex-shrink-0"
+                                        >
+                                            <Send className="w-3.5 h-3.5 mr-1.5" />
+                                            {isSending ? 'Sending...' : `Send ${selectedOrderIds.size} Request${selectedOrderIds.size !== 1 ? 's' : ''}`}
+                                        </GlassButton>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* ── Queue Section ─────────────────────────────── */}
             <div className="space-y-3">

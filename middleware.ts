@@ -61,6 +61,7 @@ export async function middleware(request: NextRequest) {
         path === '/reset-password' ||
         path.startsWith('/auth/callback') ||
         path.startsWith('/api/webhooks') ||
+        path.startsWith('/api/whatsapp/webhook') || // WhatsApp Cloud API webhook
         path.startsWith('/api/create-deposit-order') || // Allow storefront checkout creation
         path.startsWith('/review') || // Public customer review pages
         path.startsWith('/api/reviews') || // Public review API
