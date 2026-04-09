@@ -151,7 +151,7 @@ export async function POST(request: NextRequest) {
 
                 // Send to Meta API
                 const response = await fetch(
-                    `https://graph.facebook.com/v21.0/${META_PHONE_ID}/messages`,
+                    `https://graph.facebook.com/v25.0/${META_PHONE_ID}/messages`,
                     {
                         method: 'POST',
                         headers: {

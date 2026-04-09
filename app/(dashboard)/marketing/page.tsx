@@ -10,12 +10,15 @@ import {
     Search,
     Users,
     MessageSquare,
+    MessageSquarePlus,
     Image,
     Globe,
     Hash,
     Eye,
     FileText,
-    ChevronRight
+    ChevronRight,
+    LayoutTemplate,
+    Type
 } from 'lucide-react'
 import { useLanguage } from '@/lib/i18n/context'
 import { useDialog } from '@/lib/dialog'
@@ -68,6 +71,10 @@ export default function MarketingPage() {
     const [searchQuery, setSearchQuery] = useState('')
     const [tierFilter, setTierFilter] = useState<string>('all')
     const [loading, setLoading] = useState(true)
+
+    // Mode: 'template' (campaign) or 'direct' (free-form text)
+    const [sendMode, setSendMode] = useState<'template' | 'direct'>('template')
+    const [directMessage, setDirectMessage] = useState('')
 
     // Campaign State
     const [templateName, setTemplateName] = useState('')
@@ -260,10 +267,9 @@ export default function MarketingPage() {
 
     const canProceedToNextStep = (): boolean => {
         if (mobileStep === 1) {
-            // Step 1: Must have selected at least one customer
             return selectedIds.size > 0
         } else if (mobileStep === 2) {
-            // Step 2: Must have template name
+            if (sendMode === 'direct') return directMessage.trim().length > 0
             return templateName.trim().length > 0
         }
         return true
@@ -374,6 +380,69 @@ export default function MarketingPage() {
                 phone: '',
                 status: 'error',
                 message: 'Failed to send campaign. Check console for details.',
+                timestamp: new Date()
+            }])
+        }
+
+        setSending(false)
+    }
+
+    // Send direct message
+    const sendDirectMessage = async () => {
+        if (selectedIds.size === 0) {
+            await dialog.alert('Please select at least one customer', 'No Customers Selected')
+            return
+        }
+        if (!directMessage.trim()) {
+            await dialog.alert('Please type a message', 'Message Required')
+            return
+        }
+
+        setSending(true)
+        setLogs([])
+
+        const selectedCustomers = customers
+            .filter(c => selectedIds.has(c.id))
+            .map(c => ({ id: c.id, name: c.full_name || 'Customer', phone: c.phone }))
+
+        const pendingLogs = selectedCustomers.map(c => ({
+            id: c.id,
+            phone: c.phone,
+            status: 'pending' as const,
+            message: t('marketing.sending'),
+            timestamp: new Date()
+        }))
+        setLogs(pendingLogs)
+
+        try {
+            const response = await fetch('/api/marketing/send-message', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    customers: selectedCustomers,
+                    message: directMessage.trim()
+                })
+            })
+
+            const data = await response.json()
+
+            if (data.results) {
+                const resultLogs: LogEntry[] = data.results.map((r: any, i: number) => ({
+                    id: `result-${i}`,
+                    phone: r.phone,
+                    status: r.status,
+                    message: r.message,
+                    timestamp: new Date()
+                }))
+                setLogs(resultLogs)
+            }
+        } catch (error) {
+            console.error('Direct message send failed:', error)
+            setLogs([{
+                id: 'error',
+                phone: '',
+                status: 'error',
+                message: 'Failed to send message. Check console for details.',
                 timestamp: new Date()
             }])
         }
@@ -506,6 +575,83 @@ export default function MarketingPage() {
                         <h2 className="text-xl font-semibold text-primary">{t('marketing.campaign')}</h2>
                     </div>
 
+                    {/* Mode Toggle */}
+                    <div className="flex p-1 bg-sand-100 rounded-xl">
+                        <button
+                            type="button"
+                            onClick={() => setSendMode('template')}
+                            className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg text-sm font-medium transition-all ${
+                                sendMode === 'template'
+                                    ? 'bg-white text-primary shadow-sm'
+                                    : 'text-muted-foreground hover:text-secondary'
+                            }`}
+                        >
+                            <LayoutTemplate className="w-4 h-4" />
+                            Template Campaign
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => setSendMode('direct')}
+                            className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg text-sm font-medium transition-all ${
+                                sendMode === 'direct'
+                                    ? 'bg-white text-primary shadow-sm'
+                                    : 'text-muted-foreground hover:text-secondary'
+                            }`}
+                        >
+                            <Type className="w-4 h-4" />
+                            Direct Message
+                        </button>
+                    </div>
+
+                    {/* ── Direct Message Mode ─────────────── */}
+                    {sendMode === 'direct' && (
+                        <div className="space-y-4">
+                            <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl">
+                                <p className="text-xs text-amber-800">
+                                    <strong>Note:</strong> Direct text messages only work within the 24-hour service window (after a customer messages you first). For messages outside this window, use Template Campaign mode.
+                                </p>
+                            </div>
+
+                            <div className="space-y-2">
+                                <label className="block text-sm font-medium text-secondary">
+                                    Message *
+                                </label>
+                                <textarea
+                                    value={directMessage}
+                                    onChange={(e) => setDirectMessage(e.target.value)}
+                                    placeholder="Type your message here..."
+                                    rows={6}
+                                    maxLength={4096}
+                                    className="w-full px-4 py-3 border border-sand-200 rounded-xl focus:ring-2 focus:ring-accent focus:border-accent text-sm resize-none"
+                                />
+                                <div className="flex justify-between text-xs text-muted-foreground">
+                                    <span>{directMessage.length}/4096 characters</span>
+                                    <span>{selectedIds.size} recipient{selectedIds.size !== 1 ? 's' : ''}</span>
+                                </div>
+                            </div>
+
+                            <button
+                                onClick={sendDirectMessage}
+                                disabled={sending || selectedIds.size === 0 || !directMessage.trim()}
+                                className="w-full flex items-center justify-center gap-2 bg-green-600 text-white py-4 rounded-xl font-medium hover:bg-green-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl"
+                            >
+                                {sending ? (
+                                    <>
+                                        <Loader2 className="w-5 h-5 animate-spin" />
+                                        {t('marketing.sending')}
+                                    </>
+                                ) : (
+                                    <>
+                                        <Send className={`w-5 h-5 ${direction === 'rtl' ? 'rotate-180' : ''}`} />
+                                        Send Message ({selectedIds.size})
+                                    </>
+                                )}
+                            </button>
+                        </div>
+                    )}
+
+                    {/* ── Template Campaign Mode ─────────── */}
+                    {sendMode === 'template' && <>
                     {/* Template Name */}
                     <div className="space-y-2">
                         <label className="block text-sm font-medium text-secondary">
@@ -815,6 +961,7 @@ export default function MarketingPage() {
                             </>
                         )}
                     </button>
+                    </>}
                 </div>
             </div>
 
@@ -897,6 +1044,55 @@ export default function MarketingPage() {
                             </div>
                         </div>
 
+                        {/* Mobile Mode Toggle */}
+                        <div className="flex p-1 bg-sand-100 rounded-xl">
+                            <button
+                                type="button"
+                                onClick={() => setSendMode('template')}
+                                className={`flex-1 flex items-center justify-center gap-1.5 py-2 px-2 rounded-lg text-xs font-medium transition-all ${
+                                    sendMode === 'template'
+                                        ? 'bg-white text-primary shadow-sm'
+                                        : 'text-muted-foreground'
+                                }`}
+                            >
+                                <LayoutTemplate className="w-3.5 h-3.5" />
+                                Template
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setSendMode('direct')}
+                                className={`flex-1 flex items-center justify-center gap-1.5 py-2 px-2 rounded-lg text-xs font-medium transition-all ${
+                                    sendMode === 'direct'
+                                        ? 'bg-white text-primary shadow-sm'
+                                        : 'text-muted-foreground'
+                                }`}
+                            >
+                                <Type className="w-3.5 h-3.5" />
+                                Direct
+                            </button>
+                        </div>
+
+                        {/* Mobile Direct Message */}
+                        {sendMode === 'direct' && (
+                            <div className="space-y-3">
+                                <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl">
+                                    <p className="text-xs text-amber-800">
+                                        <strong>Note:</strong> Direct messages only work within the 24h service window.
+                                    </p>
+                                </div>
+                                <textarea
+                                    value={directMessage}
+                                    onChange={(e) => setDirectMessage(e.target.value)}
+                                    placeholder="Type your message here..."
+                                    rows={5}
+                                    maxLength={4096}
+                                    className="w-full px-4 py-3 border border-sand-200 rounded-xl focus:ring-2 focus:ring-accent focus:border-accent text-sm resize-none"
+                                />
+                                <p className="text-xs text-muted-foreground text-right">{directMessage.length}/4096</p>
+                            </div>
+                        )}
+
+                        {sendMode === 'template' && <>
                         {/* Saved Templates (Mobile) */}
                         {savedTemplates.length > 0 && (
                             <div className="bg-gradient-to-br from-green-50 to-green-100/50 rounded-xl p-3 border border-green-200">
@@ -1087,6 +1283,7 @@ export default function MarketingPage() {
                                 </div>
                             ))}
                         </div>
+                        </>}
                     </div>
                 </div>
 
@@ -1206,7 +1403,7 @@ export default function MarketingPage() {
                     currentStep={mobileStep}
                     onPrevious={goToPreviousStep}
                     onNext={goToNextStep}
-                    onSend={sendCampaign}
+                    onSend={sendMode === 'direct' ? sendDirectMessage : sendCampaign}
                     canProceed={canProceedToNextStep()}
                     sending={sending}
                 />

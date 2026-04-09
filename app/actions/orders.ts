@@ -24,12 +24,15 @@ export async function markDepositAsPaid(orderId: string, customerId: string) {
         }
 
         // 2. Update the Order — mark as fully paid with the full order amount
+        //    Keep was_deposit=true so historical deposit tracking is preserved
         const { error: updateOrderError } = await supabase
             .from('orders')
             .update({
                 financial_status: 'paid',
                 status: 'paid',
-                paid_amount_minor: order.total_amount_minor // Now fully paid
+                paid_amount_minor: order.total_amount_minor, // Now fully paid
+                was_deposit: true, // Ensure flag is preserved
+                deposit_paid_at: new Date().toISOString(), // Track when deposit was collected
             })
             .eq('id', orderId)
 
